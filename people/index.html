@@ -88,17 +88,20 @@ document.addEventListener("DOMContentLoaded", function() {
       )) return;
 
     // SPACEBAR → TOGGLE COMPILE
-    if (e.code === "Space" || e.key === " ") {
+    const isSpace = e.code === "Space" || e.key === " " || e.key === "Spacebar";
+    if (isSpace) {
       e.preventDefault();
-      toggle.checked = !toggle.checked;
-      const prettyContainer = document.querySelector(".pretty-container");
-      if (prettyContainer) prettyContainer.classList.toggle("pretty-enabled", toggle.checked);
-      compiledView.style.display = toggle.checked ? "flex" : "none";
-      plainView.style.display = toggle.checked ? "none" : "block";
-      if (imgEl) imgEl.style.display = toggle.checked ? "block" : "none";
-      if (ageHeader) ageHeader.style.display = toggle.checked ? "block" : "none";
-      return;
+      // toggle compile mode
+      const toggle = document.getElementById("compileToggle");
+      if (toggle) {
+        toggle.checked = !toggle.checked;
+
+        // simulate the toggle change event
+        toggle.dispatchEvent(new Event('change'));
+      }
+      return; // stop here so it doesn’t rotate images
     }
+
 
     // LETTERS → ROTATE IMAGE
     if (/^[a-zA-Z]$/.test(e.key)) {
