@@ -35,83 +35,12 @@
   "work": "sde intern @ td, ml @ tmi (uoft)",
   "contact": "akash.nagabhirava@mail.utoronto.ca",
   "socials": {
-    "github": "<a href="https://github.com/akashngb" target="_blank" rel="external nofollow noopener">github.com/akashngb</a>",
-    "linkedin": "<a href="https://www.linkedin.com/in/akash-nagabhirava-164155327/" target="_blank" rel="external nofollow noopener">linkedin.com/in/akash-nagabhirava/</a>"
-    "instagram": "<a href="https://www.instagram.com/akash30n/" target="_blank" rel="external nofollow noopener">instagram.com/akash30n/</a>"
+    "github": "https://github.com/akashngb",
+    "linkedin": "https://www.linkedin.com/in/akash-nagabhirava-164155327/",
+    "instagram": "https://www.instagram.com/akash30n/"
   }
 }
-    </pre> <div id="compiled-view" class="pretty-container"> <div class="pretty-card"> <h3>about</h3> <p>your about text here</p> </div> <div class="pretty-card"> <h3>work</h3> <p>sde intern @ td<br>ml @ tmi (uoft)</p> </div> <div class="pretty-card"> <h3>contact</h3> <p>akash.nagabhirava@mail.utoronto.ca</p> </div> <div class="pretty-card"> <h3>socials</h3> <p><a href="">github</a><br><a href="">linkedin</a><br><a href="">instagram</a></p> </div> </div> </div> <div class="about-right"> <img id="profile-rotator" class="profile-frame" src="/assets/img/rooftop.png" alt="profile frame"> <div class="more-info"><p>1/7/21<br>Toronto, ON</p></div> </div> </div> <style>#compiled-view,#profile-rotator,#age-header{display:none}.about-container{display:flex;justify-content:space-between;align-items:flex-start;gap:2rem}.about-left{flex:1;max-width:600px}.about-right{flex-shrink:0}.pretty-card{background:#0d1117;padding:1rem;border-radius:12px;border:1px solid rgba(255,255,255,0.06);box-shadow:0 0 4px rgba(255,255,255,0.05),0 0 28px rgba(0,0,0,0.4)}.pretty-container{display:flex;flex-direction:column;gap:1.5rem}.profile-frame{width:240px;aspect-ratio:3 / 4;object-fit:cover;border-radius:12px;display:block;margin-top:1rem}.code-block{background:#111;color:#7ab8f5;padding:1rem;border-radius:8px;font-family:monospace}</style> <script>
-document.addEventListener("DOMContentLoaded", function() {
-  const toggle = document.getElementById("compileToggle");
-  const compiledView = document.getElementById("compiled-view");
-  const plainView = document.getElementById("plain-view");
-  const imgEl = document.getElementById("profile-rotator");
-  const ageHeader = document.getElementById("age-header");
-
-  // COMPILE toggle checkbox
-  toggle.addEventListener("change", function() {
-    const prettyContainer = document.querySelector(".pretty-container");
-    if (toggle.checked) {
-      document.body.classList.add("compiled");
-      compiledView.style.display = "flex";
-      plainView.style.display = "none";
-      if (imgEl) imgEl.style.display = "block";
-      if (ageHeader) ageHeader.style.display = "block";
-      if (prettyContainer) prettyContainer.classList.add("pretty-enabled");
-    } else {
-      document.body.classList.remove("compiled");
-      compiledView.style.display = "none";
-      plainView.style.display = "block";
-      if (imgEl) imgEl.style.display = "none";
-      if (ageHeader) ageHeader.style.display = "none";
-      if (prettyContainer) prettyContainer.classList.remove("pretty-enabled");
-    }
-  });
-
-  /* ---------------------------
-     PROFILE IMAGE ROTATOR (LETTER KEYS)
-  ---------------------------- */
-  const images = ["/assets/img/rooftop.png","/assets/img/5.png","/assets/img/9.png","/assets/img/1.png","/assets/img/2.png","/assets/img/4.png","/assets/img/8.png","/assets/img/6.png"];
-  let idx = 0;
-
-  function setImage(i) {
-    if(imgEl) imgEl.src = images[i];
-  }
-
-  document.addEventListener("keydown", function (e) {
-    // Ignore inputs
-    const active = document.activeElement;
-    if (active && (
-        active.tagName === "INPUT" ||
-        active.tagName === "TEXTAREA" ||
-        active.isContentEditable
-      )) return;
-
-    // SPACEBAR → TOGGLE COMPILE
-    const isSpace = e.code === "Space" || e.key === " " || e.key === "Spacebar";
-    if (isSpace) {
-      e.preventDefault();
-      // toggle compile mode
-      const toggle = document.getElementById("compileToggle");
-      if (toggle) {
-        toggle.checked = !toggle.checked;
-
-        // simulate the toggle change event
-        toggle.dispatchEvent(new Event('change'));
-      }
-      return; // stop here so it doesn’t rotate images
-    }
-
-
-    // LETTERS → ROTATE IMAGE
-    if (/^[a-zA-Z]$/.test(e.key)) {
-      if (!images.length || !imgEl) return;
-      idx = (idx + 1) % images.length;
-      setImage(idx);
-    }
-  });
-});
-</script> </div> <div class="profile-column"> <img id="profile-rotator" class="profile-frame" src="/assets/img/rooftop.png" alt="profile frame"> <div class="more-info"><p>1/7/21<br>Toronto, ON</p></div> </div> </div> </article> </div> <style>.about-content{display:flex;align-items:flex-start;justify-content:space-between;width:100%}.cards-column{display:flex;flex-direction:column;gap:1.25rem;font-size:1.05rem;line-height:1.65;max-width:900px}.profile-column{flex-shrink:0}.profile-frame{width:270px;height:360px;object-fit:cover;border-radius:12px;display:block;margin:0;user-select:none;pointer-events:auto}.pretty-container:not(.pretty-enabled) .pretty-card{background:transparent;box-shadow:none;border-radius:0;padding:0}.pretty-container:not(.pretty-enabled) h3{color:inherit;font-family:inherit}.pretty-card{background:#111418;padding:1.5rem;border-radius:12px;box-shadow:0 0 20px rgba(0,0,0,0.25)}.pretty-card h3{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;margin:0 0 .5rem 0;color:#7ab8f5;font-size:1.1rem}.pretty-card p,.pretty-card li{font-family:Inter,system-ui,sans-serif;color:#cfd8e3;line-height:1.5}</style> <script>
+    </pre> <div id="compiled-view" class="pretty-container"> <div class="pretty-card"> <h3>about</h3> <p>your about text here</p> </div> <div class="pretty-card"> <h3>work</h3> <p>sde intern @ td<br>ml @ tmi (uoft)</p> </div> <div class="pretty-card"> <h3>contact</h3> <p>akash.nagabhirava@mail.utoronto.ca</p> </div> <div class="pretty-card"> <h3>socials</h3> <p> <a href="https://github.com/akashngb" target="_blank" rel="external nofollow noopener">github</a><br> <a href="https://www.linkedin.com/in/akash-nagabhirava-164155327/" target="_blank" rel="external nofollow noopener">linkedin</a><br> <a href="https://www.instagram.com/akash30n/" target="_blank" rel="external nofollow noopener">instagram</a> </p> </div> </div> </div> <div class="about-right"> <img id="profile-rotator" class="profile-frame" src="/assets/img/rooftop.png" alt="profile frame"> <div class="more-info"><p>1/7/21<br>Toronto, ON</p></div> </div> </div> </div> <div class="profile-column"> <img id="profile-rotator" class="profile-frame" src="/assets/img/rooftop.png" alt="profile frame"> <div class="more-info"><p>1/7/21<br>Toronto, ON</p></div> </div> </div> </article> </div> <style>.about-content{display:flex;align-items:flex-start;justify-content:space-between;width:100%}.cards-column{display:flex;flex-direction:column;gap:1.25rem;font-size:1.05rem;line-height:1.65;max-width:900px}.profile-column{flex-shrink:0}.profile-frame{width:270px;height:360px;object-fit:cover;border-radius:12px;display:block;margin:0;user-select:none;pointer-events:auto}.pretty-container:not(.pretty-enabled) .pretty-card{background:transparent;box-shadow:none;border-radius:0;padding:0}.pretty-container:not(.pretty-enabled) h3{color:inherit;font-family:inherit}.pretty-card{background:#111418;padding:1.5rem;border-radius:12px;box-shadow:0 0 20px rgba(0,0,0,0.25)}.pretty-card h3{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;margin:0 0 .5rem 0;color:#7ab8f5;font-size:1.1rem}.pretty-card p,.pretty-card li{font-family:Inter,system-ui,sans-serif;color:#cfd8e3;line-height:1.5}</style> <script>
 /* -----------------------------
    LIVE AGE
 ------------------------------ */
@@ -131,39 +60,50 @@ setInterval(updateAge, 50);
 document.addEventListener("DOMContentLoaded", function () {
   const images = ["/assets/img/rooftop.png","/assets/img/5.png","/assets/img/9.png","/assets/img/1.png","/assets/img/2.png","/assets/img/4.png","/assets/img/8.png","/assets/img/6.png"];
   const imgEl = document.getElementById("profile-rotator");
-  if (!imgEl || !images.length) return;
-  let idx = 0;
-
-  function setImage(i) {
-    imgEl.src = images[i].startsWith('/') ? images[i] : '/' + images[i];
-  }
-
   const toggle = document.getElementById("compileToggle");
   const compiledView = document.getElementById("compiled-view");
   const plainView = document.getElementById("plain-view");
   const ageHeader = document.getElementById("age-header");
+  let idx = 0;
 
-  document.addEventListener("keydown", function(e) {
+  function setImage(i) {
+    if (!imgEl) return;
+    imgEl.src = images[i].startsWith('/') ? images[i] : '/' + images[i];
+  }
+
+  function updateCompileDisplay() {
+    const isChecked = toggle.checked;
+    if (compiledView) compiledView.style.display = isChecked ? "flex" : "none";
+    if (plainView) plainView.style.display = isChecked ? "none" : "block";
+    if (imgEl) imgEl.style.display = isChecked ? "block" : "none";
+    if (ageHeader) ageHeader.style.display = isChecked ? "block" : "none";
+    const prettyContainer = document.querySelector(".pretty-container");
+    if (prettyContainer) prettyContainer.classList.toggle("pretty-enabled", isChecked);
+  }
+
+  // Toggle compile checkbox listener
+  if (toggle) {
+    toggle.addEventListener("change", updateCompileDisplay);
+  }
+
+  // Keydown listener
+  document.addEventListener("keydown", function (e) {
     const active = document.activeElement;
     if (active && (active.tagName === "INPUT" || active.tagName === "TEXTAREA" || active.isContentEditable)) return;
 
-    // SPACEBAR → TOGGLE COMPILE
+    // SPACEBAR → toggle compile
     if (e.code === "Space" || e.key === " " || e.key === "Spacebar") {
       e.preventDefault();
       if (toggle) {
         toggle.checked = !toggle.checked;
-        if (compiledView) compiledView.style.display = toggle.checked ? "flex" : "none";
-        if (plainView) plainView.style.display = toggle.checked ? "none" : "block";
-        if (imgEl) imgEl.style.display = toggle.checked ? "block" : "none";
-        if (ageHeader) ageHeader.style.display = toggle.checked ? "block" : "none";
-        const prettyContainer = document.querySelector(".pretty-container");
-        if (prettyContainer) prettyContainer.classList.toggle("pretty-enabled", toggle.checked);
+        updateCompileDisplay();
       }
       return;
     }
 
-    // LETTER KEYS → ROTATE IMAGE
+    // LETTER KEYS → rotate image
     if (/^[a-zA-Z]$/.test(e.key)) {
+      if (!images.length || !imgEl) return;
       idx = (idx + 1) % images.length;
       setImage(idx);
     }
