@@ -10,7 +10,7 @@
     "linkedin": "https://www.linkedin.com/in/akash-nagabhirava-164155327/"
   }
 }
-  </pre> <div id="compiled-view" class="pretty-container"> <div class="pretty-card"> <h3>about</h3> <p>your about text here</p> </div> <div class="pretty-card"> <h3>work</h3> <p>sde intern @ td<br>ml @ tmi (uoft)</p> </div> <div class="pretty-card"> <h3>contact</h3> <p>akash.nagabhirava@mail.utoronto.ca</p> </div> <div class="pretty-card"> <h3>socials</h3> <p><a href="">github</a><br><a href="">linkedin</a></p> </div> </div> </div> <div class="about-right"> <img id="profile-rotator" class="profile-frame" src="/assets/img/rooftop.png" alt="profile frame"> <div class="more-info"><p>1/7/21<br>Toronto, ON</p></div> </div> <style>#compiled-view,#profile-rotator,#age-header{display:none}.about-left{float:left;max-width:500px}.about-right{float:right}.pretty-container{display:flex;flex-direction:column;gap:1.25rem}.pretty-card{background:#111418;padding:1rem;border-radius:12px;box-shadow:0 0 20px rgba(0,0,0,0.25)}.profile-frame{width:240px;aspect-ratio:3 / 4;object-fit:cover;border-radius:12px;display:block;margin-top:1rem}.code-block{background:#111;color:#7ab8f5;padding:1rem;border-radius:8px;font-family:monospace}</style> <script>
+  </pre> <div id="compiled-view" class="pretty-container"> <div class="pretty-card"> <h3>about</h3> <p>your about text here</p> </div> <div class="pretty-card"> <h3>work</h3> <p>sde intern @ td<br>ml @ tmi (uoft)</p> </div> <div class="pretty-card"> <h3>contact</h3> <p>akash.nagabhirava@mail.utoronto.ca</p> </div> <div class="pretty-card"> <h3>socials</h3> <p><a href="">github</a><br><a href="">linkedin</a></p> </div> </div> </div> <div class="about-right"> <img id="profile-rotator" class="profile-frame" src="/assets/img/rooftop.png" alt="profile frame"> <div class="more-info"><p>1/7/21<br>Toronto, ON</p></div> </div> <style>#compiled-view,#profile-rotator,#age-header{display:none}.about-left{float:left;max-width:500px}.about-right{float:right}.pretty-card{background:#0d1117;padding:1rem;border-radius:12px;border:1px solid rgba(255,255,255,0.06);box-shadow:0 0 4px rgba(255,255,255,0.05),0 0 28px rgba(0,0,0,0.4)}.pretty-container{display:flex;flex-direction:column;gap:1.5rem}.profile-frame{width:240px;aspect-ratio:3 / 4;object-fit:cover;border-radius:12px;display:block;margin-top:1rem}.code-block{background:#111;color:#7ab8f5;padding:1rem;border-radius:8px;font-family:monospace}</style> <script>
 document.addEventListener("DOMContentLoaded", function() {
   const toggle = document.getElementById("compileToggle");
   const compiledView = document.getElementById("compiled-view");
@@ -21,12 +21,14 @@ document.addEventListener("DOMContentLoaded", function() {
   toggle.addEventListener("change", function() {
     if (toggle.checked) {
       // compiled mode ON
+      document.body.classList.add("compiled");
       compiledView.style.display = "flex";
       plainView.style.display = "none";
       if (imgEl) imgEl.style.display = "block";
       if (ageHeader) ageHeader.style.display = "block";
     } else {
       // compiled mode OFF
+      document.body.classList.remove("compiled");
       compiledView.style.display = "none";
       plainView.style.display = "block";
       if (imgEl) imgEl.style.display = "none";
