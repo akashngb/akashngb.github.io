@@ -40,7 +40,7 @@
     "instagram": "https://www.instagram.com/akash30n/"
   }
 }
-    </pre> <div id="compiled-view" class="pretty-container"> <div class="pretty-card"> <h3>about</h3> <p>your about text here</p> </div> <div class="pretty-card"> <h3>work</h3> <p>sde intern @ td<br>ml @ tmi (uoft)</p> </div> <div class="pretty-card"> <h3>contact</h3> <p>akash.nagabhirava@mail.utoronto.ca</p> </div> <div class="pretty-card"> <h3>socials</h3> <p> <a href="https://github.com/akashngb" target="_blank" rel="external nofollow noopener">github</a><br> <a href="https://www.linkedin.com/in/akash-nagabhirava-164155327/" target="_blank" rel="external nofollow noopener">linkedin</a><br> <a href="https://www.instagram.com/akash30n/" target="_blank" rel="external nofollow noopener">instagram</a> </p> </div> </div> </div> </div> </div> <div class="profile-column"> <div class="more-info"><p>1/7/21<br>Toronto, ON</p></div> </div> </div> </article> </div> <style>.about-content{display:flex;align-items:flex-start;justify-content:space-between;width:100%}.cards-column{display:flex;flex-direction:column;gap:1.25rem;font-size:1.05rem;line-height:1.65;max-width:900px}.profile-column{flex-shrink:0}.profile-frame{width:270px;height:360px;object-fit:cover;border-radius:12px;display:block;margin:0;user-select:none;pointer-events:auto}.pretty-container:not(.pretty-enabled) .pretty-card{background:transparent;box-shadow:none;border-radius:0;padding:0}.pretty-container:not(.pretty-enabled) h3{color:inherit;font-family:inherit}.pretty-card{background:#111418;padding:1.5rem;border-radius:12px;box-shadow:0 0 20px rgba(0,0,0,0.25)}.pretty-card h3{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;margin:0 0 .5rem 0;color:#7ab8f5;font-size:1.1rem}.pretty-card p,.pretty-card li{font-family:Inter,system-ui,sans-serif;color:#cfd8e3;line-height:1.5}#compiled-view{display:none}#profile-rotator{display:none}</style> <script>
+    </pre> <div id="compiled-view" class="pretty-container"> <div class="pretty-card"> <h3>about</h3> <p>your about text here</p> </div> <div class="pretty-card"> <h3>work</h3> <p>sde intern @ td<br>ml @ tmi (uoft)</p> </div> <div class="pretty-card"> <h3>contact</h3> <p>akash.nagabhirava@mail.utoronto.ca</p> </div> <div class="pretty-card"> <h3>socials</h3> <p> <a href="https://github.com/akashngb" target="_blank" rel="external nofollow noopener">github</a><br> <a href="https://www.linkedin.com/in/akash-nagabhirava-164155327/" target="_blank" rel="external nofollow noopener">linkedin</a><br> <a href="https://www.instagram.com/akash30n/" target="_blank" rel="external nofollow noopener">instagram</a> </p> </div> </div> </div> </div> </div> <div class="profile-column"> <img id="profile-rotator" class="profile-frame profile-hidden" src="/assets/img/rooftop.png" alt="profile frame"> <div class="more-info"><p>1/7/21<br>Toronto, ON</p></div> </div> </div> </article> </div> <style>#compiled-view{display:none}.profile-hidden{display:none}.about-content{display:flex;align-items:flex-start;justify-content:space-between;width:100%}.cards-column{display:flex;flex-direction:column;gap:1.25rem;font-size:1.05rem;line-height:1.65;max-width:900px}.profile-column{flex-shrink:0}.profile-frame{width:270px;height:360px;object-fit:cover;border-radius:12px;display:block;margin:0;user-select:none;pointer-events:auto}.pretty-card{background:#111418;padding:1.5rem;border-radius:12px;box-shadow:0 0 20px rgba(0,0,0,0.25)}.pretty-card h3{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;margin:0 0 .5rem 0;color:#7ab8f5;font-size:1.1rem}.pretty-card p,.pretty-card li{font-family:Inter,system-ui,sans-serif;color:#cfd8e3;line-height:1.5}</style> <script>
 /* -----------------------------
    LIVE AGE
 ------------------------------ */
@@ -73,54 +73,46 @@ document.addEventListener("DOMContentLoaded", function () {
 
   function updateCompileDisplay() {
     const isChecked = toggle.checked;
+
     if (compiledView) compiledView.style.display = isChecked ? "flex" : "none";
     if (plainView) plainView.style.display = isChecked ? "none" : "block";
-    if (imgEl) imgEl.style.display = isChecked ? "block" : "none";
+
+    // image visibility controlled by class, not inline style
+    if (imgEl) imgEl.classList.toggle("profile-hidden", !isChecked);
+
     if (ageHeader) ageHeader.style.display = isChecked ? "block" : "none";
+
     const prettyContainer = document.querySelector(".pretty-container");
-    if (prettyContainer) prettyContainer.classList.toggle("pretty-enabled", isChecked);
+    if (prettyContainer) {
+      prettyContainer.classList.toggle("pretty-enabled", isChecked);
+    }
   }
 
-  // Toggle compile checkbox listener
   if (toggle) {
     toggle.addEventListener("change", updateCompileDisplay);
   }
 
-  // Keydown listener
   document.addEventListener("keydown", function (e) {
     const active = document.activeElement;
-    if (active && (active.tagName === "INPUT" || active.tagName === "TEXTAREA" || active.isContentEditable)) return;
+    if (active && (active.tagName === "INPUT" ||
+                   active.tagName === "TEXTAREA" ||
+                   active.isContentEditable))
+      return;
 
-    // SPACEBAR → toggle compile
+    // SPACE toggles compile
     if (e.code === "Space" || e.key === " " || e.key === "Spacebar") {
       e.preventDefault();
-      if (toggle) {
-        toggle.checked = !toggle.checked;
-        updateCompileDisplay();
-      }
+      toggle.checked = !toggle.checked;
+      updateCompileDisplay();
       return;
     }
 
-    // LETTER KEYS → rotate image
+    // letters rotate image
     if (/^[a-zA-Z]$/.test(e.key)) {
-      if (!images.length || !imgEl) return;
       idx = (idx + 1) % images.length;
       setImage(idx);
     }
   });
-});
-
-/* -----------------------------
-   PRETTY-PRINT TOGGLE CLICK
------------------------------- */
-document.addEventListener("DOMContentLoaded", function () {
-  const toggle = document.getElementById("prettyToggle");
-  const container = document.querySelector(".pretty-container");
-  if (toggle && container) {
-    toggle.addEventListener("change", function () {
-      container.classList.toggle("pretty-enabled", toggle.checked);
-    });
-  }
 });
 </script> </div> <footer class="fixed-bottom" role="contentinfo"> <div class="container mt-0"> © Copyright 2025 Akash Nagabhirava . Last updated: November 26, 2025. </div> </footer> <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script> <script src="/assets/js/bootstrap.bundle.min.js"></script> <script src="https://cdn.jsdelivr.net/npm/mdbootstrap@4.20.0/js/mdb.min.js" integrity="sha256-NdbiivsvWt7VYCt6hYNT3h/th9vSTL4EDWeGs5SN3DA=" crossorigin="anonymous"></script> <script defer src="https://cdn.jsdelivr.net/npm/masonry-layout@4.2.2/dist/masonry.pkgd.min.js" integrity="sha256-Nn1q/fx0H7SNLZMQ5Hw5JLaTRZp0yILA/FRexe19VdI=" crossorigin="anonymous"></script> <script defer src="https://cdn.jsdelivr.net/npm/imagesloaded@5.0.0/imagesloaded.pkgd.min.js" integrity="sha256-htrLFfZJ6v5udOG+3kNLINIKh2gvoKqwEhHYfTTMICc=" crossorigin="anonymous"></script> <script defer src="/assets/js/masonry.js?a0db7e5d5c70cc3252b3138b0c91dcaf" type="text/javascript"></script> <script defer src="https://cdn.jsdelivr.net/npm/medium-zoom@1.1.0/dist/medium-zoom.min.js" integrity="sha256-ZgMyDAIYDYGxbcpJcfUnYwNevG/xi9OHKaR/8GK+jWc=" crossorigin="anonymous"></script> <script defer src="/assets/js/zoom.js?85ddb88934d28b74e78031fd54cf8308"></script> <script src="/assets/js/no_defer.js?2781658a0a2b13ed609542042a859126"></script> <script defer src="/assets/js/common.js?e0514a05c5c95ac1a93a8dfd5249b92e"></script> <script defer src="/assets/js/copy_code.js?c8a01c11a92744d44b093fc3bda915df" type="text/javascript"></script> <script defer src="/assets/js/jupyter_new_tab.js?d9f17b6adc2311cbabd747f4538bb15f"></script> <script async src="https://d1bxh8uas1mnw7.cloudfront.net/assets/embed.js"></script> <script async src="https://badge.dimensions.ai/badge.js"></script> <script defer type="text/javascript" id="MathJax-script" src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.js" integrity="sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI=" crossorigin="anonymous"></script> <script src="/assets/js/mathjax-setup.js?a5bb4e6a542c546dd929b24b8b236dfd"></script> <script defer src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6" crossorigin="anonymous"></script> <script defer src="/assets/js/progress-bar.js?2f30e0e6801ea8f5036fa66e1ab0a71a" type="text/javascript"></script> <script src="/assets/js/vanilla-back-to-top.min.js?f40d453793ff4f64e238e420181a1d17"></script> <script>
     addBackToTop();
