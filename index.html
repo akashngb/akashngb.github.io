@@ -13,10 +13,13 @@ document.addEventListener("DOMContentLoaded", function () {
   const images = ["rooftop.png","1.png","2.png","3.png","4.png","5.png","6.png","7.png","8.png","9.png"];
   let idx = 0;
   const imgEl = document.getElementById("profile-rotator");
-  imgEl.addEventListener("click", () => {
-    idx = (idx + 1) % images.length;
-    imgEl.src = images[idx];
-  });
+
+  if (imgEl) {
+    imgEl.addEventListener("click", () => {
+      idx = (idx + 1) % images.length;
+      imgEl.src = images[idx];
+    });
+  }
 });
 </script> <style>.pretty-container:not(.pretty-enabled) .pretty-card{background:transparent;box-shadow:none;border-radius:0;padding:0}.pretty-container:not(.pretty-enabled) h3{color:inherit;font-family:inherit}.pretty-container{display:flex;flex-wrap:wrap;gap:1rem;margin-top:1rem}.pretty-card{background:#f9f9f9;padding:1rem;border-radius:.5rem;flex:1 1 200px;box-shadow:0 2px 6px rgba(0,0,0,0.1)}</style> </div> <div class="social"> <div class="contact-icons"> <a href="mailto:%79%6F%75@%65%78%61%6D%70%6C%65.%63%6F%6D" title="email"><i class="fa-solid fa-envelope"></i></a> <a href="https://inspirehep.net/authors/1010907" title="Inspire HEP" rel="external nofollow noopener" target="_blank"><i class="ai ai-inspire"></i></a> <a href="//feed.xml" title="RSS Feed"><i class="fa-solid fa-square-rss"></i></a> <a href="https://scholar.google.com/citations?user=qc6CJjYAAAAJ" title="Google Scholar" rel="external nofollow noopener" target="_blank"><i class="ai ai-google-scholar"></i></a> <a href="https://www.alberteinstein.com/" title="Custom Social" rel="external nofollow noopener" target="_blank"> <img src="https://www.alberteinstein.com/wp-content/uploads/2024/03/cropped-favicon-192x192.png" alt="Custom Social"> </a> </div> <div class="contact-note">email me! </div> </div> </article> </div> <script>
   // Your birthdate
