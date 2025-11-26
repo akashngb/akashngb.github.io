@@ -81,18 +81,46 @@ document.addEventListener("DOMContentLoaded", function() {
     if(imgEl) imgEl.src = images[i];
   }
 
-  document.addEventListener("keydown", function(e) {
+  document.addEventListener("keydown", function (e) {
+
+    // Ignore if typing in input/textarea/contenteditable
     const active = document.activeElement;
-    if (active && (active.tagName === "INPUT" || active.tagName === "TEXTAREA" || active.isContentEditable)) return;
-    const isSpace = e.code === "Space" || e.key === " " || e.key === "Spacebar";
+    if (active && (
+        active.tagName === "INPUT" ||
+        active.tagName === "TEXTAREA" ||
+        active.isContentEditable
+      )) return;
+
+    /* -----------------------------
+      SPACEBAR → TOGGLE COMPILE
+    ------------------------------ */
+    const isSpace = e.code === "Space" || e.key === " ";
     if (isSpace) {
       e.preventDefault();
+      const toggle = document.getElementById("prettyToggle");
+      if (toggle) {
+        toggle.checked = !toggle.checked;
+        document
+          .querySelector(".pretty-container")
+          .classList.toggle("pretty-enabled", toggle.checked);
+      }
+      return; // stop here so it doesn't trigger letter block
+    }
+
+    /* -----------------------------
+      LETTERS → ROTATE PROFILE IMAGE
+    ------------------------------ */
+    const isLetter = /^[a-zA-Z]$/.test(e.key);
+    if (isLetter) {
+      if (!images.length || !imgEl) return;
       idx = (idx + 1) % images.length;
       setImage(idx);
     }
   });
+
+
 });
-</script> </div> <div class="profile-column"> <img id="profile-rotator" class="profile-frame" src="/assets/img/rooftop.png" alt="profile frame"> <div class="more-info"><p>1/7/21<br>Toronto, ON</p></div> </div> </div> </article> </div> <style>.about-content{display:flex;gap:2rem;align-items:flex-start;justify-content:flex-start;flex-wrap:wrap}.cards-column{display:flex;flex-direction:column;gap:1.25rem;max-width:480px}.profile-column{flex-shrink:0}.profile-frame{width:270px;height:360px;object-fit:cover;border-radius:12px;display:block;margin:0;user-select:none;pointer-events:auto}.pretty-container:not(.pretty-enabled) .pretty-card{background:transparent;box-shadow:none;border-radius:0;padding:0}.pretty-container:not(.pretty-enabled) h3{color:inherit;font-family:inherit}.pretty-card{background:#111418;padding:1.5rem;border-radius:12px;box-shadow:0 0 20px rgba(0,0,0,0.25)}.pretty-card h3{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;margin:0 0 .5rem 0;color:#7ab8f5;font-size:1.1rem}.pretty-card p,.pretty-card li{font-family:Inter,system-ui,sans-serif;color:#cfd8e3;line-height:1.5}</style> <script>
+</script> </div> <div class="profile-column"> <img id="profile-rotator" class="profile-frame" src="/assets/img/rooftop.png" alt="profile frame"> <div class="more-info"><p>1/7/21<br>Toronto, ON</p></div> </div> </div> </article> </div> <style>.about-content{display:flex;align-items:flex-start;justify-content:space-between;width:100%}.cards-column{display:flex;flex-direction:column;gap:1.25rem;font-size:1.05rem;line-height:1.65;max-width:900px}.profile-column{flex-shrink:0}.profile-frame{width:270px;height:360px;object-fit:cover;border-radius:12px;display:block;margin:0;user-select:none;pointer-events:auto}.pretty-container:not(.pretty-enabled) .pretty-card{background:transparent;box-shadow:none;border-radius:0;padding:0}.pretty-container:not(.pretty-enabled) h3{color:inherit;font-family:inherit}.pretty-card{background:#111418;padding:1.5rem;border-radius:12px;box-shadow:0 0 20px rgba(0,0,0,0.25)}.pretty-card h3{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;margin:0 0 .5rem 0;color:#7ab8f5;font-size:1.1rem}.pretty-card p,.pretty-card li{font-family:Inter,system-ui,sans-serif;color:#cfd8e3;line-height:1.5}</style> <script>
 /* -----------------------------
    LIVE AGE
 ------------------------------ */
