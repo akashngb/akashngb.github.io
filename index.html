@@ -211,40 +211,44 @@ function detonateJSON() {
   const text = pre.innerText;
   pre.innerHTML = "";
 
-  const bounds = pre.getBoundingClientRect();
-  const cx = bounds.width / 2;
-  const cy = bounds.height / 2;
+  const rect = pre.getBoundingClientRect();
+  const centerX = rect.width / 2;
+  const centerY = rect.height / 2;
 
   [...text].forEach(char => {
     const span = document.createElement("span");
     span.classList.add("char");
     span.textContent = char === " " ? "\u00A0" : char;
 
-    const x = Math.random() * bounds.width;
-    const y = Math.random() * bounds.height;
-
-    const dx = (cx - x) + "px";
-    const dy = (cy - y) + "px";
-    const rot = (Math.random() * 180 - 90) + "deg";
-
-    span.style.setProperty("--dx", dx);
-    span.style.setProperty("--dy", dy);
-    span.style.setProperty("--rot", rot);
-
-    span.style.position = "relative";
+    // place each letter where the mouse would initially be
     pre.appendChild(span);
+
+    // get current position AFTER it's in DOM
+    const charRect = span.getBoundingClientRect();
+
+    const charX = charRect.left - rect.left + charRect.width / 2;
+    const charY = charRect.top - rect.top + charRect.height / 2;
+
+    // distance from center
+    const dx = centerX - charX;
+    const dy = centerY - charY;
+
+    span.style.setProperty("--dx", dx + "px");
+    span.style.setProperty("--dy", dy + "px");
+    span.style.setProperty("--rot", "0deg");
   });
 
-  // Trigger implosion
-  setTimeout(() => {
+  // TRIGGER COLLAPSE
+  requestAnimationFrame(() => {
     pre.classList.add("implode");
-  }, 30);
+  });
 
-  // Remove JSON after collapse
+  // KILL JSON AFTER COLLISION
   setTimeout(() => {
     pre.style.display = "none";
   }, 900);
 }
+
 
 
 
