@@ -53,29 +53,47 @@ function updateAge() {
   if (el) el.textContent = years.toFixed(10);
 }
 updateAge();
-setInterval(updateAge, 50);
+updatePlainAge();
+setInterval(() => {
+  updateAge();
+  updatePlainAge();
+}, 50);
 
 /* -----------------------------
    UPDATE AGE IN PLAIN JSON
 ------------------------------ */
 function updatePlainAge() {
-  const ageEl = document.getElementById("plain-view");
-  if (!ageEl) return;
+  const el = document.getElementById("plain-view");
+  if (!el) return;
 
-  const age = ((new Date() - birthDate) / (365.2422*24*60*60*1000)).toFixed(10);
-  let content = ageEl.textContent;
-
-  if (content.includes('"age"')) {
-    content = content.replace(/"age":\s*[\d.]+/, `"age": ${age}`);
-  } else {
-    content = content.replace('{', `{\n  "age": ${age},`);
+  // Parse existing JSON from pre block
+  let json;
+  try {
+    json = JSON.parse(el.textContent);
+  } catch {
+    // fallback if parsing fails
+    json = {};
   }
 
-  ageEl.textContent = content;
+  // Compute live age
+  const now = new Date();
+  const age = (now - birthDate) / (365.2422*24*60*60*1000);
+
+  // Create new object with age after name
+  const newJson = { "name": json.name, "age": Number(age.toFixed(9)) };
+
+  // Copy rest of fields except name
+  for (const key in json) {
+    if (key !== "name") newJson[key] = json[key];
+  }
+
+  // Update pre block
+  el.textContent = JSON.stringify(newJson, null, 2);
 }
 
+
 updatePlainAge();
-setInterval(updatePlainAge, 5000); // optional: live update every 5s
+setInterval(updatePlainAge, 50);
 
 /* -----------------------------
    PROFILE IMAGE ROTATOR + COMPILE TOGGLE
