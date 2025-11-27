@@ -40,7 +40,7 @@
     "instagram": "https://www.instagram.com/akash30n/"
   }
 }
-    </pre> <div id="compiled-view" class="pretty-container"> <div class="pretty-card"> <h3>about</h3> <p>"hi! i'm a 2nd year computer science student at the university of toronto. i love to learn and build high-impact projects. feel free to dm me on socials or send me an email - i’d love to chat!"</p> </div> <div class="pretty-card"> <h3>work</h3> <p>incoming se/data intern @ td<br>currently ml @ tmi (uoft)</p> </div> <div class="pretty-card"> <h3>email</h3> <p>akash.nagabhirava@mail.utoronto.ca</p> </div> <div class="pretty-card"> <h3>socials</h3> <p> <a href="https://github.com/akashngb" target="_blank" rel="external nofollow noopener">github</a><br> <a href="https://www.linkedin.com/in/akash-nagabhirava-164155327/" target="_blank" rel="external nofollow noopener">linkedin</a><br> <a href="https://www.instagram.com/akash30n/" target="_blank" rel="external nofollow noopener">instagram</a> </p> </div> </div> </div> </div> <div class="profile-column"> <img id="profile-rotator" class="profile-frame profile-hidden" src="/assets/img/rooftop.png" alt="profile frame"> <div id="more-info" class="more-info"><p>toronto, on</p></div> </div> </div> </article> </div> <style>#compiled-view{display:none}.profile-hidden{display:none}#name-header,#more-info{display:none}#toc-sidebar{display:none}.about-content{display:flex;align-items:flex-start;justify-content:space-between;width:100%}.profile-column{flex-shrink:0}.profile-frame{width:270px;height:360px;object-fit:cover;border-radius:12px;margin:0;user-select:none;pointer-events:auto}.pretty-card{background:#111418;max_width:1000px;padding:1.5rem;border-radius:12px;box-shadow:0 0 20px rgba(0,0,0,0.25)}.pretty-card h3{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;margin:0 0 .5rem 0;color:#7ab8f5;font-size:1.1rem}.pretty-card p,.pretty-card li{font-family:Inter,system-ui,sans-serif;color:#cfd8e3;line-height:1.5}.pretty-container{display:flex;flex-direction:column;gap:1.5rem}#plain-view{min-height:200px;max-width:900px;white-space:pre-wrap;word-wrap:break-word;overflow-wrap:break-word;padding:1rem;box-sizing:border-box}</style> <script>
+    </pre> <div id="compiled-view" class="pretty-container"> <div class="pretty-card"> <h3>about</h3> <p>"hi! i'm a 2nd year computer science student at the university of toronto. i love to learn and build high-impact projects. feel free to dm me on socials or send me an email - i’d love to chat!"</p> </div> <div class="pretty-card"> <h3>work</h3> <p>incoming se/data intern @ td<br>currently ml @ tmi (uoft)</p> </div> <div class="pretty-card"> <h3>email</h3> <p>akash.nagabhirava@mail.utoronto.ca</p> </div> <div class="pretty-card"> <h3>socials</h3> <p> <a href="https://github.com/akashngb" target="_blank" rel="external nofollow noopener">github</a><br> <a href="https://www.linkedin.com/in/akash-nagabhirava-164155327/" target="_blank" rel="external nofollow noopener">linkedin</a><br> <a href="https://www.instagram.com/akash30n/" target="_blank" rel="external nofollow noopener">instagram</a> </p> </div> </div> </div> </div> <div class="profile-column"> <img id="profile-rotator" class="profile-frame profile-hidden" src="/assets/img/rooftop.png" alt="profile frame"> <div id="more-info" class="more-info"><p>toronto, on</p></div> </div> </div> </article> </div> <style>.fade-in{opacity:0;animation:fadeIn .9s ease forwards}.slide-down{opacity:0;transform:translateY(-25px);animation:slideDown .8s ease forwards}.delay-1{animation-delay:.2s}.delay-2{animation-delay:.4s}@keyframes fadeIn{to{opacity:1}}@keyframes slideDown{to{opacity:1;transform:translateY(0)}}.about-left,.profile-column{opacity:0}#name-header{opacity:0;transform:translateY(-25px)}#compiled-view{display:none}.profile-hidden{display:none}#name-header,#more-info{display:none}#toc-sidebar{display:none}.about-content{display:flex;align-items:flex-start;justify-content:space-between;width:100%}.profile-column{flex-shrink:0}.profile-frame{width:270px;height:360px;object-fit:cover;border-radius:12px;margin:0;user-select:none;pointer-events:auto}.pretty-card{background:#111418;max-width:1000px;padding:1.5rem;border-radius:12px;box-shadow:0 0 20px rgba(0,0,0,0.25)}.pretty-card h3{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;margin:0 0 .5rem 0;color:#7ab8f5;font-size:1.1rem}.pretty-card p,.pretty-card li{font-family:Inter,system-ui,sans-serif;color:#cfd8e3;line-height:1.5}.pretty-container{display:flex;flex-direction:column;gap:1.5rem}#plain-view{min-height:200px;max-width:900px;white-space:pre-wrap;word-wrap:break-word;overflow-wrap:break-word;padding:1rem;box-sizing:border-box}</style> <script>
 /* -----------------------------
    LIVE AGE CONFIG
 ------------------------------ */
@@ -68,7 +68,7 @@ function updateAgeHeader() {
 function initAgeUpdates() {
   updateAgeHeader();
 
-  // Update every second
+  // Update every 1/10th second
   setInterval(() => {
     updateAgeHeader();
   }, 100);
@@ -83,7 +83,7 @@ function initProfileRotator() {
   const toggle = document.getElementById("compileToggle");
   const compiledView = document.getElementById("compiled-view");
   const plainView = document.getElementById("plain-view");
-  const ageHeader = document.getElementById("age-header");
+  /*const ageHeader = document.getElementById("age-header");*/
   let idx = 0;
 
   function setImage(i) {
@@ -94,20 +94,37 @@ function initProfileRotator() {
   function updateCompileDisplay() {
     const isChecked = toggle.checked;
 
+    // Toggle main views
     if (compiledView) compiledView.style.display = isChecked ? "flex" : "none";
     if (plainView) plainView.style.display = isChecked ? "none" : "block";
 
+    // Profile image
     if (imgEl) imgEl.classList.toggle("profile-hidden", !isChecked);
 
+    // Name + info
     const nameHeader = document.getElementById("name-header");
-    if (nameHeader) nameHeader.style.display = isChecked ? "block" : "none";
-
     const moreInfo = document.getElementById("more-info");
-    if (moreInfo) moreInfo.style.display = isChecked ? "block" : "none";
 
-    const prettyContainer = document.querySelector(".pretty-container");
-    if (prettyContainer) {
-        prettyContainer.classList.toggle("pretty-enabled", isChecked);
+    // Remove animation classes first (important for retriggering)
+    [document.querySelector(".about-left"), document.querySelector(".profile-column"), nameHeader]
+      .forEach(el => el && el.classList.remove("fade-in", "slide-down", "delay-1", "delay-2"));
+
+    if (isChecked) {
+      // Show elements
+      if (nameHeader) nameHeader.style.display = "block";
+      if (moreInfo) moreInfo.style.display = "block";
+
+      // Trigger animations
+      document.querySelector(".about-left")?.classList.add("fade-in", "delay-1");
+      document.querySelector(".profile-column")?.classList.add("fade-in", "delay-2");
+      nameHeader?.classList.add("slide-down");
+    } else {
+      // Hide everything again
+      if (nameHeader) nameHeader.style.display = "none";
+      if (moreInfo) moreInfo.style.display = "none";
+
+      document.querySelector(".about-left").style.opacity = "0";
+      document.querySelector(".profile-column").style.opacity = "0";
     }
   }
 
