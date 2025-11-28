@@ -150,9 +150,11 @@ function initProfileRotator() {
             `typing 1.4s steps(${chars}, end) forwards, blink 0.7s infinite`;
 
 
-          // Kill caret after typing
+          // Stop caret blink completely after typing finishes
           setTimeout(() => {
-            nameHeader.style.borderColor = "transparent";
+            nameHeader.style.animation =
+              "typing 1.4s steps(17, end) forwards"; // remove blink
+            nameHeader.style.borderRight = "none";   // remove caret
           }, 1400);
         }
 
