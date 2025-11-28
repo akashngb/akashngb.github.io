@@ -128,9 +128,9 @@ function initProfileRotator() {
 
         plainView?.classList.add("json-hidden");
         // hard-hide after fade completes
-        setTimeout(() => {
-          if (plainView) plainView.style.display = "none";
-        }, 700);
+      setTimeout(() => {
+        if (plainView) plainView.style.display = "none";
+      }, 10);
 
         // show compiled view
         if (compiledView) compiledView.style.display = "flex";
