@@ -271,9 +271,10 @@ function initProfileRotator() {
         if (nameHeader) {
           nameHeader.style.display = "inline-block";
           nameHeader.style.opacity = "1";
-          nameHeader.style.width = "fit-content";  // ← important so name isn’t clipped
-          nameHeader.style.maxWidth = "0";         // ← animate this instead
-          nameHeader.style.overflow = "hidden";    // keep typewriter illusion
+          nameHeader.style.visibility = "visible";
+          nameHeader.style.width = "auto";
+          nameHeader.style.animation = "none";
+          nameHeader.textContent = ""; // ensures typing is visible
 
           // run typo typewriter
           typeNameWithTypos(nameHeader);
