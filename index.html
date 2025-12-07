@@ -282,15 +282,15 @@ function initProfileRotator() {
           // show subtitle after typewriter finishes
           const subtitle = document.getElementById("subtitle");
           if (subtitle) {
-            subtitle.style.display = "block";
-            subtitle.style.opacity = "0";
+            subtitle.style.opacity = "0";   // start hidden
             subtitle.style.marginTop = "0.5rem";
 
             // fade it in AFTER typewriter
             setTimeout(() => {
               subtitle.classList.add("subtitle-visible");
             }, 2600); // slightly after final name stage
-          }
+}
+
         }
 
 
