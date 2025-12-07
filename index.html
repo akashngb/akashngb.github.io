@@ -81,90 +81,122 @@ function initAgeUpdates() {
 ------------------------------ */
 function typeNameWithTypos(el) {
   if (!el) return;
+  // prevent concurrent runs on same element
+  if (el.dataset.typing === "1") {
+    console.debug("typeNameWithTypos: already typing on this element, skipping");
+    return;
+  }
+  el.dataset.typing = "1";
+
+  console.debug("typeNameWithTypos: starting");
 
   const firstName = "Akash ";
   const typos = [
-    "Nabghirava",   // typo 1
-    "Nagabhirva",   // typo 2
-    "Nagabhirava",  // correct
+    "Nabghirava",  // wrong
+    "Nagabhirva",  // wrong 2
+    "Nagabhirava", // correct
   ];
 
+  // reset element state
   el.textContent = "";
   el.style.borderRight = "2px solid currentColor";
 
-  let stage = 0;         // which last name we’re typing
-  let index = 0;         // what character we're on
-  let deleting = false;  // are we backspacing?
-  let deleteTarget = 0;  // how many chars to delete
+  let stage = 0;       // which last name (typo or correct)
+  let index = 0;       // position in last name
+  let deleting = false;
 
-  // Random jitter for realism
+  // small helper for human-like jitter
   function jitter(base) {
     return base + Math.floor(Math.random() * 60) - 30; // ±30ms
   }
 
-  // 5% chance to pause slightly
-  function maybePause(callback) {
-    if (Math.random() < 0.05) {
-      setTimeout(callback, 200 + Math.random() * 250);
+  // small chance to pause (micro-pause)
+  function maybePause(cb) {
+    if (Math.random() < 0.06) { // ~6% chance
+      setTimeout(cb, 180 + Math.random() * 220);
     } else {
-      callback();
+      cb();
     }
   }
 
   function step() {
+    // defensive: if element was removed from DOM, abort
+    if (!document.body.contains(el)) {
+      console.debug("typeNameWithTypos: element removed, aborting");
+      el.dataset.typing = "0";
+      return;
+    }
+
     const target = typos[stage];
 
-    // ============================
-    // FORWARD TYPING
-    // ============================
     if (!deleting) {
-      const nextText = firstName + target.slice(0, index + 1);
-      el.textContent = nextText;
+      // TYPING FORWARD
+      el.textContent = firstName + target.slice(0, index + 1);
       index++;
 
       if (index < target.length) {
-        return maybePause(() => setTimeout(step, jitter(130)));
+        return maybePause(() => setTimeout(step, jitter(120)));
       }
 
-      // Finished typing a typo (not final)
+      // finished typing this typo — pause then delete if needed
       if (stage < typos.length - 1) {
-        deleteTarget = Math.floor(Math.random() * 3) + 1; // delete 1–3 chars only
-        return setTimeout(() => {
+        // small pause, then delete only a few characters (partial backspace)
+        setTimeout(() => {
+          // for realism: delete 1..3 chars (but don't delete entire word)
+          const deleteCount = Math.min(3, Math.max(1, Math.floor(Math.random() * 3)));
+          // set deletion target via index and stage (we'll use index and deleting)
           deleting = true;
+          // set the number of deletes left in a property so we know how many to delete
+          el.dataset.deletesLeft = String(deleteCount);
           step();
-        }, 350);
+        }, 380 + Math.random() * 120);
+        return;
+      } else {
+        // final correct name — finish after a short pause
+        setTimeout(() => {
+          el.style.borderRight = "none";
+          el.dataset.typing = "0";
+          console.debug("typeNameWithTypos: finished (final)");
+        }, 320);
+        return;
       }
 
-      // Finished typing the final correct version
-      return setTimeout(() => {
-        el.style.borderRight = "none";
-      }, 300);
-    }
-
-    // ============================
-    // BACKSPACING (partial)
-    // ============================
-    else {
-      // Stop once we've deleted deleteTarget characters
-      if (deleteTarget <= 0) {
+    } else {
+      // BACKSPACE (partial) -- delete only deletesLeft chars
+      let deletesLeft = parseInt(el.dataset.deletesLeft || "0", 10);
+      if (deletesLeft <= 0) {
+        // done deleting this stage; prepare next stage
         deleting = false;
         stage++;
-        index = target.length - deleteTarget; // re-align index
-        return setTimeout(step, 200);
+        // align index to what remains of the target after deletion
+        index = (typos[stage - 1] || "").length - 0; // index will be set when typing restarts
+        // small pause, then continue typing next stage
+        setTimeout(() => {
+          // clear deletesLeft
+          el.dataset.deletesLeft = "0";
+          // ensure index is where it should be for new stage
+          // we'll set index = current visible chars of last name
+          const visible = el.textContent.replace(firstName, "");
+          index = visible.length;
+          step();
+        }, 200 + Math.random() * 120);
+        return;
       }
 
-      // Show backspace effect
-      el.textContent = firstName + target.slice(0, index - 1);
-      index--;
-      deleteTarget--;
+      // perform one backspace
+      const currentVisible = el.textContent.replace(firstName, "");
+      const newVisible = currentVisible.slice(0, -1);
+      el.textContent = firstName + newVisible;
+      deletesLeft--;
+      el.dataset.deletesLeft = String(deletesLeft);
 
-      return maybePause(() => setTimeout(step, jitter(80)));
+      return maybePause(() => setTimeout(step, jitter(75)));
     }
   }
 
+  // start typing
   step();
 }
-
 
 
 /* -----------------------------
@@ -346,8 +378,18 @@ document.addEventListener("DOMContentLoaded", function () {
   initProfileRotator();
 });
 
-document.addEventListener("DOMContentLoaded", typeNameWithTypos);
+// do NOT call typeNameWithTypos without an element.
+// If you want it to run on page load, call it with the element explicitly:
+document.addEventListener("DOMContentLoaded", function () {
+  const el = document.getElementById("name-header");
+  if (el) {
+    // don't auto-run unless you want it on page load; comment out next line if not desired
+    // typeNameWithTypos(el);
+    console.debug("DOMContentLoaded: name-header present (did not auto-run typewriter)");
+  }
+});
 
-</script> </div> <footer class="fixed-bottom" role="contentinfo"> <div class="container mt-0"> © Copyright 2025 Akash Nagabhirava . Last updated: December 06, 2025. </div> </footer> <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script> <script src="/assets/js/bootstrap.bundle.min.js"></script> <script src="https://cdn.jsdelivr.net/npm/mdbootstrap@4.20.0/js/mdb.min.js" integrity="sha256-NdbiivsvWt7VYCt6hYNT3h/th9vSTL4EDWeGs5SN3DA=" crossorigin="anonymous"></script> <script defer src="https://cdn.jsdelivr.net/npm/masonry-layout@4.2.2/dist/masonry.pkgd.min.js" integrity="sha256-Nn1q/fx0H7SNLZMQ5Hw5JLaTRZp0yILA/FRexe19VdI=" crossorigin="anonymous"></script> <script defer src="https://cdn.jsdelivr.net/npm/imagesloaded@5.0.0/imagesloaded.pkgd.min.js" integrity="sha256-htrLFfZJ6v5udOG+3kNLINIKh2gvoKqwEhHYfTTMICc=" crossorigin="anonymous"></script> <script defer src="/assets/js/masonry.js?a0db7e5d5c70cc3252b3138b0c91dcaf" type="text/javascript"></script> <script defer src="https://cdn.jsdelivr.net/npm/medium-zoom@1.1.0/dist/medium-zoom.min.js" integrity="sha256-ZgMyDAIYDYGxbcpJcfUnYwNevG/xi9OHKaR/8GK+jWc=" crossorigin="anonymous"></script> <script defer src="/assets/js/zoom.js?85ddb88934d28b74e78031fd54cf8308"></script> <script src="/assets/js/no_defer.js?2781658a0a2b13ed609542042a859126"></script> <script defer src="/assets/js/common.js?e0514a05c5c95ac1a93a8dfd5249b92e"></script> <script defer src="/assets/js/copy_code.js?c8a01c11a92744d44b093fc3bda915df" type="text/javascript"></script> <script defer src="/assets/js/jupyter_new_tab.js?d9f17b6adc2311cbabd747f4538bb15f"></script> <script async src="https://d1bxh8uas1mnw7.cloudfront.net/assets/embed.js"></script> <script async src="https://badge.dimensions.ai/badge.js"></script> <script defer type="text/javascript" id="MathJax-script" src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.js" integrity="sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI=" crossorigin="anonymous"></script> <script src="/assets/js/mathjax-setup.js?a5bb4e6a542c546dd929b24b8b236dfd"></script> <script defer src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6" crossorigin="anonymous"></script> <script defer src="/assets/js/progress-bar.js?2f30e0e6801ea8f5036fa66e1ab0a71a" type="text/javascript"></script> <script src="/assets/js/vanilla-back-to-top.min.js?f40d453793ff4f64e238e420181a1d17"></script> <script>
+
+</script> </div> <footer class="fixed-bottom" role="contentinfo"> <div class="container mt-0"> © Copyright 2025 Akash Nagabhirava . Last updated: December 07, 2025. </div> </footer> <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script> <script src="/assets/js/bootstrap.bundle.min.js"></script> <script src="https://cdn.jsdelivr.net/npm/mdbootstrap@4.20.0/js/mdb.min.js" integrity="sha256-NdbiivsvWt7VYCt6hYNT3h/th9vSTL4EDWeGs5SN3DA=" crossorigin="anonymous"></script> <script defer src="https://cdn.jsdelivr.net/npm/masonry-layout@4.2.2/dist/masonry.pkgd.min.js" integrity="sha256-Nn1q/fx0H7SNLZMQ5Hw5JLaTRZp0yILA/FRexe19VdI=" crossorigin="anonymous"></script> <script defer src="https://cdn.jsdelivr.net/npm/imagesloaded@5.0.0/imagesloaded.pkgd.min.js" integrity="sha256-htrLFfZJ6v5udOG+3kNLINIKh2gvoKqwEhHYfTTMICc=" crossorigin="anonymous"></script> <script defer src="/assets/js/masonry.js?a0db7e5d5c70cc3252b3138b0c91dcaf" type="text/javascript"></script> <script defer src="https://cdn.jsdelivr.net/npm/medium-zoom@1.1.0/dist/medium-zoom.min.js" integrity="sha256-ZgMyDAIYDYGxbcpJcfUnYwNevG/xi9OHKaR/8GK+jWc=" crossorigin="anonymous"></script> <script defer src="/assets/js/zoom.js?85ddb88934d28b74e78031fd54cf8308"></script> <script src="/assets/js/no_defer.js?2781658a0a2b13ed609542042a859126"></script> <script defer src="/assets/js/common.js?e0514a05c5c95ac1a93a8dfd5249b92e"></script> <script defer src="/assets/js/copy_code.js?c8a01c11a92744d44b093fc3bda915df" type="text/javascript"></script> <script defer src="/assets/js/jupyter_new_tab.js?d9f17b6adc2311cbabd747f4538bb15f"></script> <script async src="https://d1bxh8uas1mnw7.cloudfront.net/assets/embed.js"></script> <script async src="https://badge.dimensions.ai/badge.js"></script> <script defer type="text/javascript" id="MathJax-script" src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.js" integrity="sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI=" crossorigin="anonymous"></script> <script src="/assets/js/mathjax-setup.js?a5bb4e6a542c546dd929b24b8b236dfd"></script> <script defer src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6" crossorigin="anonymous"></script> <script defer src="/assets/js/progress-bar.js?2f30e0e6801ea8f5036fa66e1ab0a71a" type="text/javascript"></script> <script src="/assets/js/vanilla-back-to-top.min.js?f40d453793ff4f64e238e420181a1d17"></script> <script>
     addBackToTop();
   </script> <script type="module" src="/assets/js/search/ninja-keys.min.js?a3446f084dcaecc5f75aa1757d087dcf"></script> <ninja-keys hidebreadcrumbs noautoloadmdicons placeholder="Type to start searching"></ninja-keys> <script src="/assets/js/search-setup.js?6c304f7b1992d4b60f7a07956e52f04a"></script> <script src="/assets/js/search-data.js"></script> <script src="/assets/js/shortcut-key.js?6f508d74becd347268a7f822bca7309d"></script> </body> </html>
