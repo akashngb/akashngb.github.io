@@ -224,7 +224,7 @@ function typeNameWithTypos(el) {
       deletesLeft--;
       el.dataset.deletesLeft = String(deletesLeft);
 
-      return maybePause(() => setTimeout(step, jitter(75)));
+      return setTimeout(step, 55);
     }
   }
 
