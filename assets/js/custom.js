@@ -1,1 +1,0 @@
-document.addEventListener("DOMContentLoaded",(function(){const e=document.getElementById("prettyToggle"),t=document.querySelector(".pretty-container");e&&t&&e.addEventListener("change",(function(){e.checked?t.classList.add("pretty-enabled"):t.classList.remove("pretty-enabled")}))}));
