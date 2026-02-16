@@ -1,4 +1,4 @@
-<!DOCTYPE html> <html lang="en"> <head> <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"> <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script> <meta charset="utf-8"> <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"> <meta http-equiv="X-UA-Compatible" content="IE=edge"> <title> Akash Nagabhirava </title> <meta name="author" content="Akash Nagabhirava "> <meta name="description" content="Akash Nagabhirava — CS @ UofT • Machine Learning • Software Development"> <meta name="keywords" content="Akash Nagabhirava, Akash N, University of Toronto, CS student, ML, Toronto, akashngb"> <meta property="og:site_name" content="Akash Nagabhirava"> <meta property="og:type" content="website"> <meta property="og:title" content="Akash Nagabhirava | about"> <meta property="og:url" content="https://akashngb.github.io//"> <meta property="og:description" content="Akash Nagabhirava — CS @ UofT • Machine Learning • Software Development"> <meta property="og:locale" content="en"> <meta name="twitter:card" content="summary"> <meta name="twitter:title" content="about"> <meta name="twitter:description" content="Akash Nagabhirava — CS @ UofT • Machine Learning • Software Development"> <script type="application/ld+json">
+<!DOCTYPE html> <html lang="en"> <head> <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"> <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script> <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script> <meta charset="utf-8"> <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"> <meta http-equiv="X-UA-Compatible" content="IE=edge"> <title> Akash Nagabhirava </title> <meta name="author" content="Akash Nagabhirava "> <meta name="description" content="Akash Nagabhirava — CS @ UofT • Machine Learning • Software Development"> <meta name="keywords" content="Akash Nagabhirava, Akash N, University of Toronto, CS student, ML, Toronto, akashngb"> <meta property="og:site_name" content="Akash Nagabhirava"> <meta property="og:type" content="website"> <meta property="og:title" content="Akash Nagabhirava | about"> <meta property="og:url" content="https://akashngb.github.io//"> <meta property="og:description" content="Akash Nagabhirava — CS @ UofT • Machine Learning • Software Development"> <meta property="og:locale" content="en"> <meta name="twitter:card" content="summary"> <meta name="twitter:title" content="about"> <meta name="twitter:description" content="Akash Nagabhirava — CS @ UofT • Machine Learning • Software Development"> <script type="application/ld+json">
     {
         "author":
         {
@@ -161,20 +161,6 @@ function initProfileRotator() {
   });
 }
 
-/* Initialize everything */
-document.addEventListener("DOMContentLoaded", function () {
-  // Start age updates
-  updateAgeHeader();
-  setInterval(updateAgeHeader, 100);
-  
-  // Start typewriter
-  const nameEl = document.getElementById("name-header");
-  if (nameEl) typeNameWithTypos(nameEl);
-  
-  // Initialize image rotator
-  initProfileRotator();
-});
-
 function initThreeScene() {
   const container = document.getElementById('three-container');
   if (!container) {
@@ -190,49 +176,54 @@ function initThreeScene() {
   renderer.setSize(container.clientWidth, container.clientHeight);
   container.appendChild(renderer.domElement);
 
-  // Create THREE cubes with different colors
-  const geometry = new THREE.BoxGeometry(1, 1, 1);
+  // Add lights (models need light to be visible)
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+  scene.add(ambientLight);
   
-  const material1 = new THREE.MeshBasicMaterial({ color: 0xff0000, wireframe: true }); // red
-  const material2 = new THREE.MeshBasicMaterial({ color: 0xff0000, wireframe: true }); // green
-  const material3 = new THREE.MeshBasicMaterial({ color: 0xff0000, wireframe: true }); // blue
+  const pointLight = new THREE.PointLight(0xffffff, 1);
+  pointLight.position.set(5, 5, 5);
+  scene.add(pointLight);
 
-  const cube1 = new THREE.Mesh(geometry, material1);
-  cube1.position.x = -2;
-  scene.add(cube1);
-
-  const cube2 = new THREE.Mesh(geometry, material2);
-  cube2.position.x = 0;
-  scene.add(cube2);
-
-  const cube3 = new THREE.Mesh(geometry, material3);
-  cube3.position.x = 2;
-  scene.add(cube3);
-
-  camera.position.z = 1;
+  camera.position.z = 5;
   
-  // Mouse tracking for both X and Y
+  // Mouse tracking
   let mouseX = 0;
   let mouseY = 0;
   
   document.addEventListener('mousemove', (e) => {
-    mouseX = (e.clientX / window.innerWidth) * 2 - 1;   // -1 to 1 (left to right)
-    mouseY = -(e.clientY / window.innerHeight) * 2 + 1; // -1 to 1 (bottom to top, inverted)
+    mouseX = (e.clientX / window.innerWidth) * 2 - 1;
+    mouseY = -(e.clientY / window.innerHeight) * 2 + 1;
   });
 
-  // Animation loop - cubes follow mouse exactly
+  // Load a 3D model
+  const loader = new THREE.GLTFLoader();
+  let model;
+  
+  loader.load(
+    '/assets/models/batmobile_armored.glb',  // ← PUT YOUR MODEL PATH HERE
+    function (gltf) {
+      model = gltf.scene;
+      model.scale.set(2, 2, 2);  // Adjust size
+      scene.add(model);
+      console.log("Model loaded!");
+    },
+    function (xhr) {
+      console.log((xhr.loaded / xhr.total * 100) + '% loaded');
+    },
+    function (error) {
+      console.error('Error loading model:', error);
+    }
+  );
+
+  // Animation loop
   function animate() {
     requestAnimationFrame(animate);
     
-    // Rotate based on mouse position only (no auto-rotation)
-    cube1.rotation.y = mouseX * Math.PI;
-    cube1.rotation.x = mouseY * Math.PI;
-    
-    cube2.rotation.y = mouseX * Math.PI;
-    cube2.rotation.x = mouseY * Math.PI;
-    
-    cube3.rotation.y = mouseX * Math.PI;
-    cube3.rotation.x = mouseY * Math.PI;
+    // Rotate model based on mouse if it exists
+    if (model) {
+      model.rotation.y = mouseX * Math.PI;
+      model.rotation.x = mouseY * Math.PI;
+    }
     
     renderer.render(scene, camera);
   }
