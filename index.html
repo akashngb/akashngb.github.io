@@ -209,27 +209,30 @@ function initThreeScene() {
   cube3.position.x = 2;
   scene.add(cube3);
 
-  camera.position.z = 5;
+  camera.position.z = 1;
   
-  // Mouse tracking
+  // Mouse tracking for both X and Y
   let mouseX = 0;
+  let mouseY = 0;
+  
   document.addEventListener('mousemove', (e) => {
-    mouseX = (e.clientX / window.innerWidth) * 2 - 1;
+    mouseX = (e.clientX / window.innerWidth) * 2 - 1;   // -1 to 1 (left to right)
+    mouseY = -(e.clientY / window.innerHeight) * 2 + 1; // -1 to 1 (bottom to top, inverted)
   });
 
-  // Animation loop (ONLY ONE)
+  // Animation loop - cubes follow mouse exactly
   function animate() {
     requestAnimationFrame(animate);
     
-    // Rotate all cubes
-    cube1.rotation.x += 0.01;
+    // Rotate based on mouse position only (no auto-rotation)
     cube1.rotation.y = mouseX * Math.PI;
+    cube1.rotation.x = mouseY * Math.PI;
     
-    cube2.rotation.x += 0.01;
     cube2.rotation.y = mouseX * Math.PI;
+    cube2.rotation.x = mouseY * Math.PI;
     
-    cube3.rotation.x += 0.01;
     cube3.rotation.y = mouseX * Math.PI;
+    cube3.rotation.x = mouseY * Math.PI;
     
     renderer.render(scene, camera);
   }
