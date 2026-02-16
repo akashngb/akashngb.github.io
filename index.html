@@ -177,7 +177,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
 function initThreeScene() {
   const container = document.getElementById('three-container');
-  if (!container) return;
+  if (!container) {
+    console.error("three-container not found!");
+    return;
+  }
 
   // Scene setup
   const scene = new THREE.Scene();
@@ -187,43 +190,47 @@ function initThreeScene() {
   renderer.setSize(container.clientWidth, container.clientHeight);
   container.appendChild(renderer.domElement);
 
-  // Add a simple rotating cube
+  // Create THREE cubes with different colors
   const geometry = new THREE.BoxGeometry(1, 1, 1);
-  const material = new THREE.MeshBasicMaterial({ color: 0xff0000, wireframe: true });
-
-  const light = new THREE.PointLight(0xffffff, 1, 100);
-  light.position.set(10, 10, 10);
-  scene.add(light);
-
-  const cube = new THREE.Mesh(geometry, material);
-  scene.add(cube);
   
-  const cube1 = new THREE.Mesh(geometry1, material1);
+  const material1 = new THREE.MeshBasicMaterial({ color: 0xff0000, wireframe: true }); // red
+  const material2 = new THREE.MeshBasicMaterial({ color: 0xff0000, wireframe: true }); // green
+  const material3 = new THREE.MeshBasicMaterial({ color: 0xff0000, wireframe: true }); // blue
+
+  const cube1 = new THREE.Mesh(geometry, material1);
   cube1.position.x = -2;
   scene.add(cube1);
 
-  const cube2 = new THREE.Mesh(geometry2, material2);
-  cube2.position.x = 2;
+  const cube2 = new THREE.Mesh(geometry, material2);
+  cube2.position.x = 0;
   scene.add(cube2);
 
-  camera.position.z = 3;
+  const cube3 = new THREE.Mesh(geometry, material3);
+  cube3.position.x = 2;
+  scene.add(cube3);
+
+  camera.position.z = 5;
   
+  // Mouse tracking
   let mouseX = 0;
   document.addEventListener('mousemove', (e) => {
-    mouseX = (e.clientX / window.innerWidth) * 2 - 1;  // normalize to -1 to 1
+    mouseX = (e.clientX / window.innerWidth) * 2 - 1;
   });
 
-  function animate() {
-    cube.rotation.y = mouseX * Math.PI;  // rotate based on mouse position
-    cube1.rotation.y = mouseX * Math.PI;
-    cube2.rotation.y = mouseX * Math.PI;
-  }
-
-  // Animation loop
+  // Animation loop (ONLY ONE)
   function animate() {
     requestAnimationFrame(animate);
-    cube.rotation.x += 0.01;
-    cube.rotation.y += 0.01;
+    
+    // Rotate all cubes
+    cube1.rotation.x += 0.01;
+    cube1.rotation.y = mouseX * Math.PI;
+    
+    cube2.rotation.x += 0.01;
+    cube2.rotation.y = mouseX * Math.PI;
+    
+    cube3.rotation.x += 0.01;
+    cube3.rotation.y = mouseX * Math.PI;
+    
     renderer.render(scene, camera);
   }
   animate();
@@ -237,8 +244,20 @@ function initThreeScene() {
 }
 
 // Call it on page load
+// Initialize everything on page load
 document.addEventListener("DOMContentLoaded", function () {
-  // ... your existing code ...
+  // Start age updates
+  updateAgeHeader();
+  setInterval(updateAgeHeader, 100);
+  
+  // Start typewriter
+  const nameEl = document.getElementById("name-header");
+  if (nameEl) typeNameWithTypos(nameEl);
+  
+  // Initialize image rotator
+  initProfileRotator();
+  
+  // Initialize Three.js scene
   initThreeScene();
 });
 
