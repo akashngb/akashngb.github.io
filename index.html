@@ -189,11 +189,35 @@ function initThreeScene() {
 
   // Add a simple rotating cube
   const geometry = new THREE.BoxGeometry(1, 1, 1);
-  const material = new THREE.MeshBasicMaterial({ color: 0x7ab8f5, wireframe: true });
+  const material = new THREE.MeshBasicMaterial({ color: 0xff0000, wireframe: true });
+
+  const light = new THREE.PointLight(0xffffff, 1, 100);
+  light.position.set(10, 10, 10);
+  scene.add(light);
+
   const cube = new THREE.Mesh(geometry, material);
   scene.add(cube);
+  
+  const cube1 = new THREE.Mesh(geometry1, material1);
+  cube1.position.x = -2;
+  scene.add(cube1);
+
+  const cube2 = new THREE.Mesh(geometry2, material2);
+  cube2.position.x = 2;
+  scene.add(cube2);
 
   camera.position.z = 3;
+  
+  let mouseX = 0;
+  document.addEventListener('mousemove', (e) => {
+    mouseX = (e.clientX / window.innerWidth) * 2 - 1;  // normalize to -1 to 1
+  });
+
+  function animate() {
+    cube.rotation.y = mouseX * Math.PI;  // rotate based on mouse position
+    cube1.rotation.y = mouseX * Math.PI;
+    cube2.rotation.y = mouseX * Math.PI;
+  }
 
   // Animation loop
   function animate() {
