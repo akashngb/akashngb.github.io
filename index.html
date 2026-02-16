@@ -260,6 +260,8 @@ function initThreeScene() {
       const maxDim = Math.max(size.x, size.y, size.z);
       const scale = 8 / maxDim;
       modelGroup.scale.setScalar(scale);
+
+      modelGroup.position.y = 1;
       
       scene.add(modelGroup);
       console.log("Model loaded!");
