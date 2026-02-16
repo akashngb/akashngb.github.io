@@ -238,6 +238,22 @@ function initThreeScene() {
 
   container.style.cursor = 'grab';
 
+  // Zoom with mouse wheel
+  let zoomLevel = 7;  // Starting camera distance
+
+  container.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    
+    // Adjust zoom based on wheel delta
+    zoomLevel += e.deltaY * 0.01;
+    
+    // Clamp zoom (don't get too close or too far)
+    zoomLevel = Math.max(3, Math.min(15, zoomLevel));
+    
+    // Update camera position
+    camera.position.z = zoomLevel;
+  });
+
   // Load the model
   const loader = new THREE.GLTFLoader();
   let modelGroup;
