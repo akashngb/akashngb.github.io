@@ -176,15 +176,26 @@ function initThreeScene() {
   renderer.setSize(container.clientWidth, container.clientHeight);
   container.appendChild(renderer.domElement);
 
-  // Add lights (models need light to be visible)
-  const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+  // Add lights for dramatic effect
+  const ambientLight = new THREE.AmbientLight(0x404040, 0.3); // Dim ambient
   scene.add(ambientLight);
-  
-  const pointLight = new THREE.PointLight(0xffffff, 1);
-  pointLight.position.set(5, 5, 5);
-  scene.add(pointLight);
 
-  camera.position.z = 15;
+  // Key light (main light from front-right)
+  const keyLight = new THREE.DirectionalLight(0xffffff, 1);
+  keyLight.position.set(5, 5, 5);
+  scene.add(keyLight);
+
+  // Fill light (softer from left)
+  const fillLight = new THREE.DirectionalLight(0x8080ff, 0.5);
+  fillLight.position.set(-5, 3, 2);
+  scene.add(fillLight);
+
+  // Rim light (behind for edge definition)
+  const rimLight = new THREE.DirectionalLight(0xff8080, 0.7);
+  rimLight.position.set(0, 2, -5);
+  scene.add(rimLight);
+
+  camera.position.z = 7;
   
   // Mouse tracking
   let mouseX = 0;
@@ -192,27 +203,33 @@ function initThreeScene() {
   
   document.addEventListener('mousemove', (e) => {
     mouseX = (e.clientX / window.innerWidth) * 2 - 1;
-    mouseY = -(e.clientY / window.innerHeight) * 2 - 1;
+    mouseY = (e.clientY / window.innerHeight) * 2 - 1;
   });
 
   // Load a 3D model
   const loader = new THREE.GLTFLoader();
-  let model;
-  
+  let modelGroup;  // Changed from 'model' to 'modelGroup'
+
   loader.load(
     '/assets/models/batmobile_armored.glb',
     function (gltf) {
-      model = gltf.scene;
+      const model = gltf.scene;
       
-      // Center the model's geometry
+      // Calculate the bounding box and center
       const box = new THREE.Box3().setFromObject(model);
       const center = box.getCenter(new THREE.Vector3());
+      
+      // Offset the model so its center is at (0,0,0)
       model.position.x = -center.x;
       model.position.y = -center.y;
       model.position.z = -center.z;
       
-      model.scale.set(2, 2, 2);  // Adjust size
-      scene.add(model);
+      // Create a group to hold the model
+      modelGroup = new THREE.Group();
+      modelGroup.add(model);
+      modelGroup.scale.set(2, 2, 2);  // Scale the group, not the model
+      
+      scene.add(modelGroup);
       console.log("Model loaded and centered!");
     },
     function (xhr) {
@@ -228,9 +245,9 @@ function initThreeScene() {
     requestAnimationFrame(animate);
     
     // Rotate model based on mouse if it exists
-    if (model) {
-      model.rotation.y = mouseX * Math.PI;
-      model.rotation.x = mouseY * Math.PI;
+    if (modelGroup) {  // Changed from 'model' to 'modelGroup'
+      modelGroup.rotation.y = mouseX * Math.PI;
+      modelGroup.rotation.x = mouseY * Math.PI;
     }
     
     renderer.render(scene, camera);
