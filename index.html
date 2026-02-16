@@ -170,39 +170,47 @@ function initThreeScene() {
 
   // Scene setup
   const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
-  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  scene.background = new THREE.Color(0x1a1a1a); // Dark gray background like Sketchfab
   
+  const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
+  const renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setPixelRatio(window.devicePixelRatio);
   renderer.setSize(container.clientWidth, container.clientHeight);
+  renderer.outputEncoding = THREE.sRGBEncoding;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.0;
   container.appendChild(renderer.domElement);
 
-  // Add lights for dramatic effect
-  const ambientLight = new THREE.AmbientLight(0x404040, 0.3); // Dim ambient
+  // Sketchfab-style lighting
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
   scene.add(ambientLight);
 
-  // Key light (main light from front-right)
-  const keyLight = new THREE.DirectionalLight(0xffffff, 1);
-  keyLight.position.set(5, 5, 5);
-  scene.add(keyLight);
+  // Main directional light (from top-front-right)
+  const mainLight = new THREE.DirectionalLight(0xffffff, 1.2);
+  mainLight.position.set(5, 10, 7);
+  scene.add(mainLight);
 
-  // Fill light (softer from left)
-  const fillLight = new THREE.DirectionalLight(0x8080ff, 0.5);
-  fillLight.position.set(-5, 3, 2);
+  // Fill light (from left)
+  const fillLight = new THREE.DirectionalLight(0xffffff, 0.4);
+  fillLight.position.set(-5, 5, 5);
   scene.add(fillLight);
 
-  // Rim light (behind for edge definition)
-  const rimLight = new THREE.DirectionalLight(0xff8080, 0.7);
-  rimLight.position.set(0, 2, -5);
+  // Back rim light
+  const rimLight = new THREE.DirectionalLight(0xffffff, 0.3);
+  rimLight.position.set(0, 5, -10);
   scene.add(rimLight);
 
-  camera.position.z = 5;
+  camera.position.set(0, 2, 8);
+  camera.lookAt(0, 0, 0);
 
-  // Drag-to-rotate controls
+  // Drag-to-rotate controls (Sketchfab style)
   let isDragging = false;
   let previousMouseX = 0;
   let previousMouseY = 0;
-  let rotationX = 0;
   let rotationY = 0;
+  let rotationX = 0;
+  let targetRotationY = 0;
+  let targetRotationX = 0;
 
   container.addEventListener('mousedown', (e) => {
     isDragging = true;
@@ -222,56 +230,62 @@ function initThreeScene() {
     const deltaX = e.clientX - previousMouseX;
     const deltaY = e.clientY - previousMouseY;
     
-    rotationY += deltaX * 0.01; // Horizontal rotation
-    rotationX += deltaY * 0.01; // Vertical rotation
+    targetRotationY += deltaX * 0.005;
+    targetRotationX += deltaY * 0.005;
+    
+    // Clamp vertical rotation
+    targetRotationX = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, targetRotationX));
     
     previousMouseX = e.clientX;
     previousMouseY = e.clientY;
   });
 
-  // Set initial cursor
   container.style.cursor = 'grab';
 
-  // Load a 3D model
+  // Load the model
   const loader = new THREE.GLTFLoader();
-  let modelGroup;  // Changed from 'model' to 'modelGroup'
+  let modelGroup;
 
   loader.load(
     '/assets/models/batmobile_armored.glb',
     function (gltf) {
       const model = gltf.scene;
       
-      // Calculate the bounding box and center
+      // Center the model
       const box = new THREE.Box3().setFromObject(model);
       const center = box.getCenter(new THREE.Vector3());
-      
-      // Offset the model so its center is at (0,0,0)
       model.position.x = -center.x;
       model.position.y = -center.y;
       model.position.z = -center.z;
       
-      // Create a group to hold the model
+      // Create group
       modelGroup = new THREE.Group();
       modelGroup.add(model);
-      modelGroup.scale.set(2, 2, 2);  // Scale the group, not the model
+      
+      // Auto-scale to fit view (like Sketchfab does)
+      const size = box.getSize(new THREE.Vector3());
+      const maxDim = Math.max(size.x, size.y, size.z);
+      const scale = 3 / maxDim;
+      modelGroup.scale.setScalar(scale);
       
       scene.add(modelGroup);
-      console.log("Model loaded and centered!");
+      console.log("Model loaded!");
     },
-    function (xhr) {
-      console.log((xhr.loaded / xhr.total * 100) + '% loaded');
-    },
+    undefined,
     function (error) {
       console.error('Error loading model:', error);
     }
   );
 
-  // Animation loop
+  // Animation loop with smooth damping (like Sketchfab)
   function animate() {
     requestAnimationFrame(animate);
     
-    // Rotate model based on mouse if it exists
-    if (modelGroup) {  // Changed from 'model' to 'modelGroup'
+    if (modelGroup) {
+      // Smooth interpolation (damping)
+      rotationY += (targetRotationY - rotationY) * 0.1;
+      rotationX += (targetRotationX - rotationX) * 0.1;
+      
       modelGroup.rotation.y = rotationY;
       modelGroup.rotation.x = rotationX;
     }
