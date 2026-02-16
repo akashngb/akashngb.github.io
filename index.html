@@ -195,16 +195,42 @@ function initThreeScene() {
   rimLight.position.set(0, 2, -5);
   scene.add(rimLight);
 
-  camera.position.z = 7;
-  
-  // Mouse tracking
-  let mouseX = 0;
-  let mouseY = 0;
-  
-  document.addEventListener('mousemove', (e) => {
-    mouseX = (e.clientX / window.innerWidth) * 2 - 1;
-    mouseY = (e.clientY / window.innerHeight) * 2 - 1;
+  camera.position.z = 5;
+
+  // Drag-to-rotate controls
+  let isDragging = false;
+  let previousMouseX = 0;
+  let previousMouseY = 0;
+  let rotationX = 0;
+  let rotationY = 0;
+
+  container.addEventListener('mousedown', (e) => {
+    isDragging = true;
+    previousMouseX = e.clientX;
+    previousMouseY = e.clientY;
+    container.style.cursor = 'grabbing';
   });
+
+  document.addEventListener('mouseup', () => {
+    isDragging = false;
+    container.style.cursor = 'grab';
+  });
+
+  document.addEventListener('mousemove', (e) => {
+    if (!isDragging) return;
+    
+    const deltaX = e.clientX - previousMouseX;
+    const deltaY = e.clientY - previousMouseY;
+    
+    rotationY += deltaX * 0.01; // Horizontal rotation
+    rotationX += deltaY * 0.01; // Vertical rotation
+    
+    previousMouseX = e.clientX;
+    previousMouseY = e.clientY;
+  });
+
+  // Set initial cursor
+  container.style.cursor = 'grab';
 
   // Load a 3D model
   const loader = new THREE.GLTFLoader();
@@ -246,8 +272,8 @@ function initThreeScene() {
     
     // Rotate model based on mouse if it exists
     if (modelGroup) {  // Changed from 'model' to 'modelGroup'
-      modelGroup.rotation.y = mouseX * Math.PI;
-      modelGroup.rotation.x = mouseY * Math.PI;
+      modelGroup.rotation.y = rotationY;
+      modelGroup.rotation.x = rotationX;
     }
     
     renderer.render(scene, camera);
