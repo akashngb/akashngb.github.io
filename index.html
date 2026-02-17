@@ -199,7 +199,7 @@ function initThreeScene() {
 
   // Purple accent lights for windows
   const purpleLeft = new THREE.SpotLight(0x8800ff, 1.5);
-  purpleLeft.position.set(-4, 3, 2);
+  purpleLeft.position.set(-4, 3, 4);
   purpleLeft.angle = Math.PI / 12;     // Very narrow beam
   purpleLeft.penumbra = 0.5;
   purpleLeft.target.position.set(-1, 1, 0);  // Point at left window
@@ -207,7 +207,7 @@ function initThreeScene() {
   scene.add(purpleLeft.target);
 
   const purpleRight = new THREE.SpotLight(0x00ffff, 1.5);
-  purpleRight.position.set(4, 3, 2);
+  purpleRight.position.set(4, 3, 4);
   purpleRight.angle = Math.PI / 12;
   purpleRight.penumbra = 0.5;
   purpleRight.target.position.set(1, 1, 0);   // Point at right window
