@@ -1,4 +1,4 @@
-<!DOCTYPE html> <html lang="en"> <head> <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"> <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script> <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/RGBELoader.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/environments/RoomEnvironment.js"></script> <meta charset="utf-8"> <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"> <meta http-equiv="X-UA-Compatible" content="IE=edge"> <title> Akash Nagabhirava </title> <meta name="author" content="Akash Nagabhirava "> <meta name="description" content="Akash Nagabhirava — CS @ UofT • Machine Learning • Software Development"> <meta name="keywords" content="Akash Nagabhirava, Akash N, University of Toronto, CS student, ML, Toronto, akashngb"> <meta property="og:site_name" content="Akash Nagabhirava"> <meta property="og:type" content="website"> <meta property="og:title" content="Akash Nagabhirava | about"> <meta property="og:url" content="https://akashngb.github.io//"> <meta property="og:description" content="Akash Nagabhirava — CS @ UofT • Machine Learning • Software Development"> <meta property="og:locale" content="en"> <meta name="twitter:card" content="summary"> <meta name="twitter:title" content="about"> <meta name="twitter:description" content="Akash Nagabhirava — CS @ UofT • Machine Learning • Software Development"> <script type="application/ld+json">
+<!DOCTYPE html> <html lang="en"> <head> <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"> <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script> <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/RGBELoader.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/environments/RoomEnvironment.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/BokehPass.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/BokehShader2.js"></script> <meta charset="utf-8"> <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"> <meta http-equiv="X-UA-Compatible" content="IE=edge"> <title> Akash Nagabhirava </title> <meta name="author" content="Akash Nagabhirava "> <meta name="description" content="Akash Nagabhirava — CS @ UofT • Machine Learning • Software Development"> <meta name="keywords" content="Akash Nagabhirava, Akash N, University of Toronto, CS student, ML, Toronto, akashngb"> <meta property="og:site_name" content="Akash Nagabhirava"> <meta property="og:type" content="website"> <meta property="og:title" content="Akash Nagabhirava | about"> <meta property="og:url" content="https://akashngb.github.io//"> <meta property="og:description" content="Akash Nagabhirava — CS @ UofT • Machine Learning • Software Development"> <meta property="og:locale" content="en"> <meta name="twitter:card" content="summary"> <meta name="twitter:title" content="about"> <meta name="twitter:description" content="Akash Nagabhirava — CS @ UofT • Machine Learning • Software Development"> <script type="application/ld+json">
     {
         "author":
         {
@@ -181,13 +181,23 @@ function initThreeScene() {
   renderer.toneMappingExposure = 1.0;
   container.appendChild(renderer.domElement);
 
+  // Set up post-processing for depth of field
+  const composer = new THREE.EffectComposer(renderer);
+
+  const renderPass = new THREE.RenderPass(scene, camera);
+  composer.addPass(renderPass);
+
+  const bokehPass = new THREE.BokehPass(scene, camera, {
+    focus: 7,        // Focus distance (adjust to match your camera z position)
+    aperture: 0.00005, // How much blur (smaller = more blur)
+    maxblur: 0.01      // Maximum blur amount
+  });
+  composer.addPass(bokehPass);
+
 
   // Add HDRI environment for realistic reflections
-  const pmremGenerator = new THREE.PMREMGenerator(renderer);
-  pmremGenerator.compileEquirectangularShader();
 
   // Use a default environment (or load a custom HDRI)
-  scene.environment = pmremGenerator.fromScene(new THREE.RoomEnvironment(), 0.04).texture;
 
   // Basic lights for fill
   const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
@@ -241,12 +251,14 @@ function initThreeScene() {
 
   // Zoom with mouse wheel
   let zoomLevel = 7;  // Starting camera distance
+  camera.position.set(0, 2, zoomLevel);
+  camera.lookAt(0, 0, 0);
 
   container.addEventListener('wheel', (e) => {
     e.preventDefault();
     
     // Adjust zoom based on wheel delta
-    zoomLevel += e.deltaY * 0.03;
+    zoomLevel += e.deltaY * 0.09;
     
     // Clamp zoom (don't get too close or too far)
     zoomLevel = Math.max(0.5, Math.min(100, zoomLevel));
@@ -280,11 +292,10 @@ function initThreeScene() {
 
       modelGroup.position.y = 1;
 
-      modelGroup.rotation.y = -Math.PI * 0.6;  // Rotate 45 degrees (π/4)
+      modelGroup.rotation.y = -Math.PI * 0.6;
       modelGroup.rotation.x = 0.1;
-
-      let zoomLevel = 3;
       
+      // Set initial rotation targets (no zoomLevel here!)
       targetRotationY = modelGroup.rotation.y;
       targetRotationX = modelGroup.rotation.x;
       rotationY = modelGroup.rotation.y;
@@ -311,7 +322,7 @@ function initThreeScene() {
       modelGroup.rotation.x = rotationX;
     }
     
-    renderer.render(scene, camera);
+    composer.render();
   }
   animate();
 
@@ -320,7 +331,9 @@ function initThreeScene() {
     camera.aspect = container.clientWidth / container.clientHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(container.clientWidth, container.clientHeight);
+    composer.setSize(container.clientWidth, container.clientHeight); // Add this
   });
+
 }
 
 // Initialize everything on page load
