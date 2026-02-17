@@ -197,26 +197,22 @@ function initThreeScene() {
   rimLight.position.set(0, 5, -10);
   scene.add(rimLight);
 
-  const cyanLight1 = new THREE.SpotLight(0x00ffff, 2);
-  cyanLight1.position.set(-3, 4, 4);  // Left side
-  cyanLight1.angle = Math.PI / 8;     // Narrow beam
-  cyanLight1.penumbra = 0.3;
-  cyanLight1.target.position.set(0, 1, 0);  // Point at windshield area
-  scene.add(cyanLight1);
-  scene.add(cyanLight1.target);
+  // Purple accent lights for windows
+  const purpleLeft = new THREE.SpotLight(0x8800ff, 1.5);
+  purpleLeft.position.set(-4, 3, 2);
+  purpleLeft.angle = Math.PI / 12;     // Very narrow beam
+  purpleLeft.penumbra = 0.5;
+  purpleLeft.target.position.set(-1, 1, 0);  // Point at left window
+  scene.add(purpleLeft);
+  scene.add(purpleLeft.target);
 
-  const cyanLight2 = new THREE.SpotLight(0x00ffff, 2);
-  cyanLight2.position.set(3, 4, 4);   // Right side
-  cyanLight2.angle = Math.PI / 8;
-  cyanLight2.penumbra = 0.3;
-  cyanLight2.target.position.set(0, 1, 0);
-  scene.add(cyanLight2);
-  scene.add(cyanLight2.target);
-
-  // Accent cyan point light
-  const cyanAccent = new THREE.PointLight(0x00ffff, 1.5, 20);
-  cyanAccent.position.set(0, 5, 3);  // Above and in front
-  scene.add(cyanAccent);
+  const purpleRight = new THREE.SpotLight(0x8800ff, 1.5);
+  purpleRight.position.set(4, 3, 2);
+  purpleRight.angle = Math.PI / 12;
+  purpleRight.penumbra = 0.5;
+  purpleRight.target.position.set(1, 1, 0);   // Point at right window
+  scene.add(purpleRight);
+  scene.add(purpleRight.target);
 
   camera.position.set(0, 2, 7);
   camera.lookAt(0, 0, 0);
