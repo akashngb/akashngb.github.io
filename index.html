@@ -1,4 +1,4 @@
-<!DOCTYPE html> <html lang="en"> <head> <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"> <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script> <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script> <meta charset="utf-8"> <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"> <meta http-equiv="X-UA-Compatible" content="IE=edge"> <title> Akash Nagabhirava </title> <meta name="author" content="Akash Nagabhirava "> <meta name="description" content="Akash Nagabhirava — CS @ UofT • Machine Learning • Software Development"> <meta name="keywords" content="Akash Nagabhirava, Akash N, University of Toronto, CS student, ML, Toronto, akashngb"> <meta property="og:site_name" content="Akash Nagabhirava"> <meta property="og:type" content="website"> <meta property="og:title" content="Akash Nagabhirava | about"> <meta property="og:url" content="https://akashngb.github.io//"> <meta property="og:description" content="Akash Nagabhirava — CS @ UofT • Machine Learning • Software Development"> <meta property="og:locale" content="en"> <meta name="twitter:card" content="summary"> <meta name="twitter:title" content="about"> <meta name="twitter:description" content="Akash Nagabhirava — CS @ UofT • Machine Learning • Software Development"> <script type="application/ld+json">
+<!DOCTYPE html> <html lang="en"> <head> <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"> <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script> <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/RGBELoader.js"></script> <meta charset="utf-8"> <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"> <meta http-equiv="X-UA-Compatible" content="IE=edge"> <title> Akash Nagabhirava </title> <meta name="author" content="Akash Nagabhirava "> <meta name="description" content="Akash Nagabhirava — CS @ UofT • Machine Learning • Software Development"> <meta name="keywords" content="Akash Nagabhirava, Akash N, University of Toronto, CS student, ML, Toronto, akashngb"> <meta property="og:site_name" content="Akash Nagabhirava"> <meta property="og:type" content="website"> <meta property="og:title" content="Akash Nagabhirava | about"> <meta property="og:url" content="https://akashngb.github.io//"> <meta property="og:description" content="Akash Nagabhirava — CS @ UofT • Machine Learning • Software Development"> <meta property="og:locale" content="en"> <meta name="twitter:card" content="summary"> <meta name="twitter:title" content="about"> <meta name="twitter:description" content="Akash Nagabhirava — CS @ UofT • Machine Learning • Software Development"> <script type="application/ld+json">
     {
         "author":
         {
@@ -181,21 +181,24 @@ function initThreeScene() {
   renderer.toneMappingExposure = 1.0;
   container.appendChild(renderer.domElement);
 
-  // Sketchfab-style lighting
-  const ambientLight = new THREE.AmbientLight(0x8800ff, 0.6);
+// Load HDRI for reflections
+  const rgbeLoader = new THREE.RGBELoader();
+  rgbeLoader.load(
+    'https://threejs.org/examples/textures/equirectangular/venice_sunset_1k.hdr',
+    function (texture) {
+      texture.mapping = THREE.EquirectangularReflectionMapping;
+      scene.environment = texture;
+      console.log("Environment loaded!");
+    }
+  );
+
+  // Basic lights
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
   scene.add(ambientLight);
 
-  const mainLight = new THREE.DirectionalLight(0xffffff, 1.2);
+  const mainLight = new THREE.DirectionalLight(0xffffff, 1);
   mainLight.position.set(5, 10, 7);
   scene.add(mainLight);
-
-  const fillLight = new THREE.DirectionalLight(0xffffff, 0.4);
-  fillLight.position.set(-5, 5, 5);
-  scene.add(fillLight);
-
-  const rimLight = new THREE.DirectionalLight(0xffffff, 0.3);
-  rimLight.position.set(0, 5, -10);
-  scene.add(rimLight);
 
   camera.position.set(0, 2, 7);
   camera.lookAt(0, 0, 0);
