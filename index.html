@@ -218,7 +218,7 @@ function initThreeScene() {
   cyanAccent.position.set(0, 5, 3);  // Above and in front
   scene.add(cyanAccent);
 
-  camera.position.set(0, 2, 4);
+  camera.position.set(0, 2, 7);
   camera.lookAt(0, 0, 0);
 
   // Drag-to-rotate controls
@@ -260,7 +260,7 @@ function initThreeScene() {
   container.style.cursor = 'grab';
 
   // Zoom with mouse wheel
-  let zoomLevel = 4;  // Starting camera distance
+  let zoomLevel = 7;  // Starting camera distance
 
   container.addEventListener('wheel', (e) => {
     e.preventDefault();
