@@ -1,15 +1,13 @@
-<!DOCTYPE html> <html lang="en"> <head> <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0"> <title>bat2</title> <link rel="preconnect" href="https://fonts.googleapis.com"> <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin> <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"> <script src="https://cdn.babylonjs.com/babylon.js"></script> <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script> <style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Inter,system-ui,sans-serif;background-color:white;overflow:hidden}#renderCanvas{width:100vw;height:100vh;display:block;touch-action:none;outline:0}#name-header{position:fixed;top:2rem;left:2rem;z-index:100;font-size:2.5rem;font-weight:600;color:#000;white-space:nowrap;border-right:2px solid currentColor;padding-right:.5rem;pointer-events:none}#subtitle{position:fixed;top:5rem;left:2rem;z-index:100;font-family:ui-monospace,monospace;color:#666;opacity:0;transition:opacity .6s ease;pointer-events:none}#subtitle.visible{opacity:1}#theme-toggle{position:fixed;top:1rem;right:1rem;z-index:9999;background:rgba(0,0,0,0.1);border:1px solid rgba(0,0,0,0.2);border-radius:50%;width:50px;height:50px;cursor:pointer;font-size:1.5rem;display:flex;align-items:center;justify-content:center;transition:all .2s ease}#theme-toggle:hover{background:rgba(0,0,0,0.2);transform:scale(1.1)}#orb-hint{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);z-index:100;font-family:ui-monospace,monospace;font-size:.75rem;color:#999;opacity:1;transition:opacity 1s ease;pointer-events:none}#orb-hint.hidden{opacity:0}body.dark{background-color:#1a1a1a}body.dark #name-header,body.dark #subtitle{color:#fff}body.dark #orb-hint{color:#555}body.dark #theme-toggle{background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.2)}body.dark #theme-toggle:hover{background:rgba(255,255,255,0.2)}</style> </head> <body> <canvas id="renderCanvas"></canvas> <h1 id="name-header"></h1> <p id="subtitle"><span id="live-age"></span> year old CS student that likes batman</p> <button id="theme-toggle">🌙</button> <p id="orb-hint">[ space ] to deploy</p> <script>
-    // ─── AGE ──────────────────────────────────────────────────────────────────
+<!DOCTYPE html> <html lang="en"> <head> <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0"> <title>bat2</title> <link rel="preconnect" href="https://fonts.googleapis.com"> <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin> <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"> <style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Inter,system-ui,sans-serif;background-color:#111;overflow:hidden;width:100vw;height:100vh}#sketchfab-embed{position:fixed;inset:0;width:100%;height:100%;border:0;z-index:1}#orbCanvas{position:fixed;inset:0;width:100vw;height:100vh;z-index:2;pointer-events:none}#orbCanvas.active{pointer-events:auto}#name-header{position:fixed;top:2rem;left:2rem;z-index:10;font-size:2.5rem;font-weight:600;color:#fff;white-space:nowrap;border-right:2px solid currentColor;padding-right:.5rem;pointer-events:none;text-shadow:0 2px 12px rgba(0,0,0,0.6)}#subtitle{position:fixed;top:5rem;left:2rem;z-index:10;font-family:ui-monospace,monospace;color:rgba(255,255,255,0.7);opacity:0;transition:opacity .6s ease;pointer-events:none;text-shadow:0 1px 6px rgba(0,0,0,0.5)}#subtitle.visible{opacity:1}#theme-toggle{position:fixed;top:1rem;right:1rem;z-index:10;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);border-radius:50%;width:50px;height:50px;cursor:pointer;font-size:1.5rem;display:flex;align-items:center;justify-content:center;transition:all .2s ease;backdrop-filter:blur(6px)}#theme-toggle:hover{background:rgba(255,255,255,0.25);transform:scale(1.1)}#orb-hint{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);z-index:10;font-family:ui-monospace,monospace;font-size:.75rem;color:rgba(255,255,255,0.5);opacity:1;transition:opacity 1s ease;pointer-events:none;letter-spacing:.05em}#orb-hint.hidden{opacity:0}.orb-label{position:fixed;z-index:11;font-family:ui-monospace,monospace;font-size:.7rem;color:#fff;background:rgba(0,0,0,0.65);padding:3px 8px;border-radius:4px;pointer-events:none;opacity:0;transition:opacity .15s ease;transform:translate(-50%,-170%);white-space:nowrap;backdrop-filter:blur(4px)}body.light{background-color:#ddd}body.light #name-header{color:#000;text-shadow:none}body.light #subtitle{color:#444;text-shadow:none}body.light #orb-hint{color:#666}body.light #theme-toggle{background:rgba(0,0,0,0.1);border-color:rgba(0,0,0,0.2)}body.light #theme-toggle:hover{background:rgba(0,0,0,0.2)}</style> </head> <body> <iframe id="sketchfab-embed" title="Batmobile Armored" allow="autoplay; fullscreen; xr-spatial-tracking" src="https://sketchfab.com/models/sBv577Vdl9lrcvyFT3vbNvkGKml/embed?autostart=1&amp;ui_infos=0&amp;ui_watermark=0&amp;ui_watermark_link=0&amp;ui_ar=0&amp;ui_help=0&amp;ui_settings=0&amp;ui_inspector=0&amp;ui_annotations=0&amp;ui_stop=0&amp;preload=1&amp;dnt=1&amp;camera=0&amp;scrollwheel=1"></iframe> <canvas id="orbCanvas"></canvas> <div class="orb-label" id="label-0">GitHub</div> <div class="orb-label" id="label-1">LinkedIn</div> <div class="orb-label" id="label-2">Spotify</div> <div class="orb-label" id="label-3">Instagram</div> <div class="orb-label" id="label-4">Email</div> <h1 id="name-header"></h1> <p id="subtitle"><span id="live-age"></span> batmen</p> <button id="theme-toggle">☀️</button> <p id="orb-hint">[ space ] to deploy</p> <script>
     const birthDate = new Date("2006-12-30T02:00:00.700Z");
     function computeAge() {
-      return ((new Date() - birthDate) / (365.2422 * 24*60*60*1000)).toFixed(10);
+      return ((new Date() - birthDate) / (365.2422 * 24 * 60 * 60 * 1000)).toFixed(10);
     }
     function updateAge() {
       const el = document.getElementById("live-age");
       if (el) el.textContent = computeAge();
     }
 
-    // ─── TYPEWRITER ───────────────────────────────────────────────────────────
     function typeNameWithTypos(el) {
       if (!el || el.dataset.typing === "1") return;
       el.dataset.typing = "1";
@@ -34,7 +32,7 @@
           if (stage < typos.length - 1) {
             setTimeout(() => {
               let deleteCount = (stage === 0) ? 8 : (stage === 1) ? 3 : 1;
-              deleteCount = Math.min(deleteCount, Math.max(1, (typos[stage]||"").length - 1));
+              deleteCount = Math.min(deleteCount, Math.max(1, (typos[stage] || "").length - 1));
               deleting = true;
               el.dataset.deletesLeft = String(deleteCount);
               step();
@@ -63,294 +61,200 @@
       step();
     }
 
-    // ─── BABYLON SCENE ────────────────────────────────────────────────────────
-    function initBabylonScene() {
-      const canvas = document.getElementById('renderCanvas');
-      const engine = new BABYLON.Engine(canvas, true, { 
-        antialias: true,
-        powerPreference: "high-performance"
-      });
-      
-      const scene = new BABYLON.Scene(engine);
-      scene.clearColor = new BABYLON.Color4(1, 1, 1, 0);
-      
-      // Camera — target updated after model loads to true center
-      const camera = new BABYLON.ArcRotateCamera(
-        "camera", 
-        -Math.PI * 0.25,
-        Math.PI * 0.35,
-        10,
-        new BABYLON.Vector3(0, 0, 0),
-        scene
-      );
-      camera.attachControl(canvas, true);
+    const ORB_LINKS = [
+      { emoji: '🐙', label: 'GitHub',    url: 'https://github.com/akashngb',                              color: '#444444' },
+      { emoji: '💼', label: 'LinkedIn',  url: 'https://www.linkedin.com/in/akash-nagabhirava-164155327/', color: '#0077b5' },
+      { emoji: '🎵', label: 'Spotify',   url: 'https://open.spotify.com/user/obxzyzxv5yuu7qo1u3qaxvsqm', color: '#1db954' },
+      { emoji: '📸', label: 'Instagram', url: 'https://instagram.com/akash30n',                           color: '#e1306c' },
+      { emoji: '✉️', label: 'Email',     url: 'mailto:akash30n@gmail.com',                                color: '#4a90e2' },
+    ];
 
-      camera.lowerRadiusLimit = null;
-      camera.upperRadiusLimit = null;
-      camera.lowerBetaLimit = null;
-      camera.upperBetaLimit = null;
+    const ORB_REST = [
+      { x: 0.74, y: 0.52 },
+      { x: 0.26, y: 0.52 },
+      { x: 0.70, y: 0.30 },
+      { x: 0.30, y: 0.30 },
+      { x: 0.50, y: 0.18 },
+    ];
 
-      camera.wheelPrecision = 1.5;
-      camera.wheelDeltaPercentage = 0;
+    const ORIGIN = { x: 0.5, y: 0.58 };
 
-      camera.panningSensibility = 0;
-      camera.angularSensibilityX = 500;
-      camera.angularSensibilityY = 500;
-      camera.inertia = 0.85;
-      camera.minZ = 0.01;
+    const canvas = document.getElementById('orbCanvas');
+    const ctx = canvas.getContext('2d');
 
-      const lensFx = new BABYLON.LensRenderingPipeline('lens', {
-        edge_blur: 1.0,
-        chromatic_aberration: 0.5,
-        distortion: 0.5,
-        dof_focus_distance: 10,
-        dof_aperture: 1.0,
-        grain_amount: 0.1,
-        dof_pentagon: true,
-        dof_gain: 1.0,
-        dof_threshold: 0.2,
-        blur_noise: true
-      }, scene, 1.0, [camera]);
+    function resize() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    resize();
+    window.addEventListener('resize', resize);
 
-      lensFx.setAperture(2.8);
-      lensFx.setFocusDistance(camera.radius);
+    const orbs = ORB_LINKS.map((link, i) => ({
+      ...link,
+      rest: ORB_REST[i],
+      t: 0,
+      bobOffset: i * (Math.PI * 2 / ORB_LINKS.length),
+      hovered: false,
+      radius: 38,
+    }));
 
-      scene.registerBeforeRender(() => {
-        lensFx.setFocusDistance(camera.radius);
-      });
-      
-      scene.createDefaultEnvironment({
-        environmentTexture: "https://playground.babylonjs.com/textures/environment.dds",
-        createSkybox: false,
-        createGround: false
-      });
-      scene.environmentIntensity = 1.5;
-      
-      const hemiLight = new BABYLON.HemisphericLight("hemi", new BABYLON.Vector3(0, 1, 0), scene);
-      hemiLight.intensity = 2.0;
-      
-      const dirLight1 = new BABYLON.DirectionalLight("dir1", new BABYLON.Vector3(-1, -2, -1), scene);
-      dirLight1.intensity = 2.5;
-      
-      const dirLight2 = new BABYLON.DirectionalLight("dir2", new BABYLON.Vector3(1, -2, 1), scene);
-      dirLight2.intensity = 1.5;
-      
-      // ─── ORB DATA ─────────────────────────────────────────────────────────
-      const ORB_LINKS = [
-        { emoji: '🐙', label: 'GitHub',    url: 'https://github.com/akashngb',                              color: [0.2, 0.2, 0.2] },
-        { emoji: '💼', label: 'LinkedIn',  url: 'https://www.linkedin.com/in/akash-nagabhirava-164155327/', color: [0.0, 0.47, 0.71] },
-        { emoji: '🎵', label: 'Spotify',   url: 'https://open.spotify.com/user/obxzyzxv5yuu7qo1u3qaxvsqm', color: [0.11, 0.73, 0.33] },
-        { emoji: '📸', label: 'Instagram', url: 'https://instagram.com/akash30n',                           color: [0.88, 0.19, 0.42] },
-        { emoji: '✉️', label: 'Email',     url: 'mailto:akash30n@gmail.com',                                color: [0.29, 0.56, 0.85] },
-      ];
-      
-      const ORB_TARGETS = [
-        new BABYLON.Vector3( 2.5,  1.0,  0.5),
-        new BABYLON.Vector3(-2.5,  1.0,  0.5),
-        new BABYLON.Vector3( 1.5,  2.2, -0.5),
-        new BABYLON.Vector3(-1.5,  2.2, -0.5),
-        new BABYLON.Vector3( 0.0,  2.8,  1.0),
-      ];
-      
-      let orbsDeployed = false;
-      let orbAnimating = false;
-      let orbMeshes = [];
-      let modelRoot = null;
-      
-      function createOrbTexture(emoji, color) {
-        const size = 256;
-        const cvs = document.createElement('canvas');
-        cvs.width = cvs.height = size;
-        const ctx = cvs.getContext('2d');
-        
-        ctx.fillStyle = `rgb(${color[0]*255},${color[1]*255},${color[2]*255})`;
-        ctx.beginPath();
-        ctx.arc(size/2, size/2, size/2 - 4, 0, Math.PI * 2);
-        ctx.fill();
-        
-        const grd = ctx.createRadialGradient(size/2, size/2, size*0.1, size/2, size/2, size/2);
-        grd.addColorStop(0, 'rgba(255,255,255,0.4)');
-        grd.addColorStop(1, 'rgba(255,255,255,0)');
-        ctx.fillStyle = grd;
-        ctx.beginPath();
-        ctx.arc(size/2, size/2, size/2 - 4, 0, Math.PI * 2);
-        ctx.fill();
-        
-        ctx.font = `${size * 0.44}px serif`;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(emoji, size/2, size/2 + 4);
-        
-        const texture = new BABYLON.DynamicTexture("orbTex", size, scene, false);
-        const context = texture.getContext();
-        context.drawImage(cvs, 0, 0);
-        texture.update();
-        return texture;
-      }
-      
-      function createOrbs() {
-        if (!modelRoot) return;
-        
-        orbMeshes = ORB_LINKS.map((link, i) => {
-          const sphere = BABYLON.MeshBuilder.CreateSphere(`orb${i}`, { diameter: 0.56, segments: 32 }, scene);
-          
-          const mat = new BABYLON.StandardMaterial(`orbMat${i}`, scene);
-          mat.diffuseTexture = createOrbTexture(link.emoji, link.color);
-          mat.emissiveColor = new BABYLON.Color3(...link.color);
-          mat.emissiveIntensity = 0.3;
-          mat.specularColor = new BABYLON.Color3(1, 1, 1);
-          mat.specularPower = 128;
-          sphere.material = mat;
-          
-          sphere.position = BABYLON.Vector3.Zero();
-          sphere.parent = modelRoot;
-          sphere.setEnabled(false);
-          
-          sphere.metadata = {
-            target: ORB_TARGETS[i].clone(),
-            origin: BABYLON.Vector3.Zero(),
-            link: link.url,
-            t: 0,
-            bobOffset: i * (Math.PI * 2 / ORB_LINKS.length),
-          };
-          
-          return sphere;
-        });
-      }
-      
-      function easeOutBack(t) {
-        const c1 = 1.70158, c3 = c1 + 1;
-        return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2);
-      }
-      
-      function easeInBack(t) {
-        const c1 = 1.70158, c3 = c1 + 1;
-        return c3 * t * t * t - c1 * t * t;
-      }
-      
-      let spacePressed = false;
-      document.addEventListener('keydown', (e) => {
-        if (e.code === 'Space' && !spacePressed) {
-          e.preventDefault();
-          spacePressed = true;
-          if (orbAnimating || !modelRoot) return;
-          orbsDeployed = !orbsDeployed;
-          orbAnimating = true;
-          if (orbsDeployed) {
-            orbMeshes.forEach(orb => { 
-              orb.setEnabled(true); 
-              orb.metadata.t = 0; 
-              orb.position = BABYLON.Vector3.Zero(); 
-            });
-            document.getElementById('orb-hint').classList.add('hidden');
-          }
-        }
-      });
-      
-      document.addEventListener('keyup', (e) => {
-        if (e.code === 'Space') spacePressed = false;
-      });
-      
-      scene.onPointerDown = (evt, pickResult) => {
-        if (!orbsDeployed || !pickResult.hit) return;
-        const mesh = pickResult.pickedMesh;
-        if (mesh && mesh.metadata && mesh.metadata.link) {
-          window.open(mesh.metadata.link, '_blank');
-        }
-      };
-      
-      scene.onPointerMove = (evt, pickResult) => {
-        if (!orbsDeployed) return;
-        if (pickResult.hit && pickResult.pickedMesh.metadata && pickResult.pickedMesh.metadata.link) {
-          canvas.style.cursor = 'pointer';
-        } else {
-          canvas.style.cursor = 'grab';
-        }
-      };
-      
-      BABYLON.SceneLoader.ImportMesh(
-        "",
-        "/assets/models/",
-        "batmobile_armored.glb",
-        scene,
-        (meshes) => {
-          modelRoot = new BABYLON.TransformNode("modelRoot", scene);
-          
-          meshes.forEach(mesh => {
-            if (mesh.parent === null) mesh.parent = modelRoot;
-          });
-          
-          const boundingBox = modelRoot.getHierarchyBoundingVectors();
-          const center = BABYLON.Vector3.Center(boundingBox.min, boundingBox.max);
-          const size = boundingBox.max.subtract(boundingBox.min);
-          const maxDim = Math.max(size.x, size.y, size.z);
-          const scale = 8 / maxDim;
-          
-          modelRoot.position = center.scale(-scale);
-          modelRoot.scaling = new BABYLON.Vector3(scale, scale, scale);
+    let orbsDeployed = false;
+    let time = 0;
+    let lastTs = null;
+    let hoveredOrb = null;
 
-          // Point camera at the true vertical center of the car
-          const scaledHeight = (boundingBox.max.y - boundingBox.min.y) * scale;
-          camera.target = new BABYLON.Vector3(0, scaledHeight * 0.5, 0);
-          // Set radius to fit the car nicely
-          camera.radius = Math.max(size.x, size.z) * scale * 1.2;
-
-          createOrbs();
-          console.log("Model loaded successfully!");
-        },
-        null,
-        (scene, message) => console.error("Model load error:", message)
-      );
-      
-      let time = 0;
-      scene.registerBeforeRender(() => {
-        time += engine.getDeltaTime() / 1000;
-        
-        let allDone = true;
-        orbMeshes.forEach((orb) => {
-          const md = orb.metadata;
-          const speed = 0.045;
-          
-          if (orbsDeployed) {
-            if (md.t < 1) { md.t = Math.min(1, md.t + speed); allDone = false; }
-            const easedT = easeOutBack(md.t);
-            orb.position = BABYLON.Vector3.Lerp(md.origin, md.target, easedT);
-            
-            if (md.t >= 1) {
-              orb.position.y = md.target.y + Math.sin(time * 1.4 + md.bobOffset) * 0.08;
-              orb.rotation.y = time * 0.6 + md.bobOffset;
-            }
-          } else {
-            if (md.t > 0) { md.t = Math.max(0, md.t - speed * 1.4); allDone = false; }
-            const easedT = easeInBack(Math.max(0, md.t));
-            orb.position = BABYLON.Vector3.Lerp(md.origin, md.target, easedT);
-            if (md.t <= 0) orb.setEnabled(false);
-          }
-        });
-        
-        if (allDone) orbAnimating = false;
-      });
-      
-      engine.runRenderLoop(() => scene.render());
-      window.addEventListener('resize', () => engine.resize());
+    function easeOutBack(t) {
+      const c1 = 1.70158, c3 = c1 + 1;
+      return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2);
     }
 
-    // ─── THEME ────────────────────────────────────────────────────────────────
+    function easeInBack(t) {
+      const c1 = 1.70158, c3 = c1 + 1;
+      return c3 * t * t * t - c1 * t * t;
+    }
+
+    function orbPos(orb) {
+      const w = canvas.width, h = canvas.height;
+      const ox = ORIGIN.x * w, oy = ORIGIN.y * h;
+      const rx = orb.rest.x * w, ry = orb.rest.y * h;
+      const et = orbsDeployed ? easeOutBack(orb.t) : easeInBack(Math.max(0, orb.t));
+      let x = ox + (rx - ox) * et;
+      let y = oy + (ry - oy) * et;
+      if (orbsDeployed && orb.t >= 0.99) {
+        y += Math.sin(time * 1.4 + orb.bobOffset) * 7;
+      }
+      return { x, y };
+    }
+
+    function lighten(hex, amt) {
+      const n = parseInt(hex.replace('#',''), 16);
+      const r = Math.min(255, (n >> 16) + amt);
+      const g = Math.min(255, ((n >> 8) & 0xff) + amt);
+      const b = Math.min(255, (n & 0xff) + amt);
+      return `rgb(${r},${g},${b})`;
+    }
+
+    function drawOrb(orb, i) {
+      const { x, y } = orbPos(orb);
+      const r = orb.radius + (orb.hovered ? 6 : 0);
+
+      ctx.save();
+      ctx.shadowColor = orb.color + 'bb';
+      ctx.shadowBlur = orb.hovered ? 32 : 18;
+
+      const grad = ctx.createRadialGradient(x - r * 0.3, y - r * 0.35, r * 0.05, x, y, r);
+      grad.addColorStop(0, lighten(orb.color, 70));
+      grad.addColorStop(1, orb.color);
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, Math.PI * 2);
+      ctx.fillStyle = grad;
+      ctx.fill();
+
+      const gloss = ctx.createRadialGradient(x - r * 0.28, y - r * 0.38, 0, x, y, r);
+      gloss.addColorStop(0, 'rgba(255,255,255,0.5)');
+      gloss.addColorStop(0.45, 'rgba(255,255,255,0.06)');
+      gloss.addColorStop(1, 'rgba(255,255,255,0)');
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, Math.PI * 2);
+      ctx.fillStyle = gloss;
+      ctx.fill();
+      ctx.restore();
+
+      ctx.font = `${r * 0.88}px serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(orb.emoji, x, y + 2);
+
+      const label = document.getElementById(`label-${i}`);
+      if (label) {
+        label.style.left = `${x}px`;
+        label.style.top = `${y}px`;
+        label.style.opacity = orb.hovered ? '1' : '0';
+      }
+    }
+
+    function loop(ts) {
+      if (!lastTs) lastTs = ts;
+      const dt = (ts - lastTs) / 1000;
+      lastTs = ts;
+      time += dt;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const speed = 0.048;
+      let anyVisible = false;
+
+      orbs.forEach((orb, i) => {
+        if (orbsDeployed) {
+          orb.t = Math.min(1, orb.t + speed);
+        } else {
+          orb.t = Math.max(0, orb.t - speed * 1.4);
+        }
+
+        if (orb.t > 0.001) {
+          anyVisible = true;
+          drawOrb(orb, i);
+        } else {
+          const label = document.getElementById(`label-${i}`);
+          if (label) label.style.opacity = '0';
+        }
+      });
+
+      canvas.classList.toggle('active', anyVisible && orbsDeployed);
+      requestAnimationFrame(loop);
+    }
+
+    requestAnimationFrame(loop);
+
+    let spacePressed = false;
+    document.addEventListener('keydown', (e) => {
+      if (e.code === 'Space' && !spacePressed) {
+        e.preventDefault();
+        spacePressed = true;
+        orbsDeployed = !orbsDeployed;
+        if (orbsDeployed) document.getElementById('orb-hint').classList.add('hidden');
+      }
+    });
+    document.addEventListener('keyup', (e) => {
+      if (e.code === 'Space') spacePressed = false;
+    });
+
+    canvas.addEventListener('mousemove', (e) => {
+      if (!orbsDeployed) return;
+      const rect = canvas.getBoundingClientRect();
+      const mx = e.clientX - rect.left;
+      const my = e.clientY - rect.top;
+      hoveredOrb = null;
+      orbs.forEach(orb => {
+        const { x, y } = orbPos(orb);
+        orb.hovered = Math.hypot(mx - x, my - y) < orb.radius + 10;
+        if (orb.hovered) hoveredOrb = orb;
+      });
+      canvas.style.cursor = hoveredOrb ? 'pointer' : 'default';
+    });
+
+    canvas.addEventListener('mouseleave', () => {
+      orbs.forEach(o => o.hovered = false);
+      hoveredOrb = null;
+    });
+
+    canvas.addEventListener('click', () => {
+      if (hoveredOrb) window.open(hoveredOrb.url, '_blank');
+    });
+
     const toggle = document.getElementById('theme-toggle');
     toggle.addEventListener('click', () => {
-      document.body.classList.toggle('dark');
-      const isDark = document.body.classList.contains('dark');
-      toggle.textContent = isDark ? '☀️' : '🌙';
-      localStorage.setItem('theme', isDark ? 'dark' : 'light');
+      document.body.classList.toggle('light');
+      const isLight = document.body.classList.contains('light');
+      toggle.textContent = isLight ? '🌙' : '☀️';
+      localStorage.setItem('theme', isLight ? 'light' : 'dark');
     });
-    if (localStorage.getItem('theme') === 'dark') {
-      document.body.classList.add('dark');
-      toggle.textContent = '☀️';
+    if (localStorage.getItem('theme') === 'light') {
+      document.body.classList.add('light');
+      toggle.textContent = '🌙';
     }
 
-    // ─── INIT ─────────────────────────────────────────────────────────────────
     updateAge();
     setInterval(updateAge, 100);
     typeNameWithTypos(document.getElementById('name-header'));
-    initBabylonScene();
   </script> </body> </html>
