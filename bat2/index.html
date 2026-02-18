@@ -74,25 +74,51 @@
       const scene = new BABYLON.Scene(engine);
       scene.clearColor = new BABYLON.Color4(1, 1, 1, 0);
       
-      // Camera - NO LIMITS
+      // Camera — target updated after model loads to true center
       const camera = new BABYLON.ArcRotateCamera(
         "camera", 
         -Math.PI * 0.25,
         Math.PI * 0.35,
         10,
-        new BABYLON.Vector3(0, 1, 0), 
+        new BABYLON.Vector3(0, 0, 0),
         scene
       );
       camera.attachControl(canvas, true);
-      // NO radius limits - infinite zoom
-      camera.wheelPrecision = 15;
+
+      camera.lowerRadiusLimit = null;
+      camera.upperRadiusLimit = null;
+      camera.lowerBetaLimit = null;
+      camera.upperBetaLimit = null;
+
+      camera.wheelPrecision = 1.5;
+      camera.wheelDeltaPercentage = 0;
+
       camera.panningSensibility = 0;
       camera.angularSensibilityX = 500;
       camera.angularSensibilityY = 500;
       camera.inertia = 0.85;
-      camera.minZ = 0.1;
+      camera.minZ = 0.01;
+
+      const lensFx = new BABYLON.LensRenderingPipeline('lens', {
+        edge_blur: 1.0,
+        chromatic_aberration: 0.5,
+        distortion: 0.5,
+        dof_focus_distance: 10,
+        dof_aperture: 1.0,
+        grain_amount: 0.1,
+        dof_pentagon: true,
+        dof_gain: 1.0,
+        dof_threshold: 0.2,
+        blur_noise: true
+      }, scene, 1.0, [camera]);
+
+      lensFx.setAperture(2.8);
+      lensFx.setFocusDistance(camera.radius);
+
+      scene.registerBeforeRender(() => {
+        lensFx.setFocusDistance(camera.radius);
+      });
       
-      // Environment - Fixed version
       scene.createDefaultEnvironment({
         environmentTexture: "https://playground.babylonjs.com/textures/environment.dds",
         createSkybox: false,
@@ -100,7 +126,6 @@
       });
       scene.environmentIntensity = 1.5;
       
-      // Strong lighting
       const hemiLight = new BABYLON.HemisphericLight("hemi", new BABYLON.Vector3(0, 1, 0), scene);
       hemiLight.intensity = 2.0;
       
@@ -203,7 +228,6 @@
         return c3 * t * t * t - c1 * t * t;
       }
       
-      // Spacebar toggle - FIXED
       let spacePressed = false;
       document.addEventListener('keydown', (e) => {
         if (e.code === 'Space' && !spacePressed) {
@@ -227,7 +251,6 @@
         if (e.code === 'Space') spacePressed = false;
       });
       
-      // Click detection
       scene.onPointerDown = (evt, pickResult) => {
         if (!orbsDeployed || !pickResult.hit) return;
         const mesh = pickResult.pickedMesh;
@@ -236,7 +259,6 @@
         }
       };
       
-      // Hover cursor
       scene.onPointerMove = (evt, pickResult) => {
         if (!orbsDeployed) return;
         if (pickResult.hit && pickResult.pickedMesh.metadata && pickResult.pickedMesh.metadata.link) {
@@ -246,7 +268,6 @@
         }
       };
       
-      // Load model - KEEP ORIGINAL MATERIALS
       BABYLON.SceneLoader.ImportMesh(
         "",
         "/assets/models/",
@@ -259,7 +280,6 @@
             if (mesh.parent === null) mesh.parent = modelRoot;
           });
           
-          // Center and scale
           const boundingBox = modelRoot.getHierarchyBoundingVectors();
           const center = BABYLON.Vector3.Center(boundingBox.min, boundingBox.max);
           const size = boundingBox.max.subtract(boundingBox.min);
@@ -268,7 +288,13 @@
           
           modelRoot.position = center.scale(-scale);
           modelRoot.scaling = new BABYLON.Vector3(scale, scale, scale);
-          
+
+          // Point camera at the true vertical center of the car
+          const scaledHeight = (boundingBox.max.y - boundingBox.min.y) * scale;
+          camera.target = new BABYLON.Vector3(0, scaledHeight * 0.5, 0);
+          // Set radius to fit the car nicely
+          camera.radius = Math.max(size.x, size.z) * scale * 1.2;
+
           createOrbs();
           console.log("Model loaded successfully!");
         },
@@ -276,7 +302,6 @@
         (scene, message) => console.error("Model load error:", message)
       );
       
-      // Animation loop
       let time = 0;
       scene.registerBeforeRender(() => {
         time += engine.getDeltaTime() / 1000;
