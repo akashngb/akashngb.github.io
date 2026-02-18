@@ -1,4 +1,6 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd"> <html><body> <div id="viewer" style="width:100%; height:100vh;"></div> <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r160/three.min.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.160/examples/js/controls/OrbitControls.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.160/examples/js/loaders/GLTFLoader.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.160/examples/js/loaders/RGBELoader.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.160/examples/js/postprocessing/EffectComposer.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.160/examples/js/postprocessing/RenderPass.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.160/examples/js/postprocessing/UnrealBloomPass.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.160/examples/js/postprocessing/SSAOPass.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.160/examples/js/shaders/CopyShader.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.160/examples/js/shaders/SSAOShader.js"></script> <script>
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd"> <html><body> <div id="viewer" style="width:100%; height:100vh;"></div> <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r160/three.min.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.160/examples/js/controls/OrbitControls.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.160/examples/js/loaders/GLTFLoader.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.160/examples/js/loaders/RGBELoader.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.160/examples/js/postprocessing/EffectComposer.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.160/examples/js/postprocessing/RenderPass.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.160/examples/js/postprocessing/UnrealBloomPass.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.160/examples/js/shaders/CopyShader.js"></script> <script>
+window.addEventListener("load", function(){
+
 const container = document.getElementById("viewer");
 
 // scene
@@ -32,8 +34,8 @@ new THREE.RGBELoader()
 .load(
 "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/studio_small_03_1k.hdr",
 function(texture){
-  texture.mapping = THREE.EquirectangularReflectionMapping;
-  scene.environment = texture;
+texture.mapping = THREE.EquirectangularReflectionMapping;
+scene.environment = texture;
 }
 );
 
@@ -42,21 +44,21 @@ const light = new THREE.DirectionalLight(0xffffff,1.2);
 light.position.set(5,5,5);
 scene.add(light);
 
-// load model
+// MODEL
 const loader = new THREE.GLTFLoader();
 loader.load(
 "batmobile_armored.glb",
 function(gltf){
-  const model = gltf.scene;
-  scene.add(model);
+const model = gltf.scene;
+scene.add(model);
 
-  // center
-  const box = new THREE.Box3().setFromObject(model);
-  const center = box.getCenter(new THREE.Vector3());
-  model.position.sub(center);
+// center
+const box = new THREE.Box3().setFromObject(model);
+const center = box.getCenter(new THREE.Vector3());
+model.position.sub(center);
 },
 undefined,
-err=>console.error(err)
+err=>console.error("MODEL ERROR:",err)
 );
 
 // postprocessing
@@ -84,4 +86,6 @@ controls.update();
 composer.render();
 }
 animate();
+
+});
 </script> </body></html>
