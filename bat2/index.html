@@ -150,16 +150,13 @@
       defaultPipeline.imageProcessing.vignetteStretch = 0.5;
       defaultPipeline.imageProcessing.vignetteCameraFov = 0.8;
       
-      // Lighting
+      // Stronger lighting
       const hemiLight = new BABYLON.HemisphericLight("hemi", new BABYLON.Vector3(0, 1, 0), scene);
-      // Stronger lighting
-      // Stronger lighting
-        const hemiLight = new BABYLON.HemisphericLight("hemi", new BABYLON.Vector3(0, 1, 0), scene);
-        hemiLight.intensity = 1.5;
+      hemiLight.intensity = 1.5;
 
-        const dirLight = new BABYLON.DirectionalLight("dir", new BABYLON.Vector3(-1, -2, -1), scene);
-        dirLight.intensity = 2.0;
-        dirLight.position = new BABYLON.Vector3(20, 40, 20);
+      const dirLight = new BABYLON.DirectionalLight("dir", new BABYLON.Vector3(-1, -2, -1), scene);
+      dirLight.intensity = 2.0;
+      dirLight.position = new BABYLON.Vector3(20, 40, 20);
       
       // ─── ORB DATA ─────────────────────────────────────────────────────────
       const ORB_LINKS = [
