@@ -1,73 +1,133 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd"> <html><body> <div id="viewer" style="width:100%; height:100vh;"></div> <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r160/three.min.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.160/examples/js/controls/OrbitControls.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.160/examples/js/loaders/GLTFLoader.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.160/examples/js/loaders/RGBELoader.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.160/examples/js/postprocessing/EffectComposer.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.160/examples/js/postprocessing/RenderPass.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.160/examples/js/postprocessing/UnrealBloomPass.js"></script> <script>
-window.onload = function() {
-  const container = document.getElementById("viewer");
+<!DOCTYPE html> <html lang="en"> <head> <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0"> <title>bat3</title> <link rel="preconnect" href="https://fonts.googleapis.com"> <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin> <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"> <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/RGBELoader.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script> <style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Inter,system-ui,sans-serif;background:#fff;overflow:hidden}#three-container{width:100vw;height:100vh}#name-header{position:fixed;top:2rem;left:2rem;z-index:100;font-size:2.5rem;font-weight:600;color:#000;border-right:2px solid currentColor;padding-right:.5rem}#subtitle{position:fixed;top:5rem;left:2rem;z-index:100;font-family:ui-monospace,monospace;color:#666;opacity:0;transition:opacity .6s}#subtitle.visible{opacity:1}#theme-toggle{position:fixed;top:1rem;right:1rem;z-index:9999;width:50px;height:50px;border-radius:50%;cursor:pointer;font-size:1.5rem}body.dark{background:#111}body.dark #name-header,body.dark #subtitle{color:#fff}</style> </head> <body> <div id="three-container"></div> <h1 id="name-header"></h1> <p id="subtitle"><span id="live-age"></span> feet</p> <button id="theme-toggle">🌙</button> <script>
 
-  // Scene
-  const scene = new THREE.Scene();
-  scene.background = new THREE.Color(0x050505);
+const birthDate=new Date("2006-12-30T02:00:00.700Z");
+function computeAge(){return((new Date()-birthDate)/(365.2422*24*60*60*1000)).toFixed(10)}
+function updateAge(){document.getElementById("live-age").textContent=computeAge()}
 
-  // Renderer
-  const renderer = new THREE.WebGLRenderer({ antialias: true });
-  renderer.setSize(container.clientWidth, container.clientHeight);
-  renderer.setPixelRatio(window.devicePixelRatio);
-  renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.25;
-  container.appendChild(renderer.domElement);
+function initThreeScene(){
 
-  // Camera
-  const camera = new THREE.PerspectiveCamera(30, container.clientWidth/container.clientHeight, 0.1, 1000);
-  camera.position.set(4, 1.6, 5);
+const container=document.getElementById("three-container")
+const scene=new THREE.Scene()
+scene.background=new THREE.Color(0xffffff)
 
-  // Controls
-  const controls = new THREE.OrbitControls(camera, renderer.domElement);
-  controls.enableDamping = true;
-  controls.dampingFactor = 0.05;
-  controls.target.set(0, 0.8, 0);
-  controls.minDistance = 2;
-  controls.maxDistance = 10;
+// CAMERA
+const camera=new THREE.PerspectiveCamera(35,window.innerWidth/window.innerHeight,.1,1000)
+camera.position.set(0,2,8)
 
-  // HDR Environment
-  new THREE.RGBELoader().setDataType(THREE.UnsignedByteType)
-  .load("https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/studio_small_03_1k.hdr", function(texture){
-    texture.mapping = THREE.EquirectangularReflectionMapping;
-    scene.environment = texture;
-  });
+// RENDERER
+const renderer=new THREE.WebGLRenderer({antialias:true})
+renderer.setSize(window.innerWidth,window.innerHeight)
+renderer.setPixelRatio(Math.min(window.devicePixelRatio,2))
+renderer.outputEncoding=THREE.sRGBEncoding
+renderer.toneMapping=THREE.ACESFilmicToneMapping
+renderer.toneMappingExposure=1.0
+renderer.physicallyCorrectLights=false
+renderer.shadowMap.enabled=true
+renderer.shadowMap.type=THREE.PCFSoftShadowMap
+container.appendChild(renderer.domElement)
 
-  // Light
-  const light = new THREE.DirectionalLight(0xffffff, 1.2);
-  light.position.set(5,5,5);
-  scene.add(light);
+// LIGHTING — SOFT STUDIO SETUP
 
-  // GLTF Model
-  const loader = new THREE.GLTFLoader();
-  loader.load("batmobile_armored.glb", function(gltf){
-    const model = gltf.scene;
-    scene.add(model);
-    const box = new THREE.Box3().setFromObject(model);
-    const center = box.getCenter(new THREE.Vector3());
-    model.position.sub(center);
-  });
+// Key light
+const key=new THREE.DirectionalLight(0xffffff,1.8)
+key.position.set(6,8,5)
+key.castShadow=true
+key.shadow.mapSize.set(2048,2048)
+scene.add(key)
 
-  // Postprocessing
-  const composer = new THREE.EffectComposer(renderer);
-  composer.addPass(new THREE.RenderPass(scene, camera));
-  const bloom = new THREE.UnrealBloomPass(new THREE.Vector2(container.clientWidth, container.clientHeight), 0.25, 0.4, 0.85);
-  composer.addPass(bloom);
+// Fill light
+const fill=new THREE.DirectionalLight(0xffffff,0.6)
+fill.position.set(-6,4,3)
+scene.add(fill)
 
-  // Resize
-  window.addEventListener("resize", ()=>{
-    camera.aspect = container.clientWidth / container.clientHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(container.clientWidth, container.clientHeight);
-    composer.setSize(container.clientWidth, container.clientHeight);
-  });
+// Rim light
+const rim=new THREE.DirectionalLight(0xffffff,0.5)
+rim.position.set(0,6,-8)
+scene.add(rim)
 
-  // Animate
-  function animate(){
-    requestAnimationFrame(animate);
-    controls.update();
-    composer.render();
-  }
-  animate();
-};
-</script> </body></html>
+// Soft ambient
+scene.add(new THREE.AmbientLight(0xffffff,0.35))
+
+// GROUND SHADOW
+const ground=new THREE.Mesh(
+new THREE.PlaneGeometry(50,50),
+new THREE.ShadowMaterial({opacity:.18})
+)
+ground.rotation.x=-Math.PI/2
+ground.position.y=-1
+ground.receiveShadow=true
+scene.add(ground)
+
+// CONTROLS
+const controls=new THREE.OrbitControls(camera,renderer.domElement)
+controls.enableDamping=true
+controls.dampingFactor=.06
+controls.minDistance=3
+controls.maxDistance=20
+controls.target.set(0,0,0)
+
+// MODEL
+let model
+new THREE.GLTFLoader().load(
+'/assets/models/batmobile_armored.glb',
+(gltf)=>{
+model=gltf.scene
+
+model.traverse((child)=>{
+if(child.isMesh){
+child.castShadow=true
+child.receiveShadow=true
+
+// FORCE MATTE LOOK
+if(child.material){
+child.material.metalness=0
+child.material.roughness=0.9
+child.material.envMapIntensity=0
+child.material.needsUpdate=true
+}
+}
+})
+
+const box=new THREE.Box3().setFromObject(model)
+const center=box.getCenter(new THREE.Vector3())
+model.position.sub(center)
+
+const size=box.getSize(new THREE.Vector3()).length()
+const scale=5/size
+model.scale.setScalar(scale)
+
+scene.add(model)
+},
+undefined,
+(e)=>console.error(e)
+)
+
+// LOOP
+function animate(){
+requestAnimationFrame(animate)
+controls.update()
+renderer.render(scene,camera)
+}
+animate()
+
+window.addEventListener("resize",()=>{
+camera.aspect=window.innerWidth/window.innerHeight
+camera.updateProjectionMatrix()
+renderer.setSize(window.innerWidth,window.innerHeight)
+})
+
+}
+
+
+// THEME
+const toggle=document.getElementById("theme-toggle")
+toggle.onclick=()=>{
+document.body.classList.toggle("dark")
+toggle.textContent=document.body.classList.contains("dark")?"☀️":"🌙"
+}
+
+updateAge()
+setInterval(updateAge,100)
+initThreeScene()
+
+</script> </body> </html>
