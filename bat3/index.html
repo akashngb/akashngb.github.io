@@ -1,32 +1,29 @@
 <!DOCTYPE html> <html lang="en"> <head> <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0"> <title>bat3</title> <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/RGBELoader.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script> <style>*{margin:0;padding:0;box-sizing:border-box}body{background:#f5f5f5;overflow:hidden}#three-container{width:100vw;height:100vh}</style> </head> <body> <div id="three-container"></div> <script>
-
 function initThreeScene(){
 
 const container=document.getElementById("three-container")
 
-// SCENE
+// ───────────── SCENE ─────────────
 const scene=new THREE.Scene()
 scene.background=new THREE.Color(0xf5f5f5)
 
-// CAMERA
+// ───────────── CAMERA ─────────────
 const camera=new THREE.PerspectiveCamera(35,window.innerWidth/window.innerHeight,.1,1000)
 camera.position.set(0,2,8)
 
-// RENDERER
+// ───────────── RENDERER ─────────────
 const renderer=new THREE.WebGLRenderer({antialias:true})
 renderer.setSize(window.innerWidth,window.innerHeight)
 renderer.setPixelRatio(Math.min(window.devicePixelRatio,2))
 renderer.outputEncoding=THREE.sRGBEncoding
 renderer.toneMapping=THREE.ACESFilmicToneMapping
-renderer.toneMappingExposure=1.0
+renderer.toneMappingExposure=1.15
 renderer.shadowMap.enabled=true
 renderer.shadowMap.type=THREE.PCFSoftShadowMap
 container.appendChild(renderer.domElement)
 
-
-// ───────────────── HDR (SUBTLE, NOT METALLIC) ─────────────────
-
-new THREE.RGBELoader().load('/assets/hdri/tokyo_bigsight_1k.hdr',(hdr)=>{
+// ───────────── HDRI ENVIRONMENT ─────────────
+new THREE.RGBELoader().load('/assets/hdri/studio_small_09_1k.hdr',(hdr)=>{
 const pmrem=new THREE.PMREMGenerator(renderer)
 const env=pmrem.fromEquirectangular(hdr).texture
 scene.environment=env
@@ -34,106 +31,99 @@ hdr.dispose()
 pmrem.dispose()
 })
 
+// ───────────── 3‑POINT STUDIO LIGHTING ─────────────
 
-// ───────────────── STUDIO LIGHTING ─────────────────
-
-// KEY LIGHT
-const key=new THREE.DirectionalLight(0xffffff,1.6)
-key.position.set(6,10,6)
+// KEY
+const key=new THREE.DirectionalLight(0xffffff,2.2)
+key.position.set(6,8,6)
 key.castShadow=true
 key.shadow.mapSize.set(2048,2048)
-key.shadow.radius=4
-key.shadow.bias=-0.0005
+key.shadow.radius=3
+key.shadow.bias=-0.0003
 scene.add(key)
 
 // FILL
-const fill=new THREE.DirectionalLight(0xffffff,0.5)
+const fill=new THREE.DirectionalLight(0xffffff,0.45)
 fill.position.set(-6,4,2)
 scene.add(fill)
 
 // RIM
-const rim=new THREE.DirectionalLight(0xffffff,0.4)
-rim.position.set(0,5,-8)
+const rim=new THREE.DirectionalLight(0xffffff,0.8)
+rim.position.set(0,6,-8)
 scene.add(rim)
 
-// HEMI FOR SOFT DEPTH
-const hemi=new THREE.HemisphereLight(0xffffff,0xaaaaaa,0.35)
-scene.add(hemi)
+// SOFT AMBIENT
+scene.add(new THREE.HemisphereLight(0xffffff,0xcccccc,0.25))
 
-
-// ───────────────── GROUND ─────────────────
-
+// ───────────── FLOOR (FAINTER + DIRECTLY UNDER CAR) ─────────────
 const ground=new THREE.Mesh(
-new THREE.PlaneGeometry(50,50),
-new THREE.ShadowMaterial({opacity:0.22})
+new THREE.PlaneGeometry(20,20),
+new THREE.ShadowMaterial({opacity:0.12})
 )
 ground.rotation.x=-Math.PI/2
-ground.position.y=-1
+ground.position.y=0
 ground.receiveShadow=true
 scene.add(ground)
 
-
-// ───────────────── CONTROLS ─────────────────
-
+// ───────────── CONTROLS ─────────────
 const controls=new THREE.OrbitControls(camera,renderer.domElement)
 controls.enableDamping=true
 controls.dampingFactor=0.07
-controls.autoRotate=true
-controls.autoRotateSpeed=0.5
-controls.minDistance=4
-controls.maxDistance=20
+controls.zoomSpeed=2.8        // faster zoom
+controls.minDistance=0.1      // remove practical limit
+controls.maxDistance=1000
 controls.target.set(0,0,0)
 
-
-// ───────────────── MODEL ─────────────────
-
-let model
-
+// ───────────── MODEL ─────────────
 new THREE.GLTFLoader().load(
 '/assets/models/batmobile_armored.glb',
 (gltf)=>{
 
-model=gltf.scene
+const model=gltf.scene
 
 model.traverse((child)=>{
 if(child.isMesh){
 child.castShadow=true
 child.receiveShadow=true
 
-if(child.material){
+// SMALL BEVEL‑LIKE NORMAL FAKE
+const normal=new THREE.TextureLoader().load('/assets/textures/subtle_normal.jpg')
+normal.wrapS=normal.wrapT=THREE.RepeatWrapping
+normal.repeat.set(2,2)
 
-// MATTE BUT NOT DEAD
-child.material.metalness=0
-child.material.roughness=0.85
-child.material.envMapIntensity=0.35
-
-if(child.material.aoMap){
-child.material.aoMapIntensity=1.2
-}
-
-child.material.needsUpdate=true
-}
+// PBR PRINCIPLED BLACK MATERIAL
+child.material=new THREE.MeshPhysicalMaterial({
+color:new THREE.Color(0x000000),
+roughness:0.3,
+metalness:0.0,
+specularIntensity:0.5,
+clearcoat:0.28,
+clearcoatRoughness:0.1,
+normalMap:normal,
+normalScale:new THREE.Vector2(0.05,0.05),
+envMapIntensity:1.2
+})
 }
 })
 
+// CENTER + SCALE
 const box=new THREE.Box3().setFromObject(model)
 const center=box.getCenter(new THREE.Vector3())
 model.position.sub(center)
-
 const size=box.getSize(new THREE.Vector3()).length()
-const scale=5/size
-model.scale.setScalar(scale)
+model.scale.setScalar(5/size)
+
+// PLACE FLOOR JUST UNDER CAR
+const minY=box.min.y
+model.position.y-=minY
 
 scene.add(model)
-
 },
 undefined,
 (e)=>console.error(e)
 )
 
-
-// ───────────────── LOOP ─────────────────
-
+// ───────────── LOOP ─────────────
 function animate(){
 requestAnimationFrame(animate)
 controls.update()
@@ -146,9 +136,7 @@ camera.aspect=window.innerWidth/window.innerHeight
 camera.updateProjectionMatrix()
 renderer.setSize(window.innerWidth,window.innerHeight)
 })
-
 }
 
 initThreeScene()
-
 </script> </body> </html>
