@@ -1,290 +1,171 @@
-<!DOCTYPE html> <html lang="en"> <head> <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0"> <title>bat2</title> <link rel="preconnect" href="https://fonts.googleapis.com"> <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin> <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"> <script src="https://cdn.babylonjs.com/babylon.js"></script> <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script> <style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Inter,system-ui,sans-serif;background:#0d0d0d;overflow:hidden}#renderCanvas{width:100vw;height:100vh;display:block;touch-action:none;outline:0}#name-header{position:fixed;top:2rem;left:2rem;z-index:100;font-size:2.5rem;font-weight:600;color:#fff;white-space:nowrap;border-right:2px solid currentColor;padding-right:.5rem;pointer-events:none;text-shadow:0 2px 12px rgba(0,0,0,0.8)}#subtitle{position:fixed;top:5rem;left:2rem;z-index:100;font-family:ui-monospace,monospace;color:rgba(255,255,255,0.65);opacity:0;transition:opacity .6s ease;pointer-events:none}#subtitle.visible{opacity:1}#theme-toggle{position:fixed;top:1rem;right:1rem;z-index:200;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);border-radius:50%;width:50px;height:50px;cursor:pointer;font-size:1.5rem;display:flex;align-items:center;justify-content:center;transition:all .2s ease;backdrop-filter:blur(6px)}#theme-toggle:hover{background:rgba(255,255,255,0.22);transform:scale(1.1)}#orb-hint{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);z-index:100;font-family:ui-monospace,monospace;font-size:.75rem;color:rgba(255,255,255,0.4);opacity:1;transition:opacity 1s ease;pointer-events:none;letter-spacing:.05em}#orb-hint.hidden{opacity:0}body.light{background:#c8c8c8}body.light #name-header{color:#111;text-shadow:none}body.light #subtitle{color:#444}body.light #orb-hint{color:#666}body.light #theme-toggle{background:rgba(0,0,0,0.1);border-color:rgba(0,0,0,0.2)}</style> </head> <body> <canvas id="renderCanvas"></canvas> <h1 id="name-header"></h1> <p id="subtitle"><span id="live-age"></span> year old CS student that likes batman</p> <button id="theme-toggle">☀️</button> <p id="orb-hint">[ space ] to deploy</p> <script>
-    const birthDate = new Date("2006-12-30T02:00:00.700Z");
-    function computeAge() {
-      return ((new Date() - birthDate) / (365.2422 * 24 * 60 * 60 * 1000)).toFixed(10);
-    }
-    function updateAge() {
-      const el = document.getElementById("live-age");
-      if (el) el.textContent = computeAge();
-    }
+<!DOCTYPE html> <html lang="en"> <head> <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0"> <title>bat2</title> <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/RGBELoader.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/VignetteShader.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/GammaCorrectionShader.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/objects/Reflector.js"></script> <style>*{margin:0;padding:0;box-sizing:border-box}body{background:#f5f5f5;overflow:hidden}#three-container{width:100vw;height:100vh}</style> </head> <body> <div id="three-container"></div> <script>
+function init(){
+const container=document.getElementById('three-container')
 
-    function typeNameWithTypos(el) {
-      if (!el || el.dataset.typing === "1") return;
-      el.dataset.typing = "1";
-      const firstName = "Akash ";
-      const typos = ["Nabghirava", "Nagabhirva", "Nagabhirava"];
-      let phase = "first", firstIndex = 0, stage = 0, index = 0, deleting = false;
-      function jitter(base) { return Math.max(10, base + Math.floor(Math.random() * 60) - 30); }
-      function step() {
-        if (!document.body.contains(el)) { el.dataset.typing = "0"; return; }
-        if (phase === "first") {
-          el.textContent = firstName.slice(0, firstIndex + 1);
-          firstIndex++;
-          if (firstIndex < firstName.length) return setTimeout(step, jitter(110));
-          phase = "last"; index = 0;
-          return setTimeout(step, 200);
-        }
-        const target = typos[stage] || "";
-        if (!deleting) {
-          el.textContent = firstName + target.slice(0, index + 1);
-          index++;
-          if (index < target.length) return setTimeout(step, jitter(120));
-          if (stage < typos.length - 1) {
-            setTimeout(() => {
-              let deleteCount = (stage === 0) ? 8 : (stage === 1) ? 3 : 1;
-              deleteCount = Math.min(deleteCount, Math.max(1, (typos[stage] || "").length - 1));
-              deleting = true;
-              el.dataset.deletesLeft = String(deleteCount);
-              step();
-            }, 400);
-            return;
-          } else {
-            setTimeout(() => {
-              el.style.borderRight = "none";
-              el.dataset.typing = "0";
-              document.getElementById("subtitle").classList.add("visible");
-            }, 320);
-            return;
-          }
-        } else {
-          let deletesLeft = parseInt(el.dataset.deletesLeft || "0", 10);
-          if (deletesLeft <= 0) {
-            deleting = false; stage++;
-            setTimeout(() => { index = el.textContent.replace(firstName, "").length; step(); }, 200);
-            return;
-          }
-          el.textContent = firstName + el.textContent.replace(firstName, "").slice(0, -1);
-          el.dataset.deletesLeft = String(deletesLeft - 1);
-          return setTimeout(step, 55);
-        }
-      }
-      step();
-    }
+const scene=new THREE.Scene()
+scene.background=new THREE.Color(0xf5f5f5)
 
-    async function initScene() {
-      const canvas = document.getElementById('renderCanvas');
-      const engine = new BABYLON.Engine(canvas, true, {
-        antialias: true,
-        powerPreference: "high-performance"
-      });
+const camera=new THREE.PerspectiveCamera(35,window.innerWidth/window.innerHeight,.1,1000)
+camera.position.set(0,2,8)
 
-      const scene = new BABYLON.Scene(engine);
-      scene.clearColor = new BABYLON.Color4(0.05, 0.05, 0.05, 1);
+const renderer=new THREE.WebGLRenderer({antialias:true})
+renderer.setSize(window.innerWidth,window.innerHeight)
+renderer.setPixelRatio(Math.min(window.devicePixelRatio,2))
+renderer.outputEncoding=THREE.sRGBEncoding
+renderer.toneMapping=THREE.ACESFilmicToneMapping
+renderer.toneMappingExposure=1.2
+renderer.shadowMap.enabled=true
+container.appendChild(renderer.domElement)
 
-      const camera = new BABYLON.ArcRotateCamera("cam",
-        -Math.PI * 0.3, Math.PI * 0.38, 14,
-        BABYLON.Vector3.Zero(), scene
-      );
-      camera.attachControl(canvas, true);
-      camera.lowerRadiusLimit = 3;
-      camera.upperRadiusLimit = 40;
-      camera.wheelPrecision = 3;
-      camera.angularSensibilityX = 600;
-      camera.angularSensibilityY = 600;
-      camera.inertia = 0.88;
-      camera.minZ = 0.1;
-      camera.panningSensibility = 0;
+// POST PROCESSING (NOW SAFE)
+const composer=new THREE.EffectComposer(renderer)
+composer.addPass(new THREE.RenderPass(scene,camera))
 
-      const hdrTexture = BABYLON.CubeTexture.CreateFromPrefilteredData(
-        "https://assets.babylonjs.com/environments/studio.env",
-        scene
-      );
-      scene.environmentTexture = hdrTexture;
-      scene.environmentIntensity = 1.2;
+const bloom=new THREE.UnrealBloomPass(
+new THREE.Vector2(window.innerWidth,window.innerHeight),
+0.25,
+0.4,
+0.85
+)
+composer.addPass(bloom)
 
-      const hemi = new BABYLON.HemisphericLight("hemi", new BABYLON.Vector3(0, 1, 0), scene);
-      hemi.intensity = 0.25;
-      hemi.diffuse = new BABYLON.Color3(0.9, 0.95, 1.0);
-      hemi.groundColor = new BABYLON.Color3(0.05, 0.05, 0.1);
+composer.addPass(new THREE.ShaderPass(THREE.VignetteShader))
+composer.addPass(new THREE.ShaderPass(THREE.GammaCorrectionShader))
 
-      const key = new BABYLON.DirectionalLight("key", new BABYLON.Vector3(-1, -1.5, -1), scene);
-      key.intensity = 1.8;
-      key.diffuse = new BABYLON.Color3(1, 0.97, 0.9);
+// HDRI
+new THREE.RGBELoader().load('/assets/hdri/studio_small_09_1k.hdr',(hdr)=>{
+const pmrem=new THREE.PMREMGenerator(renderer)
+scene.environment=pmrem.fromEquirectangular(hdr).texture
+hdr.dispose();pmrem.dispose()
+})
 
-      const fill = new BABYLON.DirectionalLight("fill", new BABYLON.Vector3(1, -0.5, 1), scene);
-      fill.intensity = 0.6;
-      fill.diffuse = new BABYLON.Color3(0.6, 0.7, 1.0);
+// LIGHTS (FIXED ADD BUG)
+const key=new THREE.DirectionalLight(0xffffff,2.5)
+key.position.set(6,10,6)
+key.castShadow=true
+scene.add(key)
 
-      const ORB_LINKS = [
-        { emoji: '🐙', label: 'GitHub',    url: 'https://github.com/akashngb',                              color: new BABYLON.Color3(0.25, 0.25, 0.25) },
-        { emoji: '💼', label: 'LinkedIn',  url: 'https://www.linkedin.com/in/akash-nagabhirava-164155327/', color: new BABYLON.Color3(0.0,  0.47, 0.71) },
-        { emoji: '🎵', label: 'Spotify',   url: 'https://open.spotify.com/user/obxzyzxv5yuu7qo1u3qaxvsqm', color: new BABYLON.Color3(0.11, 0.73, 0.33) },
-        { emoji: '📸', label: 'Instagram', url: 'https://instagram.com/akash30n',                           color: new BABYLON.Color3(0.88, 0.19, 0.42) },
-        { emoji: '✉️', label: 'Email',     url: 'mailto:akash30n@gmail.com',                                color: new BABYLON.Color3(0.29, 0.56, 0.85) },
-      ];
+const fill=new THREE.DirectionalLight(0xffffff,0.5)
+fill.position.set(-6,4,2)
+scene.add(fill)
 
-      const ORB_TARGETS = [
-        new BABYLON.Vector3( 3.2,  0.6,  0.0),
-        new BABYLON.Vector3(-3.2,  0.6,  0.0),
-        new BABYLON.Vector3( 2.0,  2.2, -0.8),
-        new BABYLON.Vector3(-2.0,  2.2, -0.8),
-        new BABYLON.Vector3( 0.0,  3.0,  0.8),
-      ];
+const rim=new THREE.DirectionalLight(0xffffff,1)
+rim.position.set(0,6,-8)
+scene.add(rim)
 
-      let orbsDeployed = false;
-      let orbAnimating = false;
-      let orbMeshes = [];
-      let modelRoot = null;
+scene.add(new THREE.HemisphereLight(0xffffff,0xcccccc,0.25))
 
-      function makeOrbTexture(emoji) {
-        const size = 256;
-        const cvs = document.createElement('canvas');
-        cvs.width = cvs.height = size;
-        const ctx2d = cvs.getContext('2d');
-        ctx2d.font = `${size * 0.55}px serif`;
-        ctx2d.textAlign = 'center';
-        ctx2d.textBaseline = 'middle';
-        ctx2d.fillText(emoji, size / 2, size / 2 + 4);
-        const tex = new BABYLON.DynamicTexture("ot", size, scene, false);
-        tex.getContext().drawImage(cvs, 0, 0);
-        tex.update();
-        return tex;
-      }
+// REFLECTIVE FLOOR
+const reflector=new THREE.Reflector(new THREE.PlaneGeometry(30,30),{
+textureWidth:1024,
+textureHeight:1024,
+color:0xaaaaaa
+})
+reflector.rotation.x=-Math.PI/2
+reflector.position.y=0
+scene.add(reflector)
 
-      function createOrbs(parent) {
-        orbMeshes = ORB_LINKS.map((link, i) => {
-          const sphere = BABYLON.MeshBuilder.CreateSphere(`orb${i}`,
-            { diameter: 0.7, segments: 32 }, scene);
+const shadowFloor=new THREE.Mesh(
+new THREE.PlaneGeometry(30,30),
+new THREE.ShadowMaterial({opacity:0.08})
+)
+shadowFloor.rotation.x=-Math.PI/2
+shadowFloor.position.y=0.001
+shadowFloor.receiveShadow=true
+scene.add(shadowFloor)
 
-          const mat = new BABYLON.PBRMaterial(`orbMat${i}`, scene);
-          mat.albedoColor = link.color;
-          mat.albedoTexture = makeOrbTexture(link.emoji);
-          mat.metallic = 0.0;
-          mat.roughness = 0.25;
-          mat.emissiveColor = link.color.scale(0.35);
+// CONTROLS
+const controls=new THREE.OrbitControls(camera,renderer.domElement)
+controls.enableDamping=true
+controls.dampingFactor=0.07
+controls.autoRotate=true
+controls.autoRotateSpeed=0.25
+controls.zoomSpeed=3
+controls.target.set(0,0.6,0)
 
-          sphere.material = mat;
-          sphere.parent = parent;
-          sphere.position = BABYLON.Vector3.Zero();
-          sphere.setEnabled(false);
+// EDGE HIGHLIGHT
+function addEdgeHighlights(mat){
+mat.onBeforeCompile=(shader)=>{
+shader.fragmentShader=shader.fragmentShader.replace(
+'#include <output_fragment>',
+`float edge = pow(1.0 - dot(normalize(vNormal), normalize(vViewPosition)), 3.0);
+gl_FragColor.rgb += edge * 0.35;
+#include <output_fragment>`
+)
+}
+}
 
-          sphere.metadata = {
-            target: ORB_TARGETS[i].clone(),
-            t: 0,
-            bobOffset: i * (Math.PI * 2 / ORB_LINKS.length),
-            url: link.url,
-          };
+new THREE.GLTFLoader().load('/assets/models/batmobile_armored.glb',gltf=>{
+const model=gltf.scene
+window.carModel = model; // 👈 add this line
+const normal=new THREE.TextureLoader().load('/assets/textures/subtle_normal.jpg')
+normal.wrapS=normal.wrapT=THREE.RepeatWrapping
+normal.repeat.set(2,2)
 
-          const gl = new BABYLON.GlowLayer(`glow${i}`, scene);
-          gl.intensity = 0.6;
-          gl.addIncludedOnlyMesh(sphere);
+model.traverse(o=>{
+if(o.isMesh){
+o.castShadow=o.receiveShadow=true
+const name=o.name.toLowerCase()
 
-          return sphere;
-        });
-      }
+if(name.includes('glass')||name.includes('window')){
+o.material=new THREE.MeshPhysicalMaterial({
+color:0x111111,
+roughness:0,
+transmission:0.1,
+envMapIntensity:2,
+transparent:true
+})
+return
+}
 
-      function easeOutBack(t) {
-        const c1 = 1.70158, c3 = c1 + 1;
-        return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2);
-      }
-      function easeInBack(t) {
-        const c1 = 1.70158, c3 = c1 + 1;
-        return c3 * t * t * t - c1 * t * t;
-      }
+if(name.includes('wheel')||name.includes('rim')){
+o.material=new THREE.MeshPhysicalMaterial({
+color:0xD4AF37,
+metalness:1,
+roughness:0.25
+})
+return
+}
 
-      BABYLON.SceneLoader.ImportMesh("", "/assets/models/", "batmobile_armored.glb", scene,
-        (meshes) => {
-          modelRoot = new BABYLON.TransformNode("root", scene);
-          meshes.forEach(m => { if (!m.parent) m.parent = modelRoot; });
+const mat=new THREE.MeshPhysicalMaterial({
+color:0x000000,
+roughness:0.28,
+metalness:0,
+clearcoat:0.3,
+clearcoatRoughness:0.1,
+normalMap:normal,
+normalScale:new THREE.Vector2(0.05,0.05),
+envMapIntensity:1.4
+})
+addEdgeHighlights(mat)
+o.material=mat
+}
+})
 
-          const bb = modelRoot.getHierarchyBoundingVectors(true);
-          const size = bb.max.subtract(bb.min);
-          const maxDim = Math.max(size.x, size.y, size.z);
-          const scale = 8 / maxDim;
+// CENTER + FLOOR FIX
+const box=new THREE.Box3().setFromObject(model)
+const center=box.getCenter(new THREE.Vector3())
+model.position.sub(center)
 
-          modelRoot.scaling.setAll(scale);
+const newBox=new THREE.Box3().setFromObject(model)
+model.position.y-=newBox.min.y
 
-          const bb2 = modelRoot.getHierarchyBoundingVectors(true);
-          const center2 = BABYLON.Vector3.Center(bb2.min, bb2.max);
-          modelRoot.position = center2.negate();
+scene.add(model)
+})
 
-          const carHeight = bb2.max.y - bb2.min.y;
-          camera.target = new BABYLON.Vector3(0, carHeight * 0.5 + modelRoot.position.y, 0);
-          camera.radius = Math.max(size.x, size.z) * scale * 1.35;
+function animate(){
+requestAnimationFrame(animate)
+controls.update()
+composer.render()
+}
+animate()
 
-          createOrbs(modelRoot);
-          console.log("✅ Model loaded");
-        },
-        null,
-        (_, msg) => console.error("Model error:", msg)
-      );
-
-      let spaceDown = false;
-      document.addEventListener('keydown', e => {
-        if (e.code !== 'Space' || spaceDown) return;
-        e.preventDefault();
-        spaceDown = true;
-        if (orbAnimating || !modelRoot) return;
-        orbsDeployed = !orbsDeployed;
-        orbAnimating = true;
-        if (orbsDeployed) {
-          orbMeshes.forEach(o => {
-            o.setEnabled(true);
-            o.metadata.t = 0;
-            o.position.setAll(0);
-          });
-          document.getElementById('orb-hint').classList.add('hidden');
-        }
-      });
-      document.addEventListener('keyup', e => { if (e.code === 'Space') spaceDown = false; });
-
-      scene.onPointerDown = (evt, pick) => {
-        if (!orbsDeployed || !pick.hit) return;
-        const m = pick.pickedMesh;
-        if (m?.metadata?.url) window.open(m.metadata.url, '_blank');
-      };
-
-      scene.onPointerMove = (evt, pick) => {
-        canvas.style.cursor =
-          (orbsDeployed && pick.hit && pick.pickedMesh?.metadata?.url)
-            ? 'pointer' : 'grab';
-      };
-
-      let time = 0;
-      scene.registerBeforeRender(() => {
-        time += engine.getDeltaTime() / 1000;
-        const speed = 0.048;
-        let allDone = true;
-
-        orbMeshes.forEach(orb => {
-          const md = orb.metadata;
-          if (orbsDeployed) {
-            if (md.t < 1) { md.t = Math.min(1, md.t + speed); allDone = false; }
-            orb.position = BABYLON.Vector3.Lerp(
-              BABYLON.Vector3.Zero(), md.target, easeOutBack(md.t));
-            if (md.t >= 1) {
-              orb.position.y = md.target.y + Math.sin(time * 1.4 + md.bobOffset) * 0.1;
-              orb.rotation.y = time * 0.5 + md.bobOffset;
-            }
-          } else {
-            if (md.t > 0) { md.t = Math.max(0, md.t - speed * 1.5); allDone = false; }
-            orb.position = BABYLON.Vector3.Lerp(
-              BABYLON.Vector3.Zero(), md.target, easeInBack(Math.max(0, md.t)));
-            if (md.t <= 0) orb.setEnabled(false);
-          }
-        });
-
-        if (allDone) orbAnimating = false;
-      });
-
-      engine.runRenderLoop(() => scene.render());
-      window.addEventListener('resize', () => engine.resize());
-    }
-
-    const toggle = document.getElementById('theme-toggle');
-    toggle.addEventListener('click', () => {
-      document.body.classList.toggle('light');
-      const isLight = document.body.classList.contains('light');
-      toggle.textContent = isLight ? '🌙' : '☀️';
-      localStorage.setItem('theme', isLight ? 'light' : 'dark');
-    });
-    if (localStorage.getItem('theme') === 'light') {
-      document.body.classList.add('light');
-      toggle.textContent = '🌙';
-    }
-
-    updateAge();
-    setInterval(updateAge, 100);
-    typeNameWithTypos(document.getElementById('name-header'));
-    initScene();
-  </script> </body> </html>
+window.addEventListener('resize',()=>{
+camera.aspect=window.innerWidth/window.innerHeight
+camera.updateProjectionMatrix()
+renderer.setSize(window.innerWidth,window.innerHeight)
+composer.setSize(window.innerWidth,window.innerHeight)
+})
+}
+init()
+</script> </body> </html>
