@@ -96,62 +96,41 @@ gl_FragColor.rgb += edge * 0.35;
 }
 
 new THREE.GLTFLoader().load('/assets/models/batmobile_armored.glb',gltf=>{
-const model=gltf.scene
-window.carModel = model; // 👈 add this line
-const normal=new THREE.TextureLoader().load('/assets/textures/subtle_normal.jpg')
-normal.wrapS=normal.wrapT=THREE.RepeatWrapping
-normal.repeat.set(2,2)
+  const model=gltf.scene;
 
-model.traverse(o=>{
-if(o.isMesh){
-o.castShadow=o.receiveShadow=true
-const name=o.name.toLowerCase()
+  model.traverse(o=>{
+    if(!o.isMesh) return;
 
-if(name.includes('glass')||name.includes('window')){
-o.material=new THREE.MeshPhysicalMaterial({
-color:0x111111,
-roughness:0,
-transmission:0.1,
-envMapIntensity:2,
-transparent:true
-})
-return
-}
+    o.castShadow=o.receiveShadow=true;
 
-if(name.includes('wheel')||name.includes('rim')){
-o.material=new THREE.MeshPhysicalMaterial({
-color:0xD4AF37,
-metalness:1,
-roughness:0.25
-})
-return
-}
+    const mat=o.material;
 
-const mat=new THREE.MeshPhysicalMaterial({
-color:0x000000,
-roughness:0.28,
-metalness:0,
-clearcoat:0.3,
-clearcoatRoughness:0.1,
-normalMap:normal,
-normalScale:new THREE.Vector2(0.05,0.05),
-envMapIntensity:1.4
-})
-addEdgeHighlights(mat)
-o.material=mat
-}
-})
+    if(!mat) return;
 
-// CENTER + FLOOR FIX
-const box=new THREE.Box3().setFromObject(model)
-const center=box.getCenter(new THREE.Vector3())
-model.position.sub(center)
+    // GLASS
+    if(mat.transparent || mat.opacity < 0.95){
+      mat.transmission = 0.6;
+      mat.roughness = 0.05;
+      mat.envMapIntensity = 2.5;
+      return;
+    }
 
-const newBox=new THREE.Box3().setFromObject(model)
-model.position.y-=newBox.min.y
+    // METAL (wheels)
+    if(mat.metalness > 0.6){
+      mat.envMapIntensity = 2;
+      mat.roughness = Math.max(mat.roughness,0.2);
+      return;
+    }
 
-scene.add(model)
-})
+    // PAINT
+    mat.clearcoat = 0.6;
+    mat.clearcoatRoughness = 0.08;
+    mat.envMapIntensity = 1.6;
+  });
+
+  scene.add(model);
+});
+
 
 function animate(){
 requestAnimationFrame(animate)
