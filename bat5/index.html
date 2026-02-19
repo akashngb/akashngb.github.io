@@ -1,114 +1,198 @@
-<!DOCTYPE html> <html lang="en"> <head> <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0"> <title>bat5</title> <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/RGBELoader.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/VignetteShader.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script> <style>body{margin:0;overflow:hidden;background:#0b0b0b}#c{width:100vw;height:100vh}</style> </head> <body> <div id="c"></div> <script>
-const BASE = "/";
-const PATH = (p)=> BASE + p;
+<!DOCTYPE html> <html> <head> <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"> <meta charset="UTF-8"> <title>Batmobile Showcase</title> <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/RGBELoader.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/objects/Reflector.js"></script> <style>body{margin:0;overflow:hidden;background:#f5f5f5}</style> </head> <body> <script>
 
-let scene=new THREE.Scene();
-scene.fog=new THREE.FogExp2(0x000000,.035);
+// ---------- SAFE PATH (WORKS WITH JEKYLL LAYOUTS) ----------
+function PATH(p){ return window.location.origin + p; }
 
-let camera=new THREE.PerspectiveCamera(35,innerWidth/innerHeight,.1,1000);
+// ---------- SCENE ----------
+const scene=new THREE.Scene();
+scene.background=new THREE.Color(0xf5f5f5);
+scene.fog=new THREE.FogExp2(0xffffff,.05);
+
+const camera=new THREE.PerspectiveCamera(35,innerWidth/innerHeight,.1,100);
 camera.position.set(0,2,8);
 
-let renderer=new THREE.WebGLRenderer({antialias:true});
+const renderer=new THREE.WebGLRenderer({antialias:true});
 renderer.setSize(innerWidth,innerHeight);
 renderer.outputEncoding=THREE.sRGBEncoding;
 renderer.toneMapping=THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure=.9;
-document.getElementById("c").appendChild(renderer.domElement);
+renderer.toneMappingExposure=1.1;
+document.body.appendChild(renderer.domElement);
 
-let controls=new THREE.OrbitControls(camera,renderer.domElement);
-controls.enableDamping=true;
+// ---------- LIGHT ----------
+scene.add(new THREE.HemisphereLight(0xffffff,0x444444,.5));
+
+const key=new THREE.DirectionalLight(0xffffff,2);
+key.position.set(5,8,5);
+scene.add(key);
+
+// ---------- HDRI ----------
+new THREE.RGBELoader().load(
+PATH("/assets/hdri/studio_small_09_4k.hdr"),
+hdr=>{
+ const pmrem=new THREE.PMREMGenerator(renderer);
+ scene.environment=pmrem.fromEquirectangular(hdr).texture;
+ hdr.dispose(); pmrem.dispose();
+});
+
+// ---------- REFLECTION FLOOR ----------
+const refl=new THREE.Reflector(
+ new THREE.PlaneGeometry(30,30),
+ {textureWidth:1024,textureHeight:1024,color:0x777777}
+);
+refl.rotation.x=-Math.PI/2;
+scene.add(refl);
+
+// ---------- CONTROLS ----------
+const controls=new THREE.OrbitControls(camera,renderer.domElement);
 controls.autoRotate=true;
-controls.autoRotateSpeed=.2;
+controls.autoRotateSpeed=.3;
 
-// LIGHTS
-scene.add(new THREE.HemisphereLight(0xffffff,0x111111,.3));
-let k=new THREE.DirectionalLight(0xffffff,2);
-k.position.set(5,8,5);
-scene.add(k);
+// ---------- BATMOBILE ----------
+let carModel;
+new THREE.GLTFLoader().load(
+PATH("/assets/models/batmobile_armored.glb"),
+g=>{
+ carModel=g.scene;
 
-// HDRI SAFE
-new THREE.RGBELoader().load(PATH("/assets/hdri/studio_small_09_4k.hdr"),(hdr)=>{
-let pmrem=new THREE.PMREMGenerator(renderer);
-scene.environment=pmrem.fromEquirectangular(hdr).texture;
-hdr.dispose();pmrem.dispose();
+ carModel.traverse(o=>{
+  if(!o.isMesh)return;
+
+  let m=o.material;
+  if(!m)return;
+
+  // DEEP BLACK PAINT FIX
+  if(!m.transparent){
+   m.color=new THREE.Color(0x000000);
+   m.metalness=.7;
+   m.roughness=.25;
+   m.envMapIntensity=1.2;
+  }
+
+  // GLASS
+  if(m.transparent||m.opacity<.95){
+   m.transmission=.7;
+   m.roughness=.05;
+  }
+ });
+
+ scene.add(carModel);
 });
 
-// POST FX
-let composer=new THREE.EffectComposer(renderer);
-composer.addPass(new THREE.RenderPass(scene,camera));
-composer.addPass(new THREE.UnrealBloomPass(new THREE.Vector2(innerWidth,innerHeight),.2,.4,.85));
-composer.addPass(new THREE.ShaderPass(THREE.VignetteShader));
-
-// LOAD CAR
-let car;
-new THREE.GLTFLoader().load(PATH("/assets/models/batmobile_armored.glb"),(g)=>{
-car=g.scene;
-car.traverse(o=>{
-if(o.isMesh && o.material){
-o.material.color.multiplyScalar(.6);
-o.material.envMapIntensity=1.2;
-}
-});
-scene.add(car);
-});
-
-// ICONS
+// ---------- ICONS ----------
 const ICONS=[
-{file:"github.glb",url:"https://github.com/akashngb/akashngb.github.io"},
-{file:"instagram.glb",url:"https://www.instagram.com/akash30n/"},
-{file:"linkedin.glb",url:"https://www.linkedin.com/in/akash-nagabhirava-164155327/"},
-{file:"spotify.glb",url:"https://open.spotify.com/user/obxzyzxv5yuu7qo1u3qaxvsqm"},
-{file:"mail.glb",url:"mailto:akash30n@gmail.com"},
-{file:"sun.glb",url:"theme"}
+ {file:"github.glb",url:"https://github.com/akashngb/akashngb.github.io"},
+ {file:"instagram.glb",url:"https://www.instagram.com/akash30n/"},
+ {file:"linkedin.glb",url:"https://www.linkedin.com/in/akash-nagabhirava-164155327/"},
+ {file:"spotify.glb",url:"https://open.spotify.com/user/obxzyzxv5yuu7qo1u3qaxvsqm"},
+ {file:"mail.glb",url:"mailto:akash30n@gmail.com"},
+ {file:"sun.glb",url:"theme"},
+ {file:"moon.glb",url:"theme"}
 ];
 
-let iconMeshes=[];
-ICONS.forEach((i,idx)=>{
-new THREE.GLTFLoader().load(PATH("/assets/icons/"+i.file),(g)=>{
-let m=g.scene;
-m.scale.setScalar(.6);
-m.visible=false;
-m.userData=i;
-scene.add(m);
-iconMeshes.push(m);
-});
+const loader=new THREE.GLTFLoader();
+const icons=[];
+let iconsVisible=false;
+
+ICONS.forEach(i=>{
+ loader.load(PATH("/assets/icons/"+i.file),g=>{
+  let m=g.scene;
+  m.scale.setScalar(.5);
+  m.visible=false;
+  m.userData=i;
+  scene.add(m);
+  icons.push(m);
+ });
 });
 
-let open=false;
+// ---------- SPACE TOGGLE ----------
 window.addEventListener("keydown",e=>{
-if(e.code!=="Space")return;
-open=!open;
-iconMeshes.forEach((m,i)=>{
-m.visible=open;
-m.position.set(Math.cos(i*Math.PI/3)*3, i%2?1.2:.7, Math.sin(i*Math.PI/3)*3);
-});
+ if(e.code!=="Space")return;
+ iconsVisible=!iconsVisible;
+
+ icons.forEach((m,i)=>{
+  m.visible=iconsVisible;
+
+  const angle=i*(Math.PI*2/icons.length);
+  const r=3;
+  m.position.set(
+   Math.cos(angle)*r,
+   .5+(i%2)*.8,
+   Math.sin(angle)*r
+  );
+ });
 });
 
-let ray=new THREE.Raycaster();
-let mouse=new THREE.Vector2();
-window.addEventListener("click",e=>{
-mouse.x=(e.clientX/innerWidth)*2-1;
-mouse.y=-(e.clientY/innerHeight)*2+1;
-ray.setFromCamera(mouse,camera);
-let hit=ray.intersectObjects(iconMeshes,true)[0];
-if(hit){
-let url=hit.object.parent.userData.url;
-if(url==="theme") document.body.style.background="#fff";
-else window.open(url,"_blank");
+// ---------- HOVER ----------
+const ray=new THREE.Raycaster();
+const mouse=new THREE.Vector2();
+
+window.addEventListener("mousemove",e=>{
+ mouse.x=e.clientX/innerWidth*2-1;
+ mouse.y=-(e.clientY/innerHeight*2-1);
+});
+
+window.addEventListener("click",()=>{
+ ray.setFromCamera(mouse,camera);
+ const hits=ray.intersectObjects(icons,true);
+ if(!hits.length)return;
+
+ let m=hits[0].object.parent;
+ let data=m.userData;
+
+ if(data.url==="theme"){
+  toggleTheme();
+ }else{
+  window.open(data.url,"_blank");
+ }
+});
+
+// ---------- THEME ----------
+let dark=false;
+function toggleTheme(){
+ dark=!dark;
+
+ scene.background=new THREE.Color(dark?0x000000:0xf5f5f5);
+ scene.fog.color.set(dark?0x000000:0xffffff);
+
+ if(carModel){
+  carModel.traverse(o=>{
+   if(o.isMesh)o.material.wireframe=dark;
+  });
+ }
 }
-});
 
-function anim(){
-requestAnimationFrame(anim);
-controls.update();
-composer.render();
+// ---------- ANIMATE ----------
+function animate(){
+ requestAnimationFrame(animate);
+
+ ray.setFromCamera(mouse,camera);
+ const hits=ray.intersectObjects(icons,true);
+
+ icons.forEach(m=>{
+  m.scale.setScalar(.5);
+  m.traverse(o=>{
+   if(o.material)o.material.emissiveIntensity=0;
+  });
+ });
+
+ if(hits.length){
+  let m=hits[0].object.parent;
+  m.scale.setScalar(.65);
+  m.traverse(o=>{
+   if(o.material)o.material.emissive=new THREE.Color(0xffffff);
+  });
+ }
+
+ controls.update();
+ renderer.render(scene,camera);
 }
-anim();
+animate();
 
+// ---------- RESIZE ----------
 addEventListener("resize",()=>{
-camera.aspect=innerWidth/innerHeight;
-camera.updateProjectionMatrix();
-renderer.setSize(innerWidth,innerHeight);
-composer.setSize(innerWidth,innerHeight);
+ camera.aspect=innerWidth/innerHeight;
+ camera.updateProjectionMatrix();
+ renderer.setSize(innerWidth,innerHeight);
 });
+
 </script> </body> </html>
