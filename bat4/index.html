@@ -138,44 +138,45 @@ new THREE.GLTFLoader().load('/assets/models/batmobile_armored.glb',gltf=>{
 })
 
 // === SPACE KEY TOGGLE ===
-window.addEventListener('keydown',(e)=>{
-if(e.code!=='Space') return
-if(!loadedModel) return
+window.addEventListener('keydown', (e) => {
+  if (e.code !== 'Space') return;
+  if (!loadedModel) return;
 
-isWireframe=!isWireframe
+  isWireframe = !isWireframe;
 
-loadedModel.traverse(obj=>{
-  if(!obj.isMesh) return
+  loadedModel.traverse(obj => {
+    if (!obj.isMesh) return;
 
-  if(isWireframe){
+    const mat = obj.material;
+    if (!mat) return;
 
-    if(!obj.userData.originalMaterial){
-      obj.userData.originalMaterial=obj.material
+    if (isWireframe) {
+
+      // store original values once
+      if (!obj.userData.originalColor) {
+        obj.userData.originalColor = mat.color ? mat.color.clone() : null;
+      }
+      if (obj.userData.originalWireframe === undefined) {
+        obj.userData.originalWireframe = mat.wireframe;
+      }
+
+      if (mat.color) mat.color.set(0xffffff);
+      mat.wireframe = true;
+
+    } else {
+
+      if (obj.userData.originalColor && mat.color) {
+        mat.color.copy(obj.userData.originalColor);
+      }
+
+      mat.wireframe = obj.userData.originalWireframe ?? false;
     }
+  });
 
-    // white solid base
-    const whiteMat=new THREE.MeshBasicMaterial({
-      color:0xffffff
-    })
+  reflector.visible = !isWireframe;
+  softenFloor.visible = !isWireframe;
+});
 
-    // black wire overlay
-    const wireMat=new THREE.MeshBasicMaterial({
-      color:0x000000,
-      wireframe:true
-    })
-
-    obj.material=[whiteMat,wireMat]
-
-  }else{
-    if(obj.userData.originalMaterial){
-      obj.material=obj.userData.originalMaterial
-    }
-  }
-})
-
-reflector.visible=!isWireframe
-softenFloor.visible=!isWireframe
-})
 
 function animate(){
 requestAnimationFrame(animate)
