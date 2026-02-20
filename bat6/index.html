@@ -92,7 +92,7 @@ reflectionFade.position.y=0.002
 scene.add(reflectionFade)
 
 // CONTROLS + CAMERA START POSITION
-camera.position.set(5.2, 2.4, 6.8)
+camera.position.set(4.1, 2.1, 4.9)
 
 const controls=new THREE.OrbitControls(camera,renderer.domElement)
 controls.enableDamping=true
@@ -123,7 +123,7 @@ new THREE.GLTFLoader().load('/assets/models/batmobile_armored.glb',gltf=>{
   carModel=model
 
   // START ORIENTATION
-  model.rotation.y=Math.PI*0.75   // turn car
+model.rotation.y = Math.PI * 0.75 - Math.PI / 6  // turn car
   model.position.set(0,0,0)
   model.scale.set(1,1,1)
 
@@ -160,50 +160,88 @@ new THREE.GLTFLoader().load('/assets/models/batmobile_armored.glb',gltf=>{
   scene.add(model);
 });
 
-// FLOATING ICONS
+// FLOATING ICONS (GLB VERSION)
 let iconsVisible=false
 const icons=[]
 const iconGroup=new THREE.Group()
 scene.add(iconGroup)
 
-const emojis=["⚙️","🔋","🛞","💡","🧠","🛡️"]
+const iconFiles=[
+  {file:'/assets/icons/mail.glb',side:'left'},
+  {file:'/assets/icons/github.glb',side:'left'},
+  {file:'/assets/icons/linkedin.glb',side:'left'},
+  {file:'/assets/icons/spotify.glb',side:'right'},
+  {file:'/assets/icons/instagram.glb',side:'right'},
+  {file:'/assets/icons/sun.glb',side:'right'}
+]
 
-const loader=new THREE.TextureLoader()
+const gltfLoader=new THREE.GLTFLoader()
 
-for(let i=0;i<6;i++){
-  const canvas=document.createElement('canvas')
-  canvas.width=256
-  canvas.height=256
-  const ctx=canvas.getContext('2d')
-  ctx.font="160px serif"
-  ctx.textAlign="center"
-  ctx.textBaseline="middle"
-  ctx.fillText(emojis[i],128,128)
-
-  const tex=new THREE.CanvasTexture(canvas)
-
-  const sprite=new THREE.Sprite(
-    new THREE.SpriteMaterial({map:tex,transparent:true})
-  )
-
-  sprite.scale.set(0.8,0.8,0.8)
-  sprite.position.set(0,0.6,0)
-  iconGroup.add(sprite)
-  icons.push(sprite)
+function normalizeSize(obj,targetSize=0.6){
+  const box=new THREE.Box3().setFromObject(obj)
+  const size=box.getSize(new THREE.Vector3())
+  const max=Math.max(size.x,size.y,size.z)
+  const scale=targetSize/max
+  obj.scale.setScalar(scale)
 }
 
+iconFiles.forEach((icon,i)=>{
+  gltfLoader.load(icon.file,g=>{
+    const obj=g.scene
+    normalizeSize(obj,0.8)
+
+    obj.visible=false
+    obj.position.set(0,0.6,0)
+
+    iconGroup.add(obj)
+    icons.push({mesh:obj,side:icon.side})
+  })
+})
+
 function positionIcons(out){
+  if(!carModel) return
+
+  const center=new THREE.Vector3()
+  carModel.getWorldPosition(center)
+
   const r=3
-  icons.forEach((s,i)=>{
-    const angle=i*Math.PI/3
-    const x=Math.cos(angle)*r
-    const z=Math.sin(angle)*r
-    const y=1.2
+  let leftIndex=0
+  let rightIndex=0
+
+  icons.forEach(icon=>{
+    let angle
+
+    if(icon.side==='left'){
+      angle=Math.PI + (leftIndex-1)*Math.PI/6
+      leftIndex++
+    }else{
+      angle=(rightIndex-1)*Math.PI/6
+      rightIndex++
+    }
+
+    const x=center.x+Math.cos(angle)*r
+    const z=center.z+Math.sin(angle)*r
+    const y=center.y+1.3
+
+    icon.mesh.visible=true
 
     if(out){
-      gsap.to(s.position,{x,y,z,duration:0.6})
+      gsap.fromTo(icon.mesh.position,
+        {x:center.x,y:center.y+0.5,z:center.z},
+        {
+          x,y,z,
+          duration:0.55,
+          ease:"back.out(2)"
+        })
     }else{
-      gsap.to(s.position,{x:0,y:0.6,z:0,duration:0.6})
+      gsap.to(icon.mesh.position,{
+        x:center.x,
+        y:center.y+0.5,
+        z:center.z,
+        duration:0.45,
+        ease:"power2.in",
+        onComplete:()=>icon.mesh.visible=false
+      })
     }
   })
 }
