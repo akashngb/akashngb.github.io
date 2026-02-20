@@ -1,12 +1,13 @@
-<!DOCTYPE html> <html lang="en"> <head> <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0"> <title>bat6</title> <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/RGBELoader.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script> <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/VignetteShader.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/GammaCorrectionShader.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/objects/Reflector.js"></script> <style>*{margin:0;padding:0;box-sizing:border-box}body{background:#f5f5f5;overflow:hidden}#three-container{width:100vw;height:100vh}</style> </head> <body> <div id="three-container"></div> <script>
+<!DOCTYPE html> <html lang="en"> <head> <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0"> <title>bat6</title> <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/RGBELoader.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script> <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/VignetteShader.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/GammaCorrectionShader.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/objects/Reflector.js"></script> <style>*{margin:0;padding:0;box-sizing:border-box}body{background:#f5f5f5;overflow:hidden}#three-container{width:100vw;height:100vh}</style> </head> <body> <div id="three-container"></div> <script>
 function init(){
-    let carModel = null;
+let carModel=null
+let iconsVisible=false
 
 window.addEventListener('keydown',e=>{
-  if(e.code==="Space"){
-    iconsVisible=!iconsVisible
-    positionIcons(iconsVisible)
-  }
+if(e.code==="Space"){
+iconsVisible=!iconsVisible
+positionIcons(iconsVisible)
+}
 })
 
 const container=document.getElementById('three-container')
@@ -16,250 +17,143 @@ scene.background=new THREE.Color(0xf5f5f5)
 
 const camera=new THREE.PerspectiveCamera(35,window.innerWidth/window.innerHeight,.1,1000)
 
-
-const renderer=new THREE.WebGLRenderer({antialias:true})
+const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true})
 renderer.setSize(window.innerWidth,window.innerHeight)
 renderer.setPixelRatio(Math.min(window.devicePixelRatio,2))
 renderer.outputEncoding=THREE.sRGBEncoding
 renderer.toneMapping=THREE.ACESFilmicToneMapping
-renderer.toneMappingExposure=1.2
 renderer.shadowMap.enabled=true
 container.appendChild(renderer.domElement)
 
-// POST PROCESSING (NOW SAFE)
 const composer=new THREE.EffectComposer(renderer)
 composer.addPass(new THREE.RenderPass(scene,camera))
-
-const bloom=new THREE.UnrealBloomPass(
+composer.addPass(new THREE.UnrealBloomPass(
 new THREE.Vector2(window.innerWidth,window.innerHeight),
-0.25,
-0.4,
-0.85
-)
-composer.addPass(bloom)
-
+0.25,0.4,0.85
+))
 composer.addPass(new THREE.ShaderPass(THREE.VignetteShader))
 composer.addPass(new THREE.ShaderPass(THREE.GammaCorrectionShader))
 
-// HDRI
 new THREE.RGBELoader().load('/assets/hdri/studio_small_09_1k.hdr',(hdr)=>{
 const pmrem=new THREE.PMREMGenerator(renderer)
 scene.environment=pmrem.fromEquirectangular(hdr).texture
 hdr.dispose();pmrem.dispose()
 })
 
-// LIGHTS (FIXED ADD BUG)
+scene.add(new THREE.HemisphereLight(0xffffff,0xcccccc,0.25))
 const key=new THREE.DirectionalLight(0xffffff,2.5)
 key.position.set(6,10,6)
-key.castShadow=true
 scene.add(key)
 
-const fill=new THREE.DirectionalLight(0xffffff,0.5)
-fill.position.set(-6,4,2)
-scene.add(fill)
-
-const rim=new THREE.DirectionalLight(0xffffff,1)
-rim.position.set(0,6,-8)
-scene.add(rim)
-
-scene.add(new THREE.HemisphereLight(0xffffff,0xcccccc,0.25))
-
-// REFLECTIVE FLOOR (SOFTER)
-const reflector=new THREE.Reflector(new THREE.PlaneGeometry(30,30),{
-  textureWidth:1024,
-  textureHeight:1024,
-  color:0xbdbdbd,          // lighter tint softens reflection
-  clipBias:0.003,
-  multisample:4
-})
-reflector.rotation.x=-Math.PI/2
-reflector.position.y=0
-scene.add(reflector)
-
-// fade reflection with overlay plane
-const reflectionFade=new THREE.Mesh(
-  new THREE.PlaneGeometry(30,30),
-  new THREE.MeshPhysicalMaterial({
-    color:0xffffff,
-    roughness:0.35,        // blur reflection slightly
-    metalness:0,
-    transparent:true,
-    opacity:0.25,          // fade strength
-  })
-)
-reflectionFade.rotation.x=-Math.PI/2
-reflectionFade.position.y=0.002
-scene.add(reflectionFade)
-
-// CONTROLS + CAMERA START POSITION
-camera.position.set(4.1, 2.1, 4.9)
+camera.position.set(4.1,2.1,4.9)
 
 const controls=new THREE.OrbitControls(camera,renderer.domElement)
 controls.enableDamping=true
-controls.dampingFactor=0.07
 controls.autoRotate=true
 controls.autoRotateSpeed=0.25
-controls.zoomSpeed=3
-
 controls.target.set(0,0.8,0)
-controls.update()
-
-
-// EDGE HIGHLIGHT
-function addEdgeHighlights(mat){
-mat.onBeforeCompile=(shader)=>{
-shader.fragmentShader=shader.fragmentShader.replace(
-'#include <output_fragment>',
-`float edge = pow(1.0 - dot(normalize(vNormal), normalize(vViewPosition)), 3.0);
-gl_FragColor.rgb += edge * 0.35;
-#include <output_fragment>`
-)
-}
-}
 
 new THREE.GLTFLoader().load('/assets/models/batmobile_armored.glb',gltf=>{
-  const model=gltf.scene;
+carModel=gltf.scene
+carModel.rotation.y=Math.PI*0.75-Math.PI/6
+scene.add(carModel)
+})
 
-  carModel=model
+/* =======================
+SVG ICONS
+======================= */
 
-  // START ORIENTATION
-model.rotation.y = Math.PI * 0.75 - Math.PI / 6  // turn car
-  model.position.set(0,0,0)
-  model.scale.set(1,1,1)
-
-  model.traverse(o=>{
-    if(!o.isMesh) return;
-
-    o.castShadow=o.receiveShadow=true;
-
-    const mat=o.material;
-
-    if(!mat) return;
-
-    // GLASS
-    if(mat.transparent || mat.opacity < 0.95){
-      mat.transmission = 0.6;
-      mat.roughness = 0.05;
-      mat.envMapIntensity = 2.5;
-      return;
-    }
-
-    // METAL (wheels)
-    if(mat.metalness > 0.6){
-      mat.envMapIntensity = 2;
-      mat.roughness = Math.max(mat.roughness,0.2);
-      return;
-    }
-
-    // PAINT
-    mat.clearcoat = 0.6;
-    mat.clearcoatRoughness = 0.08;
-    mat.envMapIntensity = 1.6;
-  });
-
-  scene.add(model);
-});
-
-// FLOATING ICONS (GLB VERSION)
-let iconsVisible=false
-const icons=[]
 const iconGroup=new THREE.Group()
 scene.add(iconGroup)
 
+const textureLoader=new THREE.TextureLoader()
+
 const iconFiles=[
-  {file:'/assets/icons/mail.glb',side:'left'},
-  {file:'/assets/icons/github.glb',side:'left'},
-  {file:'/assets/icons/linkedin.glb',side:'left'},
-  {file:'/assets/icons/spotify.glb',side:'right'},
-  {file:'/assets/icons/instagram.glb',side:'right'},
-  {file:'/assets/icons/sun.glb',side:'right'}
+"mail","github","linkedin",
+"spotify","instagram","sun"
 ]
 
-const gltfLoader=new THREE.GLTFLoader()
-
-function normalizeSize(obj,targetSize=0.6){
-  const box=new THREE.Box3().setFromObject(obj)
-  const size=box.getSize(new THREE.Vector3())
-  const max=Math.max(size.x,size.y,size.z)
-  const scale=targetSize/max
-  obj.scale.setScalar(scale)
-}
-
-iconFiles.forEach((icon,i)=>{
-  gltfLoader.load(icon.file,g=>{
-    const obj=g.scene
-    normalizeSize(obj,0.8)
-
-    obj.visible=false
-    obj.position.set(0,0.6,0)
-
-    iconGroup.add(obj)
-    icons.push({mesh:obj,side:icon.side})
-  })
+iconFiles.forEach(name=>{
+const tex=textureLoader.load(`/assets/icons/${name}.svg`)
+const mat=new THREE.SpriteMaterial({map:tex,transparent:true})
+const sprite=new THREE.Sprite(mat)
+sprite.scale.set(0.9,0.9,0.9)
+sprite.visible=false
+iconGroup.add(sprite)
 })
 
-function positionIcons(out){
-  if(!carModel) return
-
-  const center=new THREE.Vector3()
-  carModel.getWorldPosition(center)
-
-  const r=3
-  let leftIndex=0
-  let rightIndex=0
-
-  icons.forEach(icon=>{
-    let angle
-
-    if(icon.side==='left'){
-      angle=Math.PI + (leftIndex-1)*Math.PI/6
-      leftIndex++
-    }else{
-      angle=(rightIndex-1)*Math.PI/6
-      rightIndex++
-    }
-
-    const x=center.x+Math.cos(angle)*r
-    const z=center.z+Math.sin(angle)*r
-    const y=center.y+1.3
-
-    icon.mesh.visible=true
-
-    if(out){
-      gsap.fromTo(icon.mesh.position,
-        {x:center.x,y:center.y+0.5,z:center.z},
-        {
-          x,y,z,
-          duration:0.55,
-          ease:"back.out(2)"
-        })
-    }else{
-      gsap.to(icon.mesh.position,{
-        x:center.x,
-        y:center.y+0.5,
-        z:center.z,
-        duration:0.45,
-        ease:"power2.in",
-        onComplete:()=>icon.mesh.visible=false
-      })
-    }
-  })
+function getCarCenter(){
+const box=new THREE.Box3().setFromObject(carModel)
+const center=new THREE.Vector3()
+box.getCenter(center)
+center.y+=0.8
+return center
 }
 
-// MUSIC
+function positionIcons(out){
+if(!carModel) return
+
+const center=getCarCenter()
+const r=3
+const total=iconGroup.children.length
+
+iconGroup.children.forEach((icon,i)=>{
+const angle=(i/total)*Math.PI*2
+
+const x=center.x+Math.cos(angle)*r
+const z=center.z+Math.sin(angle)*r
+const y=center.y+1.2
+
+icon.visible=true
+
+if(out){
+icon.scale.set(0.01,0.01,0.01)
+icon.position.copy(center)
+
+gsap.to(icon.scale,{
+x:1,y:1,z:1,
+duration:0.6,
+ease:"back.out(2)"
+})
+
+gsap.to(icon.position,{
+x,y,z,
+duration:0.6,
+ease:"power3.out"
+})
+
+}else{
+
+gsap.to(icon.scale,{
+x:0.01,y:0.01,z:0.01,
+duration:0.45,
+ease:"power2.in"
+})
+
+gsap.to(icon.position,{
+x:center.x,
+y:center.y,
+z:center.z,
+duration:0.45,
+ease:"power2.in",
+onComplete:()=>icon.visible=false
+})
+}
+})
+}
+
+/* MUSIC */
 const audio=new Audio('/assets/music/wickedgames.mp3')
 audio.loop=true
 audio.volume=0.5
-
 audio.play().catch(()=>{
-  // fallback after user interaction
-  const startMusic=()=>{
-    audio.play()
-    window.removeEventListener('click',startMusic)
-    window.removeEventListener('keydown',startMusic)
-  }
-  window.addEventListener('click',startMusic)
-  window.addEventListener('keydown',startMusic)
+const startMusic=()=>{
+audio.play()
+window.removeEventListener('click',startMusic)
+window.removeEventListener('keydown',startMusic)
+}
+window.addEventListener('click',startMusic)
+window.addEventListener('keydown',startMusic)
 })
 
 function animate(){
