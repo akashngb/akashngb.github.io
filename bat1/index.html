@@ -3,17 +3,16 @@ function init(){
   let iconsVisible = false;
   const nameOverlay = document.getElementById('name-overlay');
 
-  // ── Card definitions ──────────────────────────────────────────────
   const CARDS = [
-    { label: 'Mail',      icon: '/assets/icons/mail.svg',      href: 'mailto:you@email.com' },
-    { label: 'GitHub',    icon: '/assets/icons/github.svg',    href: 'https://github.com/' },
-    { label: 'LinkedIn',  icon: '/assets/icons/linkedin.svg',  href: 'https://linkedin.com/' },
-    { label: 'Spotify',   icon: '/assets/icons/spotify.svg',   href: 'https://open.spotify.com/' },
-    { label: 'Instagram', icon: '/assets/icons/instagram.svg', href: 'https://instagram.com/' },
-    { label: 'Sun',       icon: '/assets/icons/sun.svg',       href: '#' },
+    { label: 'MAIL',      sub: 'Contact',   icon: '/assets/icons/mail.svg',      href: 'mailto:you@email.com' },
+    { label: 'GITHUB',    sub: 'Code',      icon: '/assets/icons/github.svg',    href: 'https://github.com/' },
+    { label: 'LINKEDIN',  sub: 'Network',   icon: '/assets/icons/linkedin.svg',  href: 'https://linkedin.com/' },
+    { label: 'SPOTIFY',   sub: 'Music',     icon: '/assets/icons/spotify.svg',   href: 'https://open.spotify.com/' },
+    { label: 'INSTAGRAM', sub: 'Visual',    icon: '/assets/icons/instagram.svg', href: 'https://instagram.com/' },
+    { label: 'THEME',     sub: 'Settings',  icon: '/assets/icons/sun.svg',       href: '#' },
   ];
 
-  // ── Scene setup ───────────────────────────────────────────────────
+  // ── Scene ──────────────────────────────────────────────────────────
   const container = document.getElementById('three-container');
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0xf5f5f5);
@@ -32,198 +31,265 @@ function init(){
 
   const composer = new THREE.EffectComposer(renderer);
   composer.addPass(new THREE.RenderPass(scene, camera));
-  composer.addPass(new THREE.UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.25, 0.4, 0.85));
+  composer.addPass(new THREE.UnrealBloomPass(
+    new THREE.Vector2(window.innerWidth, window.innerHeight), 0.6, 0.5, 0.6
+  ));
   composer.addPass(new THREE.ShaderPass(THREE.VignetteShader));
   composer.addPass(new THREE.ShaderPass(THREE.GammaCorrectionShader));
 
-  // HDRI
   new THREE.RGBELoader().load('/assets/hdri/studio_small_09_1k.hdr', (hdr) => {
     const pmrem = new THREE.PMREMGenerator(renderer);
     scene.environment = pmrem.fromEquirectangular(hdr).texture;
     hdr.dispose(); pmrem.dispose();
   }, undefined, () => {});
 
-  // Lights
   const key = new THREE.DirectionalLight(0xffffff, 2.5);
-  key.position.set(6, 10, 6); key.castShadow = true; scene.add(key);
+  key.position.set(6,10,6); key.castShadow = true; scene.add(key);
   const fill = new THREE.DirectionalLight(0xffffff, 0.5);
-  fill.position.set(-6, 4, 2); scene.add(fill);
+  fill.position.set(-6,4,2); scene.add(fill);
   const rim = new THREE.DirectionalLight(0xffffff, 1);
-  rim.position.set(0, 6, -8); scene.add(rim);
+  rim.position.set(0,6,-8); scene.add(rim);
   scene.add(new THREE.HemisphereLight(0xffffff, 0xcccccc, 0.25));
 
-  // Floor
-  const reflector = new THREE.Reflector(new THREE.PlaneGeometry(30, 30), {
-    textureWidth: 1024, textureHeight: 1024,
-    color: 0xbdbdbd, clipBias: 0.003, multisample: 4
+  const reflector = new THREE.Reflector(new THREE.PlaneGeometry(30,30), {
+    textureWidth:1024, textureHeight:1024, color:0xbdbdbd, clipBias:0.003, multisample:4
   });
-  reflector.rotation.x = -Math.PI / 2;
+  reflector.rotation.x = -Math.PI/2;
   scene.add(reflector);
 
   const reflectionFade = new THREE.Mesh(
-    new THREE.PlaneGeometry(30, 30),
-    new THREE.MeshPhysicalMaterial({ color: 0xffffff, roughness: 0.35, metalness: 0, transparent: true, opacity: 0.25 })
+    new THREE.PlaneGeometry(30,30),
+    new THREE.MeshPhysicalMaterial({ color:0xffffff, roughness:0.35, metalness:0, transparent:true, opacity:0.25 })
   );
-  reflectionFade.rotation.x = -Math.PI / 2;
+  reflectionFade.rotation.x = -Math.PI/2;
   reflectionFade.position.y = 0.002;
   scene.add(reflectionFade);
 
-  // Controls
   const controls = new THREE.OrbitControls(camera, renderer.domElement);
   controls.enableDamping = true;
   controls.dampingFactor = 0.07;
   controls.autoRotate = true;
   controls.autoRotateSpeed = 0.25;
   controls.zoomSpeed = 3;
-  controls.target.set(0, 0.8, 0);
+  controls.target.set(0,0.8,0);
   controls.update();
 
-  // Car
   new THREE.GLTFLoader().load('/assets/models/batmobile_armored.glb', (gltf) => {
     const model = gltf.scene;
-    model.rotation.y = Math.PI * 0.75 - Math.PI / 6;
-    model.position.set(0, 0, 0);
-    model.scale.set(1, 1, 1);
+    model.rotation.y = Math.PI * 0.75 - Math.PI / 3;
+    model.position.set(0,0,0);
+    model.scale.set(1,1,1);
     model.traverse(o => {
       if (!o.isMesh) return;
       o.castShadow = o.receiveShadow = true;
       const mat = o.material;
       if (!mat) return;
       if (mat.transparent || mat.opacity < 0.95) {
-        mat.transmission = 0.6; mat.roughness = 0.05; mat.envMapIntensity = 2.5; return;
+        mat.transmission=0.6; mat.roughness=0.05; mat.envMapIntensity=2.5; return;
       }
       if (mat.metalness > 0.6) {
-        mat.envMapIntensity = 2; mat.roughness = Math.max(mat.roughness, 0.2); return;
+        mat.envMapIntensity=2; mat.roughness=Math.max(mat.roughness,0.2); return;
       }
-      mat.clearcoat = 0.6; mat.clearcoatRoughness = 0.08; mat.envMapIntensity = 1.6;
+      mat.clearcoat=0.6; mat.clearcoatRoughness=0.08; mat.envMapIntensity=1.6;
     });
     scene.add(model);
-  }, undefined, (err) => console.error('GLB load failed', err));
+  }, undefined, (e) => console.error(e));
 
-  // ── Build card texture via Canvas ─────────────────────────────────
-  // Each card is a canvas-painted plane: dark glass look with icon + label
-  const CARD_W = 256;
-  const CARD_H = 320;
+  // ── Holographic card canvas painter ───────────────────────────────
+  const CW = 320, CH = 420;
 
-  function makeCardTexture(label, iconSrc, onReady) {
-    const canvas = document.createElement('canvas');
-    canvas.width = CARD_W;
-    canvas.height = CARD_H;
-    const ctx = canvas.getContext('2d');
+  function drawHoloCard(ctx, label, sub, accentH) {
+    ctx.clearRect(0, 0, CW, CH);
 
-    function draw(iconImg) {
-      // Background — dark translucent glass
-      const bg = ctx.createLinearGradient(0, 0, 0, CARD_H);
-      bg.addColorStop(0, 'rgba(20,20,28,0.92)');
-      bg.addColorStop(1, 'rgba(10,10,16,0.97)');
-      ctx.clearRect(0, 0, CARD_W, CARD_H);
+    // --- background fill: very dark navy, nearly black
+    const bg = ctx.createLinearGradient(0, 0, 0, CH);
+    bg.addColorStop(0,   'rgba(2,8,24,0.93)');
+    bg.addColorStop(0.5, 'rgba(4,14,38,0.90)');
+    bg.addColorStop(1,   'rgba(2,8,24,0.95)');
+    roundRect(ctx, 0, 0, CW, CH, 8);
+    ctx.fillStyle = bg;
+    ctx.fill();
 
-      // Rounded rect fill
-      const r = 22;
-      ctx.beginPath();
-      ctx.moveTo(r, 0); ctx.lineTo(CARD_W - r, 0);
-      ctx.quadraticCurveTo(CARD_W, 0, CARD_W, r);
-      ctx.lineTo(CARD_W, CARD_H - r);
-      ctx.quadraticCurveTo(CARD_W, CARD_H, CARD_W - r, CARD_H);
-      ctx.lineTo(r, CARD_H); ctx.quadraticCurveTo(0, CARD_H, 0, CARD_H - r);
-      ctx.lineTo(0, r); ctx.quadraticCurveTo(0, 0, r, 0);
-      ctx.closePath();
-      ctx.fillStyle = bg;
-      ctx.fill();
+    // --- outer glow border
+    const borderGrad = ctx.createLinearGradient(0, 0, CW, CH);
+    borderGrad.addColorStop(0,   `hsla(${accentH},100%,70%,0.0)`);
+    borderGrad.addColorStop(0.3, `hsla(${accentH},100%,70%,0.9)`);
+    borderGrad.addColorStop(0.7, `hsla(${accentH},100%,70%,0.9)`);
+    borderGrad.addColorStop(1,   `hsla(${accentH},100%,70%,0.0)`);
+    roundRect(ctx, 0, 0, CW, CH, 8);
+    ctx.strokeStyle = borderGrad;
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
 
-      // Subtle top border glow
-      const borderGrad = ctx.createLinearGradient(0, 0, CARD_W, 0);
-      borderGrad.addColorStop(0,   'rgba(80,160,255,0)');
-      borderGrad.addColorStop(0.5, 'rgba(80,160,255,0.7)');
-      borderGrad.addColorStop(1,   'rgba(80,160,255,0)');
-      ctx.strokeStyle = borderGrad;
-      ctx.lineWidth = 1.5;
-      ctx.beginPath();
-      ctx.moveTo(r, 0); ctx.lineTo(CARD_W - r, 0);
-      ctx.stroke();
+    // --- inner edge highlight (top + left)
+    ctx.strokeStyle = `hsla(${accentH},100%,90%,0.25)`;
+    ctx.lineWidth = 1;
+    roundRect(ctx, 2, 2, CW-4, CH-4, 7);
+    ctx.stroke();
 
-      // Scanlines overlay for HUD feel
-      ctx.globalAlpha = 0.04;
-      for (let y = 0; y < CARD_H; y += 4) {
-        ctx.fillStyle = '#fff';
-        ctx.fillRect(0, y, CARD_W, 1);
-      }
-      ctx.globalAlpha = 1;
+    // --- top accent bar
+    const topBar = ctx.createLinearGradient(0, 0, CW, 0);
+    topBar.addColorStop(0,   `hsla(${accentH},100%,65%,0)`);
+    topBar.addColorStop(0.3, `hsla(${accentH},100%,65%,1)`);
+    topBar.addColorStop(0.7, `hsla(${accentH},100%,65%,1)`);
+    topBar.addColorStop(1,   `hsla(${accentH},100%,65%,0)`);
+    ctx.fillStyle = topBar;
+    ctx.fillRect(0, 0, CW, 3);
 
-      // Icon — centered upper portion
-      if (iconImg) {
-        const iconSize = 96;
-        const ix = (CARD_W - iconSize) / 2;
-        const iy = 60;
-        // glow behind icon
-        const glow = ctx.createRadialGradient(CARD_W/2, iy + iconSize/2, 0, CARD_W/2, iy + iconSize/2, iconSize * 0.85);
-        glow.addColorStop(0, 'rgba(80,160,255,0.18)');
-        glow.addColorStop(1, 'rgba(80,160,255,0)');
-        ctx.fillStyle = glow;
-        ctx.fillRect(0, 0, CARD_W, CARD_H);
-        // tint icon white
-        ctx.globalCompositeOperation = 'source-over';
-        ctx.drawImage(iconImg, ix, iy, iconSize, iconSize);
-        // overlay white tint
-        ctx.globalCompositeOperation = 'screen';
-        ctx.fillStyle = 'rgba(200,220,255,0.55)';
-        ctx.fillRect(ix, iy, iconSize, iconSize);
-        ctx.globalCompositeOperation = 'source-over';
-      }
+    // --- bottom accent bar
+    ctx.fillStyle = topBar;
+    ctx.fillRect(0, CH-3, CW, 3);
 
-      // Label
-      ctx.font = '600 28px -apple-system, BlinkMacSystemFont, Helvetica, sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillStyle = 'rgba(255,255,255,0.92)';
-      ctx.fillText(label, CARD_W / 2, CARD_H - 52);
+    // --- corner brackets
+    const bLen = 22, bThick = 2.5;
+    ctx.strokeStyle = `hsla(${accentH},100%,80%,0.95)`;
+    ctx.lineWidth = bThick;
+    ctx.lineCap = 'square';
+    // top-left
+    ctx.beginPath(); ctx.moveTo(0,bLen); ctx.lineTo(0,0); ctx.lineTo(bLen,0); ctx.stroke();
+    // top-right
+    ctx.beginPath(); ctx.moveTo(CW-bLen,0); ctx.lineTo(CW,0); ctx.lineTo(CW,bLen); ctx.stroke();
+    // bottom-left
+    ctx.beginPath(); ctx.moveTo(0,CH-bLen); ctx.lineTo(0,CH); ctx.lineTo(bLen,CH); ctx.stroke();
+    // bottom-right
+    ctx.beginPath(); ctx.moveTo(CW-bLen,CH); ctx.lineTo(CW,CH); ctx.lineTo(CW,CH-bLen); ctx.stroke();
 
-      // Thin divider above label
-      ctx.strokeStyle = 'rgba(80,160,255,0.25)';
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.moveTo(32, CARD_H - 72);
-      ctx.lineTo(CARD_W - 32, CARD_H - 72);
-      ctx.stroke();
+    // --- scanlines
+    ctx.globalAlpha = 0.04;
+    for (let y = 0; y < CH; y += 3) {
+      ctx.fillStyle = `hsl(${accentH},80%,70%)`;
+      ctx.fillRect(4, y, CW-8, 1);
+    }
+    ctx.globalAlpha = 1;
 
-      const tex = new THREE.CanvasTexture(canvas);
-      onReady(tex);
+    // --- circuit trace decoration (bottom area)
+    ctx.strokeStyle = `hsla(${accentH},100%,60%,0.18)`;
+    ctx.lineWidth = 1;
+    // horizontal trace
+    ctx.beginPath(); ctx.moveTo(20, CH-55); ctx.lineTo(CW-20, CH-55); ctx.stroke();
+    // vertical ticks
+    for (let x = 30; x < CW-20; x += 18) {
+      const h = (x % 36 === 12) ? 10 : 5;
+      ctx.beginPath(); ctx.moveTo(x, CH-55); ctx.lineTo(x, CH-55-h); ctx.stroke();
     }
 
-    // Load icon as image so we can draw it on canvas
+    // --- label (MAIL, GITHUB, etc.)
+    ctx.font = `800 38px 'Courier New', monospace`;
+    ctx.textAlign = 'center';
+    ctx.letterSpacing = '4px';
+    // glow
+    ctx.shadowColor = `hsla(${accentH},100%,70%,1)`;
+    ctx.shadowBlur = 18;
+    ctx.fillStyle = `hsla(${accentH},100%,88%,1)`;
+    ctx.fillText(label, CW/2, CH - 90);
+    ctx.shadowBlur = 0;
+
+    // --- sub-label
+    ctx.font = `400 16px 'Courier New', monospace`;
+    ctx.fillStyle = `hsla(${accentH},80%,65%,0.6)`;
+    ctx.fillText(sub.toUpperCase(), CW/2, CH - 64);
+  }
+
+  function roundRect(ctx, x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x+r,y);
+    ctx.lineTo(x+w-r,y); ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+    ctx.lineTo(x+w,y+h-r); ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+    ctx.lineTo(x+r,y+h); ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+    ctx.lineTo(x,y+r); ctx.quadraticCurveTo(x,y,x+r,y);
+    ctx.closePath();
+  }
+
+  // accent hues per card (blue family with slight variation)
+  const ACCENT_HUES = [195, 210, 185, 200, 215, 190];
+
+  function makeHoloTexture(label, sub, iconSrc, accentH, onReady) {
+    const canvas = document.createElement('canvas');
+    canvas.width = CW; canvas.height = CH;
+    const ctx = canvas.getContext('2d');
+
+    function finish(iconImg) {
+      drawHoloCard(ctx, label, sub, accentH);
+
+      // icon — centered upper zone
+      if (iconImg) {
+        const iSize = 110;
+        const ix = (CW - iSize) / 2;
+        const iy = 42;
+
+        // icon glow backdrop
+        const glow = ctx.createRadialGradient(CW/2, iy+iSize/2, 0, CW/2, iy+iSize/2, iSize*0.9);
+        glow.addColorStop(0,   `hsla(${accentH},100%,65%,0.22)`);
+        glow.addColorStop(0.6, `hsla(${accentH},100%,55%,0.08)`);
+        glow.addColorStop(1,   `hsla(${accentH},100%,55%,0.0)`);
+        ctx.fillStyle = glow;
+        ctx.fillRect(0, 0, CW, CH);
+
+        // draw icon tinted cyan/blue via screen blend
+        ctx.globalCompositeOperation = 'source-over';
+        // dim placeholder so screen blend tints it
+        ctx.globalAlpha = 0.15;
+        ctx.fillStyle = '#000';
+        ctx.fillRect(ix, iy, iSize, iSize);
+        ctx.globalAlpha = 1;
+
+        ctx.drawImage(iconImg, ix, iy, iSize, iSize);
+
+        // tint to blue via screen
+        ctx.globalCompositeOperation = 'screen';
+        ctx.fillStyle = `hsla(${accentH},100%,55%,0.75)`;
+        ctx.fillRect(ix, iy, iSize, iSize);
+        ctx.globalCompositeOperation = 'source-over';
+
+        // horizontal divider below icon
+        const divGrad = ctx.createLinearGradient(0,0,CW,0);
+        divGrad.addColorStop(0,   `hsla(${accentH},100%,70%,0)`);
+        divGrad.addColorStop(0.5, `hsla(${accentH},100%,70%,0.5)`);
+        divGrad.addColorStop(1,   `hsla(${accentH},100%,70%,0)`);
+        ctx.strokeStyle = divGrad;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(24, iy+iSize+18);
+        ctx.lineTo(CW-24, iy+iSize+18);
+        ctx.stroke();
+      }
+
+      onReady(new THREE.CanvasTexture(canvas));
+    }
+
     const img = new Image();
     img.crossOrigin = 'anonymous';
-    img.onload = () => draw(img);
-    img.onerror = () => draw(null);
+    img.onload = () => finish(img);
+    img.onerror = () => finish(null);
     img.src = iconSrc;
   }
 
-  // ── Place cards in an arc in front-right of car ───────────────────
-  // Arc centered slightly in front of car, fanning toward camera
+  // ── Place cards in scene ──────────────────────────────────────────
   const cardGroup = new THREE.Group();
   scene.add(cardGroup);
 
-  const cardMeshes = []; // { mesh, targetY, baseY, href }
+  const cardMeshes = [];
 
-  const ARC_RADIUS = 3.6;
-  const ARC_CENTER_X = 1.2;
-  const ARC_CENTER_Z = 1.2;
-  // spread cards across ~120° arc angled toward camera
-  const ARC_START = -Math.PI * 0.08;
-  const ARC_SPAN  =  Math.PI * 0.72;
-  const CARD_BASE_Y  = -1.8; // hidden below floor
-  const CARD_FLOAT_Y =  1.5; // visible height
+  // Arc in front-right of car, angled toward viewer
+  const ARC_RADIUS  = 3.8;
+  const ARC_CX      = 1.0;
+  const ARC_CZ      = 1.0;
+  const ARC_START   = -Math.PI * 0.05;
+  const ARC_SPAN    =  Math.PI * 0.68;
+  const HIDDEN_Y    = -2.2;
+  const FLOAT_Y     =  1.55;
 
-  // card world width/height in scene units
-  const CW = 0.72;
-  const CH = 0.9;
+  // card world dimensions
+  const CW3 = 0.82;
+  const CH3 = CW3 * (CH / CW);
 
   CARDS.forEach((card, i) => {
     const t = i / (CARDS.length - 1);
     const angle = ARC_START + t * ARC_SPAN;
-    const x = ARC_CENTER_X + Math.cos(angle) * ARC_RADIUS;
-    const z = ARC_CENTER_Z + Math.sin(angle) * ARC_RADIUS;
+    const x = ARC_CX + Math.cos(angle) * ARC_RADIUS;
+    const z = ARC_CZ + Math.sin(angle) * ARC_RADIUS;
 
-    const geo = new THREE.PlaneGeometry(CW, CH);
+    const geo = new THREE.PlaneGeometry(CW3, CH3);
     const mat = new THREE.MeshBasicMaterial({
       transparent: true,
       opacity: 0,
@@ -232,60 +298,75 @@ function init(){
     });
 
     const mesh = new THREE.Mesh(geo, mat);
-    mesh.position.set(x, CARD_BASE_Y, z);
-
-    // face the camera origin roughly
+    mesh.position.set(x, HIDDEN_Y, z);
     mesh.lookAt(new THREE.Vector3(4.1, 2.1, 4.9));
-    // tilt slightly back for elegance
-    mesh.rotateX(-0.12);
-
+    mesh.rotateX(-0.1);
     cardGroup.add(mesh);
-    cardMeshes.push({ mesh, href: card.href, angle });
 
-    makeCardTexture(card.label, card.icon, (tex) => {
+    const floatOffset = Math.sin(i * 1.1) * 0.12;
+    cardMeshes.push({ mesh, href: card.href, floatOffset });
+
+    makeHoloTexture(card.label, card.sub, card.icon, ACCENT_HUES[i], (tex) => {
       mat.map = tex;
       mat.needsUpdate = true;
     });
+
+    // ── Edge glow lines: thin bright planes on card edges ────────────
+    const edgeColor = new THREE.Color().setHSL(ACCENT_HUES[i]/360, 1, 0.65);
+    const edgeMat = new THREE.MeshBasicMaterial({ color: edgeColor, transparent: true, opacity: 0, side: THREE.DoubleSide });
+
+    // top edge
+    const topEdge = new THREE.Mesh(new THREE.PlaneGeometry(CW3, 0.006), edgeMat.clone());
+    topEdge.position.set(0, CH3/2, 0.001);
+    mesh.add(topEdge);
+    // bottom edge
+    const botEdge = new THREE.Mesh(new THREE.PlaneGeometry(CW3, 0.006), edgeMat.clone());
+    botEdge.position.set(0, -CH3/2, 0.001);
+    mesh.add(botEdge);
+    // left edge
+    const leftEdge = new THREE.Mesh(new THREE.PlaneGeometry(0.006, CH3), edgeMat.clone());
+    leftEdge.position.set(-CW3/2, 0, 0.001);
+    mesh.add(leftEdge);
+    // right edge
+    const rightEdge = new THREE.Mesh(new THREE.PlaneGeometry(0.006, CH3), edgeMat.clone());
+    rightEdge.position.set(CW3/2, 0, 0.001);
+    mesh.add(rightEdge);
+
+    cardMeshes[i].edges = [topEdge, botEdge, leftEdge, rightEdge].map(e => e.material);
   });
 
-  // ── Show / hide cards ─────────────────────────────────────────────
+  // ── Show / hide ───────────────────────────────────────────────────
   function showCards() {
-    cardMeshes.forEach(({ mesh }, i) => {
+    cardMeshes.forEach(({ mesh, floatOffset, edges }, i) => {
       gsap.to(mesh.position, {
-        y: CARD_FLOAT_Y + Math.sin(i * 0.9) * 0.15, // slight height variation
-        duration: 0.7,
-        delay: i * 0.08,
-        ease: 'back.out(1.6)'
+        y: FLOAT_Y + floatOffset,
+        duration: 0.8, delay: i * 0.09, ease: 'back.out(1.4)'
       });
       gsap.to(mesh.material, {
-        opacity: 1,
-        duration: 0.5,
-        delay: i * 0.08,
-        ease: 'power2.out'
+        opacity: 1, duration: 0.55, delay: i * 0.09, ease: 'power2.out'
+      });
+      edges && edges.forEach(em => {
+        gsap.to(em, { opacity: 0.85, duration: 0.55, delay: i * 0.09 + 0.2 });
       });
     });
     gsap.to(nameOverlay, { opacity: 1, duration: 0.5, ease: 'power2.out' });
   }
 
   function hideCards() {
-    cardMeshes.forEach(({ mesh }, i) => {
+    cardMeshes.forEach(({ mesh, edges }, i) => {
       gsap.to(mesh.position, {
-        y: CARD_BASE_Y,
-        duration: 0.45,
-        delay: i * 0.05,
-        ease: 'power2.in'
+        y: HIDDEN_Y, duration: 0.45, delay: i * 0.05, ease: 'power2.in'
       });
       gsap.to(mesh.material, {
-        opacity: 0,
-        duration: 0.3,
-        delay: i * 0.05,
-        ease: 'power2.in'
+        opacity: 0, duration: 0.3, delay: i * 0.05
+      });
+      edges && edges.forEach(em => {
+        gsap.to(em, { opacity: 0, duration: 0.25, delay: i * 0.05 });
       });
     });
-    gsap.to(nameOverlay, { opacity: 0, duration: 0.3, ease: 'power2.in' });
+    gsap.to(nameOverlay, { opacity: 0, duration: 0.3 });
   }
 
-  // ── Space toggle ──────────────────────────────────────────────────
   window.addEventListener('keydown', e => {
     if (e.code === 'Space') {
       iconsVisible = !iconsVisible;
@@ -293,11 +374,11 @@ function init(){
     }
   });
 
-  // ── Raycaster for click-through to hrefs ──────────────────────────
+  // ── Raycaster ─────────────────────────────────────────────────────
   const raycaster = new THREE.Raycaster();
   const mouse = new THREE.Vector2();
 
-  renderer.domElement.addEventListener('click', (e) => {
+  renderer.domElement.addEventListener('click', e => {
     if (!iconsVisible) return;
     mouse.x =  (e.clientX / window.innerWidth)  * 2 - 1;
     mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
@@ -309,8 +390,7 @@ function init(){
     }
   });
 
-  // cursor pointer on hover
-  renderer.domElement.addEventListener('mousemove', (e) => {
+  renderer.domElement.addEventListener('mousemove', e => {
     if (!iconsVisible) { renderer.domElement.style.cursor = 'default'; return; }
     mouse.x =  (e.clientX / window.innerWidth)  * 2 - 1;
     mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
@@ -319,32 +399,23 @@ function init(){
     renderer.domElement.style.cursor = hits.length > 0 ? 'pointer' : 'default';
   });
 
-  // ── Gentle float animation ────────────────────────────────────────
-  // animate each visible card bobbing slightly
-  function floatCards(time) {
+  // ── Float + edge pulse animation ──────────────────────────────────
+  const clock = new THREE.Clock();
+  function floatCards(t) {
     if (!iconsVisible) return;
-    cardMeshes.forEach(({ mesh }, i) => {
-      const base = CARD_FLOAT_Y + Math.sin(i * 0.9) * 0.15;
-      mesh.position.y = base + Math.sin(time * 0.8 + i * 1.1) * 0.06;
+    cardMeshes.forEach(({ mesh, floatOffset, edges }, i) => {
+      mesh.position.y = FLOAT_Y + floatOffset + Math.sin(t * 0.7 + i * 1.2) * 0.055;
+      // pulse edge opacity
+      if (edges) {
+        const pulse = 0.55 + 0.3 * Math.sin(t * 2.2 + i * 0.8);
+        edges.forEach(em => { if (em.opacity > 0.1) em.opacity = pulse; });
+      }
     });
   }
 
-  // ── Music ─────────────────────────────────────────────────────────
-  const audio = new Audio('/assets/music/wickedgames.mp3');
-  audio.loop = true;
-  audio.volume = 0.5;
-  audio.play().catch(() => {
-    const startMusic = () => {
-      audio.play();
-      window.removeEventListener('click', startMusic);
-      window.removeEventListener('keydown', startMusic);
-    };
-    window.addEventListener('click', startMusic);
-    window.addEventListener('keydown', startMusic);
-  });
+
 
   // ── Render loop ───────────────────────────────────────────────────
-  const clock = new THREE.Clock();
   function animate() {
     requestAnimationFrame(animate);
     controls.update();
