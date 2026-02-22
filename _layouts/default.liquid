@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="{{ site.lang }}">
+  <!-- Head -->
+  <head>
+    {% if page.redirect %}
+      {% if page.redirect == true %}
+        {% assign redirect = site.baseurl | append: '/' %}
+      {% elsif page.redirect contains '://' %}
+        {% assign redirect = page.redirect %}
+      {% else %}
+        {% assign redirect = page.redirect | relative_url %}
+      {% endif %}
+      <meta http-equiv="refresh" content="3; url={{ redirect }}">
+    {% endif %}
+    {% include head.liquid %}
+      <!-- Canonical URL -->
+      <link rel="canonical" href="{{ page.url | replace:'index.html','' | absolute_url }}">
+
+      <!-- Basic SEO -->
+      <meta name="author" content="Akash Nagabhirava">
+      <meta name="description" content="Official website of Akash Nagabhirava — software developer, computer science student, and creator. Portfolio, projects, and contact information.">
+      <meta name="keywords" content="Akash, Akash Nagabhirava, akashngb, Akash portfolio, Akash personal site, UofT CS, software developer Toronto">
+
+      <!-- OpenGraph for social sharing -->
+      <meta property="og:title" content="Akash Nagabhirava">
+      <meta property="og:type" content="website">
+      <meta property="og:url" content="https://akashngb.github.io/">
+      <meta property="og:image" content="https://akashngb.github.io/assets/img/rooftop.png">
+      <meta property="og:description" content="Portfolio and projects of Akash Nagabhirava.">
+
+      <!-- Twitter Card -->
+      <meta name="twitter:card" content="summary_large_image">
+      <meta name="twitter:title" content="Akash Nagabhirava">
+      <meta name="twitter:description" content="Portfolio and projects of Akash Nagabhirava.">
+      <meta name="twitter:image" content="https://akashngb.github.io/assets/img/rooftop.png">
+
+      <!-- JSON-LD Structured Data -->
+      <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "Person",
+        "name": "Akash Nagabhirava",
+        "alternateName": "akashngb",
+        "url": "https://akashngb.github.io/",
+        "image": "https://akashngb.github.io/assets/img/rooftop.png",
+        "sameAs": [
+          "https://github.com/akashngb",
+          "https://www.linkedin.com/in/yourusername"
+        ],
+        "description": "Software developer, ML enthusiast, and CS student at the University of Toronto."
+      }
+      </script>
+  </head>
+
+  <!-- Body -->
+  <body class="{% if site.navbar_fixed %}fixed-top-nav{% endif %} {% unless site.footer_fixed %}sticky-bottom-footer{% endunless %}">
+    <!-- Header -->
+    {% include header.liquid %}
+
+    <!-- Content -->
+    <div class="container mt-5" role="main">
+      {% if page.toc and page.toc.sidebar %}
+        {% if page.toc.sidebar == 'right' %}
+          <div class="row">
+            <!-- main content area -->
+            <div class="col-sm-9">{{ content }}</div>
+            <!-- sidebar, which will move to the top on a small screen -->
+            <div class="col-sm-3">
+              <nav id="toc-sidebar" class="sticky-top"></nav>
+            </div>
+          </div>
+        {% else %}
+          <div class="row">
+            <!-- sidebar, which will move to the top on a small screen -->
+            <div class="col-sm-3">
+              <nav id="toc-sidebar" class="sticky-top"></nav>
+            </div>
+            <!-- main content area -->
+            <div class="col-sm-9">{{ content }}</div>
+          </div>
+        {% endif %}
+      {% else %}
+        {{ content }}
+      {% endif %}
+    </div>
+
+    <!-- Footer -->
+    {% include footer.liquid %}
+
+    <!-- JavaScripts -->
+    {% include scripts.liquid %}
+  </body>
+</html>
