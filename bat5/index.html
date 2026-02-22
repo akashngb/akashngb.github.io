@@ -11,7 +11,7 @@ function init(){
   const clock = new THREE.Clock()
 
   const camera = new THREE.PerspectiveCamera(28, window.innerWidth/window.innerHeight, 0.1, 1000)
-  camera.position.set(0, 2, 8)
+  camera.position.set(-4, 2, -6.928)
 
   const renderer = new THREE.WebGLRenderer({antialias:true})
   renderer.setSize(window.innerWidth, window.innerHeight)
@@ -151,7 +151,7 @@ function init(){
   const CUBE_SIZE    = 0.30
   const CUBE_SPACING = 0.52
   const CUBE_X       = -3.4   // far left of scene
-  const CUBE_Y_MID   = 1.1
+  const CUBE_Y_MID   = 1.7
   const CUBE_Z       = 0.0
 
   // The cubeObjects array holds everything we need per cube for animation + raycasting
@@ -226,17 +226,31 @@ function init(){
 
       const dispTex = await buildDisplacementTex(icon.file)
 
-      const mat = new THREE.MeshPhysicalMaterial({
-        color:              0xbbbbbb,
+      // Black metallic body
+      const blackMat = new THREE.MeshPhysicalMaterial({
+        color:              0x111111,
+        metalness:          0.95,
+        roughness:          0.18,
+        clearcoat:          1.0,
+        clearcoatRoughness: 0.08,
+        envMapIntensity:    2.5,
+      })
+
+      // Gold front face with embossed icon
+      const goldMat = new THREE.MeshPhysicalMaterial({
+        color:              0xc8960c,
         displacementMap:    dispTex,
         displacementScale:  0.04,
         displacementBias:   -0.018,
-        metalness:          0.9,
-        roughness:          0.2,
+        metalness:          1.0,
+        roughness:          0.12,
         clearcoat:          1.0,
-        clearcoatRoughness: 0.08,
-        envMapIntensity:    2.2,
+        clearcoatRoughness: 0.05,
+        envMapIntensity:    3.0,
       })
+
+      // BoxGeometry face order: +X, -X, +Y, -Y, +Z (front), -Z (back)
+      const mat = [blackMat, blackMat, blackMat, blackMat, goldMat, blackMat]
 
       const mesh = new THREE.Mesh(geo, mat)
       mesh.castShadow    = true
