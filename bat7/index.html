@@ -1,174 +1,137 @@
-<!DOCTYPE html> <html lang="en"> <head> <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0"> <title>Cyberpunk Batmobile</title> <style>*{margin:0;padding:0;box-sizing:border-box}body{background:#050510;overflow:hidden;font-family:Arial,sans-serif}#three-container{width:100vw;height:100vh}.overlay{position:absolute;top:40px;left:40px;color:#0ff;font-size:28px;letter-spacing:3px;text-shadow:0 0 15px #0ff}</style> </head> <body> <div class="overlay">CYBERPUNK MODE</div> <div id="three-container"></div> <script defer src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script> <script defer src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script> <script defer src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script> <script defer src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script> <script defer src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js"></script> <script defer src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script> <script defer src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script> <script defer src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script> <script defer src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script> <script defer src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/VignetteShader.js"></script> <script defer src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/GammaCorrectionShader.js"></script> <script defer src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/objects/Reflector.js"></script> <script>
-window.addEventListener('load', () => {
-
+<!DOCTYPE html> <html lang="en"> <head> <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0"> <title>Japanese Neon Mode</title> <style>*{margin:0;padding:0;box-sizing:border-box}body{background:#050510;overflow:hidden;font-family:Arial,sans-serif}#three-container{width:100vw;height:100vh}.overlay{position:absolute;top:40px;left:40px;color:#0ff;font-size:28px;letter-spacing:3px;text-shadow:0 0 15px #0ff;pointer-events:none}</style> </head> <body> <div class="overlay">東京ネオンモード</div> <div id="three-container"></div> <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/VignetteShader.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/GammaCorrectionShader.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/objects/Reflector.js"></script> <script>
 const container = document.getElementById('three-container')
 
-/* ================= SCENE ================= */
 const scene = new THREE.Scene()
 scene.background = new THREE.Color(0x050510)
-scene.fog = new THREE.FogExp2(0x0a0a18, 0.08)
+scene.fog = new THREE.FogExp2(0x0a0a18, 0.05)
 
-/* ================= CAMERA ================= */
-const camera = new THREE.PerspectiveCamera(40, window.innerWidth/window.innerHeight, 0.1, 1000)
-camera.position.set(0, 2.2, 9)
+const camera = new THREE.PerspectiveCamera(45, window.innerWidth/window.innerHeight, 0.1, 1000)
+camera.position.set(0, 3, 10)
 
-/* ================= RENDERER ================= */
 const renderer = new THREE.WebGLRenderer({ antialias:true })
 renderer.setSize(window.innerWidth, window.innerHeight)
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+renderer.setPixelRatio(Math.min(window.devicePixelRatio,2))
 renderer.outputEncoding = THREE.sRGBEncoding
 renderer.toneMapping = THREE.ACESFilmicToneMapping
-renderer.toneMappingExposure = 1.5
+renderer.toneMappingExposure = 1.4
 renderer.shadowMap.enabled = true
 container.appendChild(renderer.domElement)
 
-/* ================= POST PROCESSING ================= */
+/* POST */
 const composer = new THREE.EffectComposer(renderer)
 composer.addPass(new THREE.RenderPass(scene, camera))
-
 const bloom = new THREE.UnrealBloomPass(
   new THREE.Vector2(window.innerWidth, window.innerHeight),
-  1.2,
-  0.6,
-  0.2
+  1.1, 0.6, 0.25
 )
 composer.addPass(bloom)
 composer.addPass(new THREE.ShaderPass(THREE.VignetteShader))
 composer.addPass(new THREE.ShaderPass(THREE.GammaCorrectionShader))
 
-/* ================= CYBERPUNK LIGHTING ================= */
+/* LIGHTING */
 const pink = new THREE.DirectionalLight(0xff00cc, 3)
-pink.position.set(5,6,4)
-pink.castShadow = true
+pink.position.set(6,8,4)
 scene.add(pink)
 
 const cyan = new THREE.DirectionalLight(0x00ffff, 2.5)
-cyan.position.set(-6,4,-6)
+cyan.position.set(-6,5,-6)
 scene.add(cyan)
 
-scene.add(new THREE.HemisphereLight(0x4400ff, 0x000022, 0.4))
+scene.add(new THREE.HemisphereLight(0x4400ff,0x000022,0.5))
 
-/* ================= WET REFLECTIVE FLOOR ================= */
-const reflector = new THREE.Reflector(
-  new THREE.PlaneGeometry(40,40),
-  {
-    textureWidth:1024,
-    textureHeight:1024,
-    color:0x111122
-  }
-)
-reflector.rotation.x = -Math.PI/2
-scene.add(reflector)
-
-const shadowFloor = new THREE.Mesh(
-  new THREE.PlaneGeometry(40,40),
-  new THREE.ShadowMaterial({ opacity:0.2 })
-)
-shadowFloor.rotation.x = -Math.PI/2
-shadowFloor.position.y = 0.001
-shadowFloor.receiveShadow = true
-scene.add(shadowFloor)
-
-/* ================= NEON DISTANT TOWERS ================= */
-for(let i=0;i<30;i++){
-  const height = Math.random()*6+2
-  const geo = new THREE.BoxGeometry(.15, height, .15)
-  const mat = new THREE.MeshBasicMaterial({
-    color: Math.random()>.5 ? 0xff00cc : 0x00ffff
-  })
-  const tower = new THREE.Mesh(geo, mat)
-  tower.position.set(
-    (Math.random()-.5)*30,
-    height/2,
-    -Math.random()*25-5
-  )
-  scene.add(tower)
-}
-
-/* ================= RAIN ================= */
-const rainCount = 6000
-const rainGeo = new THREE.BufferGeometry()
-const rainPos = new Float32Array(rainCount * 3)
-
-for(let i=0;i<rainCount;i++){
-  rainPos[i*3]   = (Math.random()-.5)*40
-  rainPos[i*3+1] = Math.random()*20
-  rainPos[i*3+2] = (Math.random()-.5)*40
-}
-
-rainGeo.setAttribute('position', new THREE.BufferAttribute(rainPos,3))
-
-const rainMat = new THREE.PointsMaterial({
-  color:0x88ccff,
-  size:0.05,
-  transparent:true,
-  opacity:0.7
+/* GROUND */
+const groundGeo = new THREE.PlaneGeometry(200,200)
+const groundMat = new THREE.MeshStandardMaterial({
+  color:0x0a0a18,
+  roughness:0.4,
+  metalness:0.6
 })
+const ground = new THREE.Mesh(groundGeo, groundMat)
+ground.rotation.x = -Math.PI/2
+ground.receiveShadow = true
+scene.add(ground)
 
-const rain = new THREE.Points(rainGeo, rainMat)
-scene.add(rain)
+/* JAPANESE NEON SIGNS */
+function createSign(text,x,z,color){
+  const canvas = document.createElement('canvas')
+  canvas.width=512
+  canvas.height=256
+  const ctx = canvas.getContext('2d')
+  ctx.fillStyle="#000"
+  ctx.fillRect(0,0,512,256)
+  ctx.fillStyle=color
+  ctx.font="bold 120px Arial"
+  ctx.textAlign="center"
+  ctx.fillText(text,256,160)
 
-/* ================= CONTROLS ================= */
-const controls = new THREE.OrbitControls(camera, renderer.domElement)
-controls.enableDamping = true
-controls.autoRotate = true
-controls.autoRotateSpeed = 0.35
-controls.target.set(0,0.6,0)
+  const texture = new THREE.CanvasTexture(canvas)
+  const mat = new THREE.MeshBasicMaterial({ map:texture })
+  const geo = new THREE.PlaneGeometry(6,3)
+  const mesh = new THREE.Mesh(geo,mat)
+  mesh.position.set(x,5,z)
+  scene.add(mesh)
+}
 
-/* ================= LOAD MODEL ================= */
+createSign("東京", -15, -20, "#ff00cc")
+createSign("未来", 15, -25, "#00ffff")
+createSign("光", 0, -35, "#ff00cc")
+createSign("速度", -25, -30, "#00ffff")
+
+/* DRIVING SYSTEM */
+let car
+let velocity = 0
+let direction = 0
+const keys = {}
+
+window.addEventListener('keydown', e => keys[e.key.toLowerCase()] = true)
+window.addEventListener('keyup', e => keys[e.key.toLowerCase()] = false)
+
 new THREE.GLTFLoader().load('/assets/models/batmobile_armored.glb', gltf=>{
-  const model = gltf.scene
-
-  model.traverse(o=>{
-    if(!o.isMesh) return
-    o.castShadow = o.receiveShadow = true
-    const mat = o.material
-    if(!mat) return
-
-    if(mat.transparent || mat.opacity < 0.95){
-      mat.transmission = 0.8
-      mat.roughness = 0.05
-      mat.envMapIntensity = 3
-      return
+  car = gltf.scene
+  car.traverse(o=>{
+    if(o.isMesh){
+      o.castShadow = o.receiveShadow = true
     }
-
-    if(mat.metalness > 0.6){
-      mat.roughness = 0.25
-      mat.envMapIntensity = 2.5
-      return
-    }
-
-    mat.clearcoat = 1
-    mat.clearcoatRoughness = 0.03
-    mat.envMapIntensity = 2
   })
-
-  scene.add(model)
+  scene.add(car)
 })
 
-/* ================= ANIMATE ================= */
+/* CAMERA CONTROLS */
+const controls = new THREE.OrbitControls(camera, renderer.domElement)
+controls.enablePan = false
+controls.maxPolarAngle = Math.PI/2 - 0.05
+controls.minDistance = 4
+controls.maxDistance = 25
+controls.zoomToCursor = true
+
+/* ANIMATE */
 function animate(){
   requestAnimationFrame(animate)
 
-  const pos = rain.geometry.attributes.position.array
-  for(let i=0;i<rainCount;i++){
-    pos[i*3+1] -= 0.3
-    if(pos[i*3+1] < 0) pos[i*3+1] = 20
+  if(car){
+    if(keys['w']) velocity += 0.01
+    if(keys['s']) velocity -= 0.01
+    velocity *= 0.95
+
+    if(keys['a']) direction += 0.03
+    if(keys['d']) direction -= 0.03
+
+    car.rotation.y = direction
+    car.position.x -= Math.sin(direction) * velocity
+    car.position.z -= Math.cos(direction) * velocity
+
+    controls.target.copy(car.position)
   }
-  rain.geometry.attributes.position.needsUpdate = true
 
   controls.update()
   composer.render()
 }
 animate()
 
-/* ================= RESIZE ================= */
 window.addEventListener('resize', ()=>{
   camera.aspect = window.innerWidth/window.innerHeight
   camera.updateProjectionMatrix()
   renderer.setSize(window.innerWidth,window.innerHeight)
   composer.setSize(window.innerWidth,window.innerHeight)
-})
-
 })
 </script> </body> </html>

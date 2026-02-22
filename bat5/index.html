@@ -1,4 +1,4 @@
-<!DOCTYPE html> <html lang="en"> <head> <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0"> <title>bat5</title> <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/RGBELoader.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/VignetteShader.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/GammaCorrectionShader.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/objects/Reflector.js"></script> <style>*{margin:0;padding:0;box-sizing:border-box}body{background:#f5f5f5;overflow:hidden;cursor:default}#three-container{width:100vw;height:100vh}#tooltip{position:fixed;bottom:32px;left:50%;transform:translateX(-50%);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:#111;opacity:0;transition:opacity .2s ease;pointer-events:none;user-select:none}#tooltip.visible{opacity:.5}</style> </head> <body> <div id="three-container"></div> <div id="tooltip"></div> <script>
+<!DOCTYPE html> <html lang="en"> <head> <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0"> <title>bat5</title> <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/RGBELoader.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/VignetteShader.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/GammaCorrectionShader.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/objects/Reflector.js"></script> <style>*{margin:0;padding:0;box-sizing:border-box}body{background:#f5f5f5;overflow:hidden;cursor:default}#three-container{width:100vw;height:100vh}#tooltip{position:fixed;bottom:32px;left:50%;transform:translateX(-50%);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#111;opacity:0;transition:opacity .2s ease;pointer-events:none;user-select:none}#tooltip.visible{opacity:.45}</style> </head> <body> <div id="three-container"></div> <div id="tooltip"></div> <script>
 function init(){
   const container = document.getElementById('three-container')
   const tooltip   = document.getElementById('tooltip')
@@ -6,10 +6,8 @@ function init(){
   const scene = new THREE.Scene()
   scene.background = new THREE.Color(0xf5f5f5)
 
-  let isWireframe  = false
-  let loadedModel  = null
-  const wireframeMeshes = [] // overlay wires for both car and cubes
-
+  let isWireframe = false
+  let loadedModel = null
   const clock = new THREE.Clock()
 
   const camera = new THREE.PerspectiveCamera(28, window.innerWidth/window.innerHeight, 0.1, 1000)
@@ -18,11 +16,11 @@ function init(){
   const renderer = new THREE.WebGLRenderer({antialias:true})
   renderer.setSize(window.innerWidth, window.innerHeight)
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
-  renderer.outputEncoding    = THREE.sRGBEncoding
-  renderer.toneMapping       = THREE.ACESFilmicToneMapping
+  renderer.outputEncoding      = THREE.sRGBEncoding
+  renderer.toneMapping         = THREE.ACESFilmicToneMapping
   renderer.toneMappingExposure = 1.25
-  renderer.shadowMap.enabled = true
-  renderer.shadowMap.type    = THREE.PCFSoftShadowMap
+  renderer.shadowMap.enabled   = true
+  renderer.shadowMap.type      = THREE.PCFSoftShadowMap
   renderer.physicallyCorrectLights = true
   container.appendChild(renderer.domElement)
 
@@ -33,8 +31,8 @@ function init(){
     new THREE.Vector2(window.innerWidth, window.innerHeight), 0.18, 0.4, 0.9
   ))
   const vignette = new THREE.ShaderPass(THREE.VignetteShader)
-  vignette.uniforms["offset"].value   = 1.05
-  vignette.uniforms["darkness"].value = 1.15
+  vignette.uniforms['offset'].value   = 1.05
+  vignette.uniforms['darkness'].value = 1.15
   composer.addPass(vignette)
   composer.addPass(new THREE.ShaderPass(THREE.GammaCorrectionShader))
 
@@ -55,7 +53,7 @@ function init(){
   scene.add(new THREE.HemisphereLight(0xffffff, 0xcccccc, 0.3))
 
   // FLOOR
-  const reflector = new THREE.Reflector(new THREE.PlaneGeometry(30,30), {
+  const reflector = new THREE.Reflector(new THREE.PlaneGeometry(30,30),{
     textureWidth:512, textureHeight:512, color:0x999999
   })
   reflector.rotation.x = -Math.PI/2
@@ -78,198 +76,42 @@ function init(){
   controls.zoomSpeed       = 2
   controls.target.set(0, 0.6, 0)
 
-  // WIREFRAME SHARED MATERIALS
+  // ─── WIREFRAME MATERIALS ───────────────────────────────────────────────────
+  // White solid fill (polygonOffset pushes it back so wire sits cleanly on top)
   const whiteFillMat = new THREE.MeshBasicMaterial({
     color: 0xffffff,
-    polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1
+    polygonOffset: true,
+    polygonOffsetFactor: 1,
+    polygonOffsetUnits: 1,
   })
-  const blackWireMat = new THREE.MeshBasicMaterial({color:0x000000, wireframe:true})
+  // Black wireframe overlay
+  const blackWireMat = new THREE.MeshBasicMaterial({
+    color: 0x000000,
+    wireframe: true,
+  })
 
-  // ═══════════════════════════════════════════════
-  // ICON CUBES
-  // ═══════════════════════════════════════════════
+  // Attach a wire overlay as a DIRECT CHILD of the source mesh.
+  // Because it's a child with zero local transform, it always moves with the parent.
+  function attachWireOverlay(sourceMesh) {
+    const wire = new THREE.Mesh(sourceMesh.geometry, blackWireMat)
+    // Identity local transform — inherits parent's world transform automatically
+    wire.position.set(0,0,0)
+    wire.rotation.set(0,0,0)
+    wire.scale.set(1,1,1)
+    wire.userData.isWireOverlay = true
+    sourceMesh.add(wire)
+    return wire
+  }
 
-  const ICONS = [
-    { name:'GitHub',    file:'/assets/icons/github.svg',    href:'#' },
-    { name:'Instagram', file:'/assets/icons/instagram.svg', href:'#' },
-    { name:'Mail',      file:'/assets/icons/mail.svg',      href:'#' },
-    { name:'Spotify',   file:'/assets/icons/spotify.svg',   href:'#' },
-    { name:'LinkedIn',  file:'/assets/icons/linkedin.svg',  href:'#' },
-  ]
-
-  const CUBE_SIZE     = 0.32
-  const CUBE_SPACING  = 0.54
-  const CUBE_X        = -3.6
-  const CUBE_Y_CENTER = 1.1   // vertical midpoint in world units
-  const CUBE_Z        = 0.0
-
-  const cubeGroup = new THREE.Group()
-  scene.add(cubeGroup)
-
-  // Store cube data for animation + toggling
-  const cubeObjects = [] // { mesh, baseY, phase, href }
-
-  // Build a displacement texture from an SVG icon
-  // We render the SVG into a canvas: white background, black icon → use as displacement
-  async function buildEmbossTexture(svgUrl) {
-    return new Promise(resolve => {
-      const SIZE = 256
-      const canvas = document.createElement('canvas')
-      canvas.width = canvas.height = SIZE
-      const ctx = canvas.getContext('2d')
-
-      // White base (low displacement)
-      ctx.fillStyle = '#ffffff'
-      ctx.fillRect(0,0,SIZE,SIZE)
-
-      const img = new Image()
-      img.crossOrigin = 'anonymous'
-      img.onload = () => {
-        // Draw icon in black — this will be the raised area
-        // Use a slightly padded region
-        const pad = SIZE * 0.18
-        ctx.save()
-        // compositing trick: draw white bg, then draw icon dark
-        ctx.fillStyle = '#ffffff'
-        ctx.fillRect(0,0,SIZE,SIZE)
-        ctx.globalCompositeOperation = 'source-over'
-        ctx.drawImage(img, pad, pad, SIZE - pad*2, SIZE - pad*2)
-
-        // Invert so icon is white (raised) on grey (base)
-        const imageData = ctx.getImageData(0,0,SIZE,SIZE)
-        const d = imageData.data
-        for(let i=0;i<d.length;i+=4){
-          // Convert to greyscale then invert
-          const grey = 0.299*d[i] + 0.587*d[i+1] + 0.114*d[i+2]
-          const val  = 255 - grey   // invert: dark icon → bright (raised)
-          // Remap: base = 180 (mid grey), raised = 255 (white)
-          const mapped = 180 + (val/255)*75
-          d[i]=d[i+1]=d[i+2] = mapped
-          d[i+3]=255
-        }
-        ctx.putImageData(imageData,0,0)
-
-        // Blur slightly for smoother displacement
-        // (CanvasRenderingContext2D doesn't have blur natively, use shadow trick)
-        const canvas2 = document.createElement('canvas')
-        canvas2.width = canvas2.height = SIZE
-        const ctx2 = canvas2.getContext('2d')
-        ctx2.filter = 'blur(2px)'
-        ctx2.drawImage(canvas,0,0)
-
-        const tex = new THREE.CanvasTexture(canvas2)
-        resolve(tex)
-        ctx.restore()
-      }
-      img.onerror = () => {
-        // Fallback: plain mid-grey texture (no emboss)
-        ctx.fillStyle = '#b4b4b4'
-        ctx.fillRect(0,0,SIZE,SIZE)
-        resolve(new THREE.CanvasTexture(canvas))
-      }
-      img.src = svgUrl
+  function removeWireOverlays(root) {
+    root.traverse(obj => {
+      if(!obj.isMesh) return
+      const overlays = obj.children.filter(c => c.userData.isWireOverlay)
+      overlays.forEach(o => obj.remove(o))
     })
   }
 
-  // Also build a base color texture: dark metal with the icon slightly lighter
-  async function buildColorTexture(svgUrl) {
-    return new Promise(resolve => {
-      const SIZE = 256
-      const canvas = document.createElement('canvas')
-      canvas.width = canvas.height = SIZE
-      const ctx = canvas.getContext('2d')
-
-      // Dark metallic base
-      ctx.fillStyle = '#1a1a1a'
-      ctx.fillRect(0,0,SIZE,SIZE)
-
-      const img = new Image()
-      img.crossOrigin = 'anonymous'
-      img.onload = () => {
-        // Tint icon slightly lighter so it reads on the dark face
-        const offscreen = document.createElement('canvas')
-        offscreen.width = offscreen.height = SIZE
-        const octx = offscreen.getContext('2d')
-        const pad = SIZE * 0.18
-        octx.drawImage(img, pad, pad, SIZE-pad*2, SIZE-pad*2)
-
-        // Recolor to a light silver
-        const id = octx.getImageData(0,0,SIZE,SIZE)
-        const d = id.data
-        for(let i=0;i<d.length;i+=4){
-          const a = d[i+3]
-          if(a > 10){
-            d[i]=180; d[i+1]=180; d[i+2]=185
-          } else {
-            d[i]=d[i+1]=d[i+2]=0; d[i+3]=0
-          }
-        }
-        octx.putImageData(id,0,0)
-
-        ctx.drawImage(offscreen,0,0)
-        resolve(new THREE.CanvasTexture(canvas))
-      }
-      img.onerror = () => resolve(new THREE.CanvasTexture(canvas))
-      img.src = svgUrl
-    })
-  }
-
-  async function buildCubes() {
-    const n = ICONS.length
-    for(let i=0; i<n; i++){
-      const icon = ICONS[i]
-      const yOffset = (i - (n-1)/2) * CUBE_SPACING
-
-      // High-subdivision box for the front face displacement
-      // We only need displacement on the front face, so we build a custom geometry:
-      // 5 plain box faces + 1 subdivided front face would be complex,
-      // so instead we use a single BoxGeometry with enough segments to show displacement
-      // (displacement shows on all faces, which actually looks cool — all-over emboss)
-      const geo = new THREE.BoxGeometry(CUBE_SIZE, CUBE_SIZE, CUBE_SIZE, 32, 32, 32)
-
-      const [dispTex, colorTex] = await Promise.all([
-        buildEmbossTexture(icon.file),
-        buildColorTexture(icon.file)
-      ])
-
-      const mat = new THREE.MeshPhysicalMaterial({
-        map:              colorTex,
-        displacementMap:  dispTex,
-        displacementScale: 0.045,
-        displacementBias:  -0.02,
-        metalness:    0.9,
-        roughness:    0.25,
-        clearcoat:    1.0,
-        clearcoatRoughness: 0.08,
-        envMapIntensity: 2.2,
-        color: 0xcccccc,
-      })
-
-      const mesh = new THREE.Mesh(geo, mat)
-      mesh.castShadow    = true
-      mesh.receiveShadow = true
-
-      const baseY = CUBE_Y_CENTER + yOffset
-      mesh.position.set(CUBE_X, baseY, CUBE_Z)
-
-      // Slight random initial rotation so they don't all look identical
-      mesh.rotation.y = 0.35 + i * 0.15
-      mesh.rotation.x = 0.08
-
-      cubeGroup.add(mesh)
-      cubeObjects.push({
-        mesh,
-        baseY,
-        phase: i * (Math.PI * 2 / n), // spread the bob phase
-        href:  icon.href,
-        name:  icon.name,
-      })
-    }
-  }
-
-  buildCubes()
-
-  // CAR MODEL
+  // ─── CAR MODEL ─────────────────────────────────────────────────────────────
   new THREE.GLTFLoader().load('/assets/models/batmobile_armored.glb', gltf => {
     const model = gltf.scene
     loadedModel = model
@@ -297,63 +139,155 @@ function init(){
     scene.add(model)
   })
 
-  // ═══════════════════════════════════════════════
-  // RAYCASTING — hover + click on cubes
-  // ═══════════════════════════════════════════════
-  const raycaster = new THREE.Raycaster()
-  const mouse     = new THREE.Vector2()
-  let hoveredCube = null
+  // ─── ICON CUBES ────────────────────────────────────────────────────────────
+  const ICONS = [
+    { name:'GitHub',    file:'/assets/icons/github.svg',    href:'#' },
+    { name:'Instagram', file:'/assets/icons/instagram.svg', href:'#' },
+    { name:'Mail',      file:'/assets/icons/mail.svg',      href:'#' },
+    { name:'Spotify',   file:'/assets/icons/spotify.svg',   href:'#' },
+    { name:'LinkedIn',  file:'/assets/icons/linkedin.svg',  href:'#' },
+  ]
 
-  function getIntersectedCube(event) {
-    const rect = renderer.domElement.getBoundingClientRect()
-    mouse.x =  ((event.clientX - rect.left) / rect.width)  * 2 - 1
-    mouse.y = -((event.clientY - rect.top)  / rect.height) * 2 + 1
-    raycaster.setFromCamera(mouse, camera)
-    const meshes = cubeObjects.map(c => c.mesh)
-    const hits   = raycaster.intersectObjects(meshes, false)
-    if(hits.length > 0){
-      return cubeObjects.find(c => c.mesh === hits[0].object) || null
+  const CUBE_SIZE    = 0.30
+  const CUBE_SPACING = 0.52
+  const CUBE_X       = -3.4   // far left of scene
+  const CUBE_Y_MID   = 1.1
+  const CUBE_Z       = 0.0
+
+  // The cubeObjects array holds everything we need per cube for animation + raycasting
+  const cubeObjects = []
+
+  // Build a canvas displacement texture from an SVG
+  function buildDisplacementTex(svgUrl) {
+    return new Promise(resolve => {
+      const S = 256
+      const canvas = document.createElement('canvas')
+      canvas.width = canvas.height = S
+      const ctx = canvas.getContext('2d')
+
+      const img = new Image()
+      img.crossOrigin = 'anonymous'
+
+      img.onload = () => {
+        // Grey base
+        ctx.fillStyle = '#808080'
+        ctx.fillRect(0,0,S,S)
+
+        // Draw icon white (raised) in padded region
+        const pad = S * 0.20
+        // First draw to offscreen to recolor
+        const off = document.createElement('canvas')
+        off.width = off.height = S
+        const octx = off.getContext('2d')
+        octx.drawImage(img, pad, pad, S-pad*2, S-pad*2)
+
+        // Recolor all opaque pixels to white
+        const id = octx.getImageData(0,0,S,S)
+        const d  = id.data
+        for(let i=0;i<d.length;i+=4){
+          if(d[i+3] > 20){ d[i]=255; d[i+1]=255; d[i+2]=255 }
+          else { d[i+3]=0 }
+        }
+        octx.putImageData(id,0,0)
+
+        // Composite white icon onto grey base
+        ctx.drawImage(off,0,0)
+
+        // Slight blur for smooth displacement edge
+        const out = document.createElement('canvas')
+        out.width = out.height = S
+        const octx2 = out.getContext('2d')
+        octx2.filter = 'blur(3px)'
+        octx2.drawImage(canvas,0,0)
+
+        resolve(new THREE.CanvasTexture(out))
+      }
+
+      img.onerror = () => {
+        // Plain mid-grey fallback
+        const ctx2 = canvas.getContext('2d')
+        ctx2.fillStyle = '#808080'
+        ctx2.fillRect(0,0,S,S)
+        resolve(new THREE.CanvasTexture(canvas))
+      }
+
+      img.src = svgUrl
+    })
+  }
+
+  async function buildCubes() {
+    const n = ICONS.length
+    for(let i=0; i<n; i++){
+      const icon = ICONS[i]
+      const baseY = CUBE_Y_MID + (i - (n-1)/2) * CUBE_SPACING
+
+      // Low segment count — enough for displacement to read, not so many wireframe is a mess
+      const geo = new THREE.BoxGeometry(CUBE_SIZE, CUBE_SIZE, CUBE_SIZE, 10, 10, 10)
+
+      const dispTex = await buildDisplacementTex(icon.file)
+
+      const mat = new THREE.MeshPhysicalMaterial({
+        color:              0xbbbbbb,
+        displacementMap:    dispTex,
+        displacementScale:  0.04,
+        displacementBias:   -0.018,
+        metalness:          0.9,
+        roughness:          0.2,
+        clearcoat:          1.0,
+        clearcoatRoughness: 0.08,
+        envMapIntensity:    2.2,
+      })
+
+      const mesh = new THREE.Mesh(geo, mat)
+      mesh.castShadow    = true
+      mesh.receiveShadow = true
+      mesh.position.set(CUBE_X, baseY, CUBE_Z)
+      mesh.rotation.y = 0.3 + i * 0.12
+      mesh.rotation.x = 0.06
+
+      scene.add(mesh)
+
+      cubeObjects.push({
+        mesh,
+        baseY,
+        phase: i * (Math.PI * 2 / n),
+        href:  icon.href,
+        name:  icon.name,
+      })
     }
+  }
+
+  buildCubes()
+
+  // ─── RAYCASTING ────────────────────────────────────────────────────────────
+  const raycaster  = new THREE.Raycaster()
+  const mouse      = new THREE.Vector2()
+  let hoveredCube  = null
+
+  function getCubeUnderMouse(e) {
+    const rect = renderer.domElement.getBoundingClientRect()
+    mouse.x =  ((e.clientX - rect.left) / rect.width)  * 2 - 1
+    mouse.y = -((e.clientY - rect.top)  / rect.height) * 2 + 1
+    raycaster.setFromCamera(mouse, camera)
+    const hits = raycaster.intersectObjects(cubeObjects.map(c => c.mesh), false)
+    if(hits.length) return cubeObjects.find(c => c.mesh === hits[0].object) || null
     return null
   }
 
   renderer.domElement.addEventListener('mousemove', e => {
-    const hit = getIntersectedCube(e)
-    if(hit){
-      hoveredCube = hit
-      tooltip.textContent = hit.name
-      tooltip.classList.add('visible')
-      document.body.style.cursor = 'pointer'
-    } else {
-      hoveredCube = null
-      tooltip.classList.remove('visible')
-      document.body.style.cursor = 'default'
-    }
+    const hit = getCubeUnderMouse(e)
+    hoveredCube = hit
+    tooltip.textContent = hit ? hit.name : ''
+    tooltip.classList.toggle('visible', !!hit)
+    document.body.style.cursor = hit ? 'pointer' : 'default'
   })
 
   renderer.domElement.addEventListener('click', e => {
-    const hit = getIntersectedCube(e)
-    if(hit && hit.href && hit.href !== '#'){
-      window.open(hit.href, '_blank')
-    }
+    const hit = getCubeUnderMouse(e)
+    if(hit && hit.href && hit.href !== '#') window.open(hit.href, '_blank')
   })
 
-  // ═══════════════════════════════════════════════
-  // SPACE KEY — wireframe toggle
-  // ═══════════════════════════════════════════════
-
-  function addWireOverlay(mesh, parent) {
-    const wireMesh = new THREE.Mesh(mesh.geometry, blackWireMat)
-    // Match world transform
-    mesh.getWorldPosition(wireMesh.position)
-    mesh.getWorldQuaternion(wireMesh.quaternion)
-    mesh.getWorldScale(wireMesh.scale)
-    parent.add(wireMesh)
-    wireMesh.userData.isWireOverlay = true
-    wireframeMeshes.push({ mesh: wireMesh, parent })
-    return wireMesh
-  }
-
+  // ─── SPACE — WIREFRAME TOGGLE ──────────────────────────────────────────────
   window.addEventListener('keydown', e => {
     if(e.code !== 'Space') return
 
@@ -361,86 +295,63 @@ function init(){
 
     if(isWireframe){
 
-      // --- Car ---
+      // Car
       if(loadedModel){
         loadedModel.traverse(obj => {
-          if(!obj.isMesh) return
+          if(!obj.isMesh || obj.userData.isWireOverlay) return
           if(!obj.userData.originalMaterial) obj.userData.originalMaterial = obj.material
           obj.material = whiteFillMat
-          addWireOverlay(obj, obj.parent)
+          attachWireOverlay(obj)
         })
       }
 
-      // --- Cubes ---
+      // Cubes
       cubeObjects.forEach(c => {
         if(!c.mesh.userData.originalMaterial) c.mesh.userData.originalMaterial = c.mesh.material
         c.mesh.material = whiteFillMat
-        addWireOverlay(c.mesh, cubeGroup)
+        attachWireOverlay(c.mesh)
       })
 
-      reflector.visible  = false
+      reflector.visible   = false
       softenFloor.visible = false
 
     } else {
 
-      // --- Restore car ---
+      // Car — restore
       if(loadedModel){
         loadedModel.traverse(obj => {
-          if(!obj.isMesh) return
+          if(!obj.isMesh || obj.userData.isWireOverlay) return
           if(obj.userData.originalMaterial) obj.material = obj.userData.originalMaterial
         })
+        removeWireOverlays(loadedModel)
       }
 
-      // --- Restore cubes ---
+      // Cubes — restore
       cubeObjects.forEach(c => {
         if(c.mesh.userData.originalMaterial) c.mesh.material = c.mesh.userData.originalMaterial
+        // Remove overlay children
+        const overlays = c.mesh.children.filter(ch => ch.userData.isWireOverlay)
+        overlays.forEach(o => c.mesh.remove(o))
       })
 
-      // Remove all wire overlays
-      wireframeMeshes.forEach(({ mesh, parent }) => parent.remove(mesh))
-      wireframeMeshes.length = 0
-
-      reflector.visible  = true
+      reflector.visible   = true
       softenFloor.visible = true
     }
   })
 
-  // ═══════════════════════════════════════════════
-  // ANIMATE
-  // ═══════════════════════════════════════════════
+  // ─── ANIMATE ───────────────────────────────────────────────────────────────
   function animate(){
     requestAnimationFrame(animate)
     controls.update()
 
     const t = clock.getElapsedTime()
 
-    // Bob and slow-rotate cubes
-    cubeObjects.forEach((c, i) => {
-      c.mesh.position.y = c.baseY + Math.sin(t * 0.7 + c.phase) * 0.06
-
-      // Gentle y-rotation; pause/slow on hover
-      const rotSpeed = (hoveredCube === c) ? 0.0 : 0.18
-      c.mesh.rotation.y += rotSpeed * 0.01
-
-      // If in wireframe mode, keep wire overlay in sync
-      // (overlays are added as children of cubeGroup so they inherit group transform,
-      //  but we stored them at world position — we need to sync position)
+    cubeObjects.forEach(c => {
+      // Bob
+      c.mesh.position.y = c.baseY + Math.sin(t * 0.7 + c.phase) * 0.055
+      // Slow spin — pause on hover
+      if(hoveredCube !== c) c.mesh.rotation.y += 0.004
     })
-
-    // Sync wire overlay positions for cubes (they bob)
-    if(isWireframe){
-      // Gather overlay meshes that belong to cubes
-      wireframeMeshes.forEach(({ mesh, parent }) => {
-        if(parent !== cubeGroup) return
-        // Find matching cube by geometry reference
-        const cube = cubeObjects.find(c => c.mesh.geometry === mesh.geometry && c.mesh !== mesh)
-        if(cube){
-          mesh.position.copy(cube.mesh.position)
-          mesh.rotation.copy(cube.mesh.rotation)
-          mesh.scale.copy(cube.mesh.scale)
-        }
-      })
-    }
 
     composer.render()
   }

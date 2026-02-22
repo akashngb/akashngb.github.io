@@ -3,13 +3,14 @@ function init(){
   let iconsVisible = false;
   const nameOverlay = document.getElementById('name-overlay');
 
+  // Cards: GitHub is featured (large), rest are small grid
   const CARDS = [
-    { label: 'MAIL',      sub: 'Contact',   icon: '/assets/icons/mail.svg',      href: 'mailto:you@email.com' },
-    { label: 'GITHUB',    sub: 'Code',      icon: '/assets/icons/github.svg',    href: 'https://github.com/' },
-    { label: 'LINKEDIN',  sub: 'Network',   icon: '/assets/icons/linkedin.svg',  href: 'https://linkedin.com/' },
-    { label: 'SPOTIFY',   sub: 'Music',     icon: '/assets/icons/spotify.svg',   href: 'https://open.spotify.com/' },
-    { label: 'INSTAGRAM', sub: 'Visual',    icon: '/assets/icons/instagram.svg', href: 'https://instagram.com/' },
-    { label: 'THEME',     sub: 'Settings',  icon: '/assets/icons/sun.svg',       href: '#' },
+    { label: 'GITHUB',    sub: 'Code',     icon: '/assets/icons/github.svg',    href: 'https://github.com/', featured: true },
+    { label: 'LINKEDIN',  sub: 'Network',  icon: '/assets/icons/linkedin.svg',  href: 'https://linkedin.com/' },
+    { label: 'MAIL',      sub: 'Contact',  icon: '/assets/icons/mail.svg',      href: 'mailto:you@email.com' },
+    { label: 'SPOTIFY',   sub: 'Music',    icon: '/assets/icons/spotify.svg',   href: 'https://open.spotify.com/' },
+    { label: 'INSTAGRAM', sub: 'Visual',   icon: '/assets/icons/instagram.svg', href: 'https://instagram.com/' },
+    { label: 'THEME',     sub: 'Settings', icon: '/assets/icons/sun.svg',       href: '#' },
   ];
 
   // ── Scene ──────────────────────────────────────────────────────────
@@ -31,8 +32,12 @@ function init(){
 
   const composer = new THREE.EffectComposer(renderer);
   composer.addPass(new THREE.RenderPass(scene, camera));
+  // Bloom dialed WAY down — just a gentle edge glow, no mist
   composer.addPass(new THREE.UnrealBloomPass(
-    new THREE.Vector2(window.innerWidth, window.innerHeight), 0.6, 0.5, 0.6
+    new THREE.Vector2(window.innerWidth, window.innerHeight),
+    0.12,  // strength — was 0.6, now minimal
+    0.4,   // radius
+    0.9    // threshold — only very bright pixels bloom
   ));
   composer.addPass(new THREE.ShaderPass(THREE.VignetteShader));
   composer.addPass(new THREE.ShaderPass(THREE.GammaCorrectionShader));
@@ -95,101 +100,7 @@ function init(){
     scene.add(model);
   }, undefined, (e) => console.error(e));
 
-  // ── Holographic card canvas painter ───────────────────────────────
-  const CW = 320, CH = 420;
-
-  function drawHoloCard(ctx, label, sub, accentH) {
-    ctx.clearRect(0, 0, CW, CH);
-
-    // --- background fill: very dark navy, nearly black
-    const bg = ctx.createLinearGradient(0, 0, 0, CH);
-    bg.addColorStop(0,   'rgba(2,8,24,0.93)');
-    bg.addColorStop(0.5, 'rgba(4,14,38,0.90)');
-    bg.addColorStop(1,   'rgba(2,8,24,0.95)');
-    roundRect(ctx, 0, 0, CW, CH, 8);
-    ctx.fillStyle = bg;
-    ctx.fill();
-
-    // --- outer glow border
-    const borderGrad = ctx.createLinearGradient(0, 0, CW, CH);
-    borderGrad.addColorStop(0,   `hsla(${accentH},100%,70%,0.0)`);
-    borderGrad.addColorStop(0.3, `hsla(${accentH},100%,70%,0.9)`);
-    borderGrad.addColorStop(0.7, `hsla(${accentH},100%,70%,0.9)`);
-    borderGrad.addColorStop(1,   `hsla(${accentH},100%,70%,0.0)`);
-    roundRect(ctx, 0, 0, CW, CH, 8);
-    ctx.strokeStyle = borderGrad;
-    ctx.lineWidth = 1.5;
-    ctx.stroke();
-
-    // --- inner edge highlight (top + left)
-    ctx.strokeStyle = `hsla(${accentH},100%,90%,0.25)`;
-    ctx.lineWidth = 1;
-    roundRect(ctx, 2, 2, CW-4, CH-4, 7);
-    ctx.stroke();
-
-    // --- top accent bar
-    const topBar = ctx.createLinearGradient(0, 0, CW, 0);
-    topBar.addColorStop(0,   `hsla(${accentH},100%,65%,0)`);
-    topBar.addColorStop(0.3, `hsla(${accentH},100%,65%,1)`);
-    topBar.addColorStop(0.7, `hsla(${accentH},100%,65%,1)`);
-    topBar.addColorStop(1,   `hsla(${accentH},100%,65%,0)`);
-    ctx.fillStyle = topBar;
-    ctx.fillRect(0, 0, CW, 3);
-
-    // --- bottom accent bar
-    ctx.fillStyle = topBar;
-    ctx.fillRect(0, CH-3, CW, 3);
-
-    // --- corner brackets
-    const bLen = 22, bThick = 2.5;
-    ctx.strokeStyle = `hsla(${accentH},100%,80%,0.95)`;
-    ctx.lineWidth = bThick;
-    ctx.lineCap = 'square';
-    // top-left
-    ctx.beginPath(); ctx.moveTo(0,bLen); ctx.lineTo(0,0); ctx.lineTo(bLen,0); ctx.stroke();
-    // top-right
-    ctx.beginPath(); ctx.moveTo(CW-bLen,0); ctx.lineTo(CW,0); ctx.lineTo(CW,bLen); ctx.stroke();
-    // bottom-left
-    ctx.beginPath(); ctx.moveTo(0,CH-bLen); ctx.lineTo(0,CH); ctx.lineTo(bLen,CH); ctx.stroke();
-    // bottom-right
-    ctx.beginPath(); ctx.moveTo(CW-bLen,CH); ctx.lineTo(CW,CH); ctx.lineTo(CW,CH-bLen); ctx.stroke();
-
-    // --- scanlines
-    ctx.globalAlpha = 0.04;
-    for (let y = 0; y < CH; y += 3) {
-      ctx.fillStyle = `hsl(${accentH},80%,70%)`;
-      ctx.fillRect(4, y, CW-8, 1);
-    }
-    ctx.globalAlpha = 1;
-
-    // --- circuit trace decoration (bottom area)
-    ctx.strokeStyle = `hsla(${accentH},100%,60%,0.18)`;
-    ctx.lineWidth = 1;
-    // horizontal trace
-    ctx.beginPath(); ctx.moveTo(20, CH-55); ctx.lineTo(CW-20, CH-55); ctx.stroke();
-    // vertical ticks
-    for (let x = 30; x < CW-20; x += 18) {
-      const h = (x % 36 === 12) ? 10 : 5;
-      ctx.beginPath(); ctx.moveTo(x, CH-55); ctx.lineTo(x, CH-55-h); ctx.stroke();
-    }
-
-    // --- label (MAIL, GITHUB, etc.)
-    ctx.font = `800 38px 'Courier New', monospace`;
-    ctx.textAlign = 'center';
-    ctx.letterSpacing = '4px';
-    // glow
-    ctx.shadowColor = `hsla(${accentH},100%,70%,1)`;
-    ctx.shadowBlur = 18;
-    ctx.fillStyle = `hsla(${accentH},100%,88%,1)`;
-    ctx.fillText(label, CW/2, CH - 90);
-    ctx.shadowBlur = 0;
-
-    // --- sub-label
-    ctx.font = `400 16px 'Courier New', monospace`;
-    ctx.fillStyle = `hsla(${accentH},80%,65%,0.6)`;
-    ctx.fillText(sub.toUpperCase(), CW/2, CH - 64);
-  }
-
+  // ── Card canvas painter ────────────────────────────────────────────
   function roundRect(ctx, x, y, w, h, r) {
     ctx.beginPath();
     ctx.moveTo(x+r,y);
@@ -200,169 +111,207 @@ function init(){
     ctx.closePath();
   }
 
-  // accent hues per card (blue family with slight variation)
-  const ACCENT_HUES = [195, 210, 185, 200, 215, 190];
-
-  function makeHoloTexture(label, sub, iconSrc, accentH, onReady) {
-    const canvas = document.createElement('canvas');
-    canvas.width = CW; canvas.height = CH;
+  function paintCard(canvas, label, sub, iconImg, accentH, CW, CH) {
     const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, CW, CH);
 
-    function finish(iconImg) {
-      drawHoloCard(ctx, label, sub, accentH);
+    // bg
+    const bg = ctx.createLinearGradient(0,0,0,CH);
+    bg.addColorStop(0, 'rgba(2,8,24,0.94)');
+    bg.addColorStop(1, 'rgba(4,14,40,0.97)');
+    roundRect(ctx, 0, 0, CW, CH, 8);
+    ctx.fillStyle = bg; ctx.fill();
 
-      // icon — centered upper zone
-      if (iconImg) {
-        const iSize = 110;
-        const ix = (CW - iSize) / 2;
-        const iy = 42;
+    // outer border glow
+    const border = ctx.createLinearGradient(0,0,CW,CH);
+    border.addColorStop(0,   `hsla(${accentH},100%,70%,0)`);
+    border.addColorStop(0.35,`hsla(${accentH},100%,70%,0.85)`);
+    border.addColorStop(0.65,`hsla(${accentH},100%,70%,0.85)`);
+    border.addColorStop(1,   `hsla(${accentH},100%,70%,0)`);
+    roundRect(ctx, 0, 0, CW, CH, 8);
+    ctx.strokeStyle = border; ctx.lineWidth = 1.5; ctx.stroke();
 
-        // icon glow backdrop
-        const glow = ctx.createRadialGradient(CW/2, iy+iSize/2, 0, CW/2, iy+iSize/2, iSize*0.9);
-        glow.addColorStop(0,   `hsla(${accentH},100%,65%,0.22)`);
-        glow.addColorStop(0.6, `hsla(${accentH},100%,55%,0.08)`);
-        glow.addColorStop(1,   `hsla(${accentH},100%,55%,0.0)`);
-        ctx.fillStyle = glow;
-        ctx.fillRect(0, 0, CW, CH);
+    // top accent bar
+    const bar = ctx.createLinearGradient(0,0,CW,0);
+    bar.addColorStop(0,   `hsla(${accentH},100%,65%,0)`);
+    bar.addColorStop(0.3, `hsla(${accentH},100%,65%,1)`);
+    bar.addColorStop(0.7, `hsla(${accentH},100%,65%,1)`);
+    bar.addColorStop(1,   `hsla(${accentH},100%,65%,0)`);
+    ctx.fillStyle = bar; ctx.fillRect(0, 0, CW, 3);
 
-        // draw icon tinted cyan/blue via screen blend
-        ctx.globalCompositeOperation = 'source-over';
-        // dim placeholder so screen blend tints it
-        ctx.globalAlpha = 0.15;
-        ctx.fillStyle = '#000';
-        ctx.fillRect(ix, iy, iSize, iSize);
-        ctx.globalAlpha = 1;
+    // corner brackets
+    const bLen = Math.min(18, CW*0.1);
+    ctx.strokeStyle = `hsla(${accentH},100%,80%,0.95)`;
+    ctx.lineWidth = 2; ctx.lineCap = 'square';
+    ctx.beginPath(); ctx.moveTo(0,bLen); ctx.lineTo(0,0); ctx.lineTo(bLen,0); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(CW-bLen,0); ctx.lineTo(CW,0); ctx.lineTo(CW,bLen); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0,CH-bLen); ctx.lineTo(0,CH); ctx.lineTo(bLen,CH); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(CW-bLen,CH); ctx.lineTo(CW,CH); ctx.lineTo(CW,CH-bLen); ctx.stroke();
 
-        ctx.drawImage(iconImg, ix, iy, iSize, iSize);
+    // scanlines
+    ctx.globalAlpha = 0.035;
+    for (let y = 0; y < CH; y += 3) {
+      ctx.fillStyle = `hsl(${accentH},80%,70%)`;
+      ctx.fillRect(4, y, CW-8, 1);
+    }
+    ctx.globalAlpha = 1;
 
-        // tint to blue via screen
-        ctx.globalCompositeOperation = 'screen';
-        ctx.fillStyle = `hsla(${accentH},100%,55%,0.75)`;
-        ctx.fillRect(ix, iy, iSize, iSize);
-        ctx.globalCompositeOperation = 'source-over';
+    // icon
+    if (iconImg) {
+      const iSize = Math.min(CW * 0.42, CH * 0.38);
+      const ix = (CW - iSize) / 2;
+      const iy = CH * 0.12;
 
-        // horizontal divider below icon
-        const divGrad = ctx.createLinearGradient(0,0,CW,0);
-        divGrad.addColorStop(0,   `hsla(${accentH},100%,70%,0)`);
-        divGrad.addColorStop(0.5, `hsla(${accentH},100%,70%,0.5)`);
-        divGrad.addColorStop(1,   `hsla(${accentH},100%,70%,0)`);
-        ctx.strokeStyle = divGrad;
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.moveTo(24, iy+iSize+18);
-        ctx.lineTo(CW-24, iy+iSize+18);
-        ctx.stroke();
-      }
+      // glow
+      const glow = ctx.createRadialGradient(CW/2,iy+iSize/2,0, CW/2,iy+iSize/2,iSize);
+      glow.addColorStop(0, `hsla(${accentH},100%,65%,0.2)`);
+      glow.addColorStop(1, `hsla(${accentH},100%,55%,0)`);
+      ctx.fillStyle = glow; ctx.fillRect(0,0,CW,CH);
 
-      onReady(new THREE.CanvasTexture(canvas));
+      ctx.drawImage(iconImg, ix, iy, iSize, iSize);
+      ctx.globalCompositeOperation = 'screen';
+      ctx.fillStyle = `hsla(${accentH},100%,55%,0.7)`;
+      ctx.fillRect(ix, iy, iSize, iSize);
+      ctx.globalCompositeOperation = 'source-over';
+
+      // divider below icon
+      const div = ctx.createLinearGradient(0,0,CW,0);
+      div.addColorStop(0,   `hsla(${accentH},100%,70%,0)`);
+      div.addColorStop(0.5, `hsla(${accentH},100%,70%,0.4)`);
+      div.addColorStop(1,   `hsla(${accentH},100%,70%,0)`);
+      ctx.strokeStyle = div; ctx.lineWidth = 1;
+      const divY = iy + iSize + CH * 0.06;
+      ctx.beginPath(); ctx.moveTo(CW*0.1, divY); ctx.lineTo(CW*0.9, divY); ctx.stroke();
     }
 
+    // label
+    const fontSize = Math.max(14, CW * 0.13);
+    ctx.font = `800 ${fontSize}px 'Courier New', monospace`;
+    ctx.textAlign = 'center';
+    ctx.shadowColor = `hsla(${accentH},100%,70%,1)`;
+    ctx.shadowBlur = 14;
+    ctx.fillStyle = `hsla(${accentH},100%,88%,1)`;
+    ctx.fillText(label, CW/2, CH * 0.82);
+    ctx.shadowBlur = 0;
+
+    // sub-label
+    const subSize = Math.max(10, CW * 0.07);
+    ctx.font = `400 ${subSize}px 'Courier New', monospace`;
+    ctx.fillStyle = `hsla(${accentH},80%,65%,0.55)`;
+    ctx.fillText(sub.toUpperCase(), CW/2, CH * 0.91);
+  }
+
+  function makeCardTexture(label, sub, iconSrc, accentH, CW, CH, onReady) {
+    const canvas = document.createElement('canvas');
+    canvas.width = CW; canvas.height = CH;
     const img = new Image();
     img.crossOrigin = 'anonymous';
-    img.onload = () => finish(img);
-    img.onerror = () => finish(null);
+    img.onload  = () => { paintCard(canvas, label, sub, img,  accentH, CW, CH); onReady(new THREE.CanvasTexture(canvas)); };
+    img.onerror = () => { paintCard(canvas, label, sub, null, accentH, CW, CH); onReady(new THREE.CanvasTexture(canvas)); };
     img.src = iconSrc;
   }
 
-  // ── Place cards in scene ──────────────────────────────────────────
-  const cardGroup = new THREE.Group();
-  scene.add(cardGroup);
+  // ── Layout: all cards on ONE flat vertical plane to the right ──────
+  // Panel anchor: to the right of the car, same Z depth as camera target
+  // Everything sits on x = PANEL_X, cards face camera directly
 
-  const cardMeshes = [];
+  const PANEL_X  =  3.8;   // right of car
+  const PANEL_Z  = -0.5;   // slightly in front
+  const PANEL_Y_CENTER = 1.4; // vertical center in scene
 
-  // Arc in front-right of car, angled toward viewer
-  const ARC_RADIUS  = 3.8;
-  const ARC_CX      = 1.0;
-  const ARC_CZ      = 1.0;
-  const ARC_START   = -Math.PI * 0.05;
-  const ARC_SPAN    =  Math.PI * 0.68;
-  const HIDDEN_Y    = -2.2;
-  const FLOAT_Y     =  1.55;
+  // Featured (GitHub): large card
+  const FEAT_W3 = 1.05;   // scene units wide
+  const FEAT_H3 = 1.35;
+  const FEAT_PX = 512;
+  const FEAT_PY = 640;
 
-  // card world dimensions
-  const CW3 = 0.82;
-  const CH3 = CW3 * (CH / CW);
+  // Small cards: 2 columns x 2 rows = 5 cards (or 2x3 minus featured)
+  const SM_W3 = 0.48;
+  const SM_H3 = 0.58;
+  const SM_PX = 256;
+  const SM_PY = 300;
 
-  CARDS.forEach((card, i) => {
-    const t = i / (CARDS.length - 1);
-    const angle = ARC_START + t * ARC_SPAN;
-    const x = ARC_CX + Math.cos(angle) * ARC_RADIUS;
-    const z = ARC_CZ + Math.sin(angle) * ARC_RADIUS;
+  const GAP = 0.06; // gap between cards
 
-    const geo = new THREE.PlaneGeometry(CW3, CH3);
-    const mat = new THREE.MeshBasicMaterial({
-      transparent: true,
-      opacity: 0,
-      side: THREE.DoubleSide,
-      depthWrite: false,
-    });
+  // Layout plan (all in scene-unit offsets from panel center):
+  // Featured card: top, centered
+  // Small cards: 2 cols below
+  const positions = [];
 
-    const mesh = new THREE.Mesh(geo, mat);
-    mesh.position.set(x, HIDDEN_Y, z);
-    mesh.lookAt(new THREE.Vector3(4.1, 2.1, 4.9));
-    mesh.rotateX(-0.1);
-    cardGroup.add(mesh);
-
-    const floatOffset = Math.sin(i * 1.1) * 0.12;
-    cardMeshes.push({ mesh, href: card.href, floatOffset });
-
-    makeHoloTexture(card.label, card.sub, card.icon, ACCENT_HUES[i], (tex) => {
-      mat.map = tex;
-      mat.needsUpdate = true;
-    });
-
-    // ── Edge glow lines: thin bright planes on card edges ────────────
-    const edgeColor = new THREE.Color().setHSL(ACCENT_HUES[i]/360, 1, 0.65);
-    const edgeMat = new THREE.MeshBasicMaterial({ color: edgeColor, transparent: true, opacity: 0, side: THREE.DoubleSide });
-
-    // top edge
-    const topEdge = new THREE.Mesh(new THREE.PlaneGeometry(CW3, 0.006), edgeMat.clone());
-    topEdge.position.set(0, CH3/2, 0.001);
-    mesh.add(topEdge);
-    // bottom edge
-    const botEdge = new THREE.Mesh(new THREE.PlaneGeometry(CW3, 0.006), edgeMat.clone());
-    botEdge.position.set(0, -CH3/2, 0.001);
-    mesh.add(botEdge);
-    // left edge
-    const leftEdge = new THREE.Mesh(new THREE.PlaneGeometry(0.006, CH3), edgeMat.clone());
-    leftEdge.position.set(-CW3/2, 0, 0.001);
-    mesh.add(leftEdge);
-    // right edge
-    const rightEdge = new THREE.Mesh(new THREE.PlaneGeometry(0.006, CH3), edgeMat.clone());
-    rightEdge.position.set(CW3/2, 0, 0.001);
-    mesh.add(rightEdge);
-
-    cardMeshes[i].edges = [topEdge, botEdge, leftEdge, rightEdge].map(e => e.material);
+  // Featured centered at top
+  positions.push({
+    x: PANEL_X,
+    y: PANEL_Y_CENTER + SM_H3 + GAP + FEAT_H3/2 - (FEAT_H3 + SM_H3*2 + GAP*2)/2 + (FEAT_H3 + SM_H3*2 + GAP*2)/2,
+    z: PANEL_Z,
+    w3: FEAT_W3, h3: FEAT_H3, pw: FEAT_PX, ph: FEAT_PY,
   });
 
-  // ── Show / hide ───────────────────────────────────────────────────
+  // We want: featured on top row, then 2x2 small grid below, then 1 last small centered
+  // Total height: FEAT_H3 + GAP + SM_H3 + GAP + SM_H3
+  const totalH = FEAT_H3 + GAP + SM_H3 + GAP + SM_H3;
+  const topY   = PANEL_Y_CENTER + totalH / 2;
+
+  // Recalc featured y
+  positions[0].y = topY - FEAT_H3 / 2;
+
+  // Row 1 of smalls (y below featured)
+  const row1Y = topY - FEAT_H3 - GAP - SM_H3 / 2;
+  const colOffset = SM_W3 / 2 + GAP / 2;
+  positions.push({ x: PANEL_X - colOffset, y: row1Y, z: PANEL_Z, w3: SM_W3, h3: SM_H3, pw: SM_PX, ph: SM_PY });
+  positions.push({ x: PANEL_X + colOffset, y: row1Y, z: PANEL_Z, w3: SM_W3, h3: SM_H3, pw: SM_PX, ph: SM_PY });
+
+  // Row 2 of smalls
+  const row2Y = row1Y - SM_H3 - GAP;
+  positions.push({ x: PANEL_X - colOffset, y: row2Y, z: PANEL_Z, w3: SM_W3, h3: SM_H3, pw: SM_PX, ph: SM_PY });
+  positions.push({ x: PANEL_X + colOffset, y: row2Y, z: PANEL_Z, w3: SM_W3, h3: SM_H3, pw: SM_PX, ph: SM_PY });
+  // 6th card centered in row 3
+  positions.push({ x: PANEL_X,             y: row2Y - SM_H3 - GAP, z: PANEL_Z, w3: SM_W3, h3: SM_H3, pw: SM_PX, ph: SM_PY });
+
+  const ACCENT_HUES = [205, 195, 210, 200, 215, 190];
+  const HIDDEN_Y = -3.0;
+
+  const cardGroup = new THREE.Group();
+  scene.add(cardGroup);
+  const cardMeshes = [];
+
+  // Cards all face the same direction: toward camera
+  // Camera is at (4.1, 2.1, 4.9), cards are at x~3.8, z~-0.5
+  // So cards should face roughly toward +Z direction
+  const CARD_ROTATION_Y = -Math.PI * 0.55; // face toward camera
+
+  CARDS.forEach((card, i) => {
+    const pos = positions[i];
+    const geo = new THREE.PlaneGeometry(pos.w3, pos.h3);
+    const mat = new THREE.MeshBasicMaterial({
+      transparent: true, opacity: 0,
+      side: THREE.DoubleSide, depthWrite: false,
+    });
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.position.set(pos.x, HIDDEN_Y, pos.z);
+    mesh.rotation.y = CARD_ROTATION_Y;
+    cardGroup.add(mesh);
+
+    const floatBase = pos.y;
+    cardMeshes.push({ mesh, href: card.href, floatBase });
+
+    makeCardTexture(card.label, card.sub, card.icon, ACCENT_HUES[i], pos.pw, pos.ph, (tex) => {
+      mat.map = tex; mat.needsUpdate = true;
+    });
+  });
+
+  // ── Show / hide ────────────────────────────────────────────────────
   function showCards() {
-    cardMeshes.forEach(({ mesh, floatOffset, edges }, i) => {
-      gsap.to(mesh.position, {
-        y: FLOAT_Y + floatOffset,
-        duration: 0.8, delay: i * 0.09, ease: 'back.out(1.4)'
-      });
-      gsap.to(mesh.material, {
-        opacity: 1, duration: 0.55, delay: i * 0.09, ease: 'power2.out'
-      });
-      edges && edges.forEach(em => {
-        gsap.to(em, { opacity: 0.85, duration: 0.55, delay: i * 0.09 + 0.2 });
-      });
+    cardMeshes.forEach(({ mesh, floatBase }, i) => {
+      gsap.to(mesh.position, { y: floatBase, duration: 0.75, delay: i * 0.08, ease: 'back.out(1.4)' });
+      gsap.to(mesh.material, { opacity: 1,   duration: 0.5,  delay: i * 0.08, ease: 'power2.out' });
     });
     gsap.to(nameOverlay, { opacity: 1, duration: 0.5, ease: 'power2.out' });
   }
 
   function hideCards() {
-    cardMeshes.forEach(({ mesh, edges }, i) => {
-      gsap.to(mesh.position, {
-        y: HIDDEN_Y, duration: 0.45, delay: i * 0.05, ease: 'power2.in'
-      });
-      gsap.to(mesh.material, {
-        opacity: 0, duration: 0.3, delay: i * 0.05
-      });
-      edges && edges.forEach(em => {
-        gsap.to(em, { opacity: 0, duration: 0.25, delay: i * 0.05 });
-      });
+    cardMeshes.forEach(({ mesh }, i) => {
+      gsap.to(mesh.position, { y: HIDDEN_Y, duration: 0.4, delay: i * 0.04, ease: 'power2.in' });
+      gsap.to(mesh.material, { opacity: 0,  duration: 0.28, delay: i * 0.04 });
     });
     gsap.to(nameOverlay, { opacity: 0, duration: 0.3 });
   }
@@ -374,7 +323,7 @@ function init(){
     }
   });
 
-  // ── Raycaster ─────────────────────────────────────────────────────
+  // ── Raycaster ──────────────────────────────────────────────────────
   const raycaster = new THREE.Raycaster();
   const mouse = new THREE.Vector2();
 
@@ -384,9 +333,9 @@ function init(){
     mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
     raycaster.setFromCamera(mouse, camera);
     const hits = raycaster.intersectObjects(cardMeshes.map(c => c.mesh));
-    if (hits.length > 0) {
+    if (hits.length) {
       const hit = cardMeshes.find(c => c.mesh === hits[0].object);
-      if (hit && hit.href && hit.href !== '#') window.open(hit.href, '_blank');
+      if (hit?.href && hit.href !== '#') window.open(hit.href, '_blank');
     }
   });
 
@@ -396,26 +345,19 @@ function init(){
     mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
     raycaster.setFromCamera(mouse, camera);
     const hits = raycaster.intersectObjects(cardMeshes.map(c => c.mesh));
-    renderer.domElement.style.cursor = hits.length > 0 ? 'pointer' : 'default';
+    renderer.domElement.style.cursor = hits.length ? 'pointer' : 'default';
   });
 
-  // ── Float + edge pulse animation ──────────────────────────────────
+  // ── Gentle float ───────────────────────────────────────────────────
   const clock = new THREE.Clock();
   function floatCards(t) {
     if (!iconsVisible) return;
-    cardMeshes.forEach(({ mesh, floatOffset, edges }, i) => {
-      mesh.position.y = FLOAT_Y + floatOffset + Math.sin(t * 0.7 + i * 1.2) * 0.055;
-      // pulse edge opacity
-      if (edges) {
-        const pulse = 0.55 + 0.3 * Math.sin(t * 2.2 + i * 0.8);
-        edges.forEach(em => { if (em.opacity > 0.1) em.opacity = pulse; });
-      }
+    cardMeshes.forEach(({ mesh, floatBase }, i) => {
+      mesh.position.y = floatBase + Math.sin(t * 0.6 + i * 0.5) * 0.03;
     });
   }
 
-
-
-  // ── Render loop ───────────────────────────────────────────────────
+  // ── Render loop ────────────────────────────────────────────────────
   function animate() {
     requestAnimationFrame(animate);
     controls.update();
