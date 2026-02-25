@@ -396,6 +396,14 @@ function initProfileRotator() {
 document.addEventListener("DOMContentLoaded", function () {
   updateAgeHeader();
   setInterval(updateAgeHeader, 100);
+
+  // Force remove bottom padding that theme JS keeps applying
+  document.body.style.setProperty("padding-bottom", "0px", "important");
+  new MutationObserver(() => {
+    if (document.body.style.paddingBottom !== "0px") {
+      document.body.style.setProperty("padding-bottom", "0px", "important");
+    }
+  }).observe(document.body, { attributes: true, attributeFilter: ["style"] });
   
   const nameEl = document.getElementById("name-header");
   if (nameEl) typeNameWithTypos(nameEl);
