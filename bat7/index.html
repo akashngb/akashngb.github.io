@@ -11,6 +11,12 @@ function init() {
     if (envLoaded && modelLoaded) loadingEl.classList.add('hidden')
   }
 
+  // Failsafe — dismiss loading after 6s no matter what
+  setTimeout(() => loadingEl.classList.add('hidden'), 6000)
+
+  // Failsafe — never stay stuck regardless of what fails
+  setTimeout(() => loadingEl.classList.add('hidden'), 6000)
+
   // ─── SCENE ───────────────────────────────────────────────────────────────
   const scene = new THREE.Scene()
   scene.background = new THREE.Color(0x000000)
@@ -50,20 +56,28 @@ function init() {
   //   urban_alley_01_1k          dark back-alley
   //   evening_road_01_1k         moody dusk road
   //   autumn_crossing_1k         foggy bridge at dusk
-  const HDRI_URL = 'https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/cobblestone_street_night_1k.hdr'
+  // Drop any .hdr next to this HTML file and point to it here
+  const HDRI_URL = './env.hdr'
 
   const pmrem = new THREE.PMREMGenerator(renderer)
   pmrem.compileEquirectangularShader()
 
-  new THREE.RGBELoader().load(HDRI_URL, hdr => {
-    envTexture        = pmrem.fromEquirectangular(hdr).texture
-    scene.environment = envTexture
-    scene.background  = envTexture   // full 360° skybox
-    hdr.dispose()
-    pmrem.dispose()
-    envLoaded = true
-    checkReady()
-  })
+  new THREE.RGBELoader().load(
+    HDRI_URL,
+    hdr => {
+      envTexture        = pmrem.fromEquirectangular(hdr).texture
+      scene.environment = envTexture
+      scene.background  = envTexture
+      hdr.dispose(); pmrem.dispose()
+      envLoaded = true; checkReady()
+    },
+    undefined,
+    err => {
+      console.warn('HDRI load failed:', err)
+      scene.background = new THREE.Color(0x060a0f)
+      envLoaded = true; checkReady()
+    }
+  )
 
   // ─── LIGHTING ────────────────────────────────────────────────────────────
   const key = new THREE.DirectionalLight(0xc8d8ff, 1.0)
