@@ -1,181 +1,98 @@
-<!DOCTYPE html> <html lang="en"> <head> <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0"> <title>Gotham — Batmobile</title> <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/RGBELoader.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/VignetteShader.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/GammaCorrectionShader.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/objects/Reflector.js"></script> <style>*{margin:0;padding:0;box-sizing:border-box}body{background:#000;overflow:hidden}#three-container{width:100vw;height:100vh}#hint{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);font-family:'Courier New',monospace;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:#aaa;opacity:.35;pointer-events:none;user-select:none;transition:opacity .4s}#hint:hover{opacity:0}</style> </head> <body> <div id="three-container"></div> <div id="hint">[ SPACE ] wireframe</div> <script>
-function init(){
-  const container = document.getElementById('hint').parentElement.querySelector('#three-container')
-  const clock = new THREE.Clock()
+<!DOCTYPE html> <html lang="en"> <head> <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0"> <title>Gotham — Batmobile</title> <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/RGBELoader.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/VignetteShader.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/GammaCorrectionShader.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/objects/Reflector.js"></script> <style>*{margin:0;padding:0;box-sizing:border-box}body{background:#000;overflow:hidden}#three-container{width:100vw;height:100vh}#hint{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);font-family:'Courier New',monospace;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:#aaa;opacity:.3;pointer-events:none;user-select:none}#loading{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#000;font-family:'Courier New',monospace;font-size:11px;letter-spacing:.2em;color:#444;text-transform:uppercase;transition:opacity .8s;z-index:10}#loading.hidden{opacity:0;pointer-events:none}</style> </head> <body> <div id="three-container"></div> <div id="hint">[ space ] wireframe</div> <div id="loading">Loading environment…</div> <script>
+function init() {
+  const loadingEl = document.getElementById('loading')
   let isWireframe = false
   let loadedModel = null
+  let envLoaded   = false
+  let modelLoaded = false
+  let envTexture  = null
 
-  // ─── SCENE ─────────────────────────────────────────────────────────────────
+  function checkReady() {
+    if (envLoaded && modelLoaded) loadingEl.classList.add('hidden')
+  }
+
+  // ─── SCENE ───────────────────────────────────────────────────────────────
   const scene = new THREE.Scene()
-  scene.background = new THREE.Color(0x04060a)
-  scene.fog = new THREE.FogExp2(0x04060a, 0.038)
+  scene.background = new THREE.Color(0x000000)
 
-  // ─── CAMERA ────────────────────────────────────────────────────────────────
-  const camera = new THREE.PerspectiveCamera(32, window.innerWidth/window.innerHeight, 0.1, 500)
+  // ─── CAMERA ──────────────────────────────────────────────────────────────
+  const camera = new THREE.PerspectiveCamera(32, innerWidth / innerHeight, 0.1, 300)
   camera.position.set(-4, 2, -7)
 
-  // ─── RENDERER ──────────────────────────────────────────────────────────────
-  const renderer = new THREE.WebGLRenderer({antialias:true})
-  renderer.setSize(window.innerWidth, window.innerHeight)
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
-  renderer.outputEncoding      = THREE.sRGBEncoding
-  renderer.toneMapping         = THREE.ACESFilmicToneMapping
-  renderer.toneMappingExposure = 1.4
-  renderer.shadowMap.enabled   = true
-  renderer.shadowMap.type      = THREE.PCFSoftShadowMap
+  // ─── RENDERER ────────────────────────────────────────────────────────────
+  const renderer = new THREE.WebGLRenderer({ antialias: true })
+  renderer.setSize(innerWidth, innerHeight)
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2))
+  renderer.outputEncoding       = THREE.sRGBEncoding
+  renderer.toneMapping          = THREE.ACESFilmicToneMapping
+  renderer.toneMappingExposure  = 0.75
+  renderer.shadowMap.enabled    = true
+  renderer.shadowMap.type       = THREE.PCFSoftShadowMap
   renderer.physicallyCorrectLights = true
   document.getElementById('three-container').appendChild(renderer.domElement)
 
-  // ─── POST PROCESSING ───────────────────────────────────────────────────────
+  // ─── POST ────────────────────────────────────────────────────────────────
   const composer = new THREE.EffectComposer(renderer)
   composer.addPass(new THREE.RenderPass(scene, camera))
   const bloom = new THREE.UnrealBloomPass(
-    new THREE.Vector2(window.innerWidth, window.innerHeight), 0.55, 0.5, 0.78
+    new THREE.Vector2(innerWidth, innerHeight), 0.35, 0.45, 0.88
   )
   composer.addPass(bloom)
   const vignette = new THREE.ShaderPass(THREE.VignetteShader)
-  vignette.uniforms['offset'].value   = 0.85
-  vignette.uniforms['darkness'].value = 1.6
+  vignette.uniforms['offset'].value   = 0.88
+  vignette.uniforms['darkness'].value = 1.55
   composer.addPass(vignette)
   composer.addPass(new THREE.ShaderPass(THREE.GammaCorrectionShader))
 
-  // ─── HDRI ──────────────────────────────────────────────────────────────────
-  // CC0 HDRIs from Poly Haven — swap slug for different moods:
-  //   cobblestone_street_night  ← warm lamp-lit alley, deep shadows, perfect for Gotham
-  //   shanghai_bund             ← neon skyline city at night
+  // ─── HDRI — real env from Poly Haven (CC0) ───────────────────────────────
+  // Other good Gotham-ish slugs to try (just swap the name):
+  //   shanghai_bund_1k           neon skyline
+  //   urban_alley_01_1k          dark back-alley
+  //   evening_road_01_1k         moody dusk road
+  //   autumn_crossing_1k         foggy bridge at dusk
   const HDRI_URL = 'https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/cobblestone_street_night_1k.hdr'
+
+  const pmrem = new THREE.PMREMGenerator(renderer)
+  pmrem.compileEquirectangularShader()
+
   new THREE.RGBELoader().load(HDRI_URL, hdr => {
-    const pmrem = new THREE.PMREMGenerator(renderer)
-    scene.environment = pmrem.fromEquirectangular(hdr).texture
-    hdr.dispose(); pmrem.dispose()
+    envTexture        = pmrem.fromEquirectangular(hdr).texture
+    scene.environment = envTexture
+    scene.background  = envTexture   // full 360° skybox
+    hdr.dispose()
+    pmrem.dispose()
+    envLoaded = true
+    checkReady()
   })
 
-  // ─── LIGHTING — moody Gotham palette ───────────────────────────────────────
-  // Cold high-contrast key from above-front
-  const key = new THREE.DirectionalLight(0x8ab4e8, 2.8)
-  key.position.set(5, 12, 4)
+  // ─── LIGHTING ────────────────────────────────────────────────────────────
+  const key = new THREE.DirectionalLight(0xc8d8ff, 1.0)
+  key.position.set(4, 8, 3)
   key.castShadow = true
   key.shadow.mapSize.set(2048, 2048)
-  key.shadow.camera.near = 0.5
-  key.shadow.camera.far  = 60
-  key.shadow.camera.left = key.shadow.camera.bottom = -10
-  key.shadow.camera.right = key.shadow.camera.top  =  10
+  key.shadow.camera.near  = 1;  key.shadow.camera.far = 40
+  key.shadow.camera.left  = key.shadow.camera.bottom = -8
+  key.shadow.camera.right = key.shadow.camera.top    =  8
   scene.add(key)
+  scene.add(new THREE.HemisphereLight(0x1a2030, 0x100808, 0.55))
 
-  // Amber/orange practical fill from street lamps (left)
-  const streetL = new THREE.PointLight(0xff8c30, 6, 18)
-  streetL.position.set(-8, 7, -2)
-  scene.add(streetL)
-
-  // Complementary cool-teal fill from the right
-  const tealFill = new THREE.DirectionalLight(0x2af0c8, 0.4)
-  tealFill.position.set(7, 3, -3)
-  scene.add(tealFill)
-
-  // Deep blue rim from behind
-  const rim = new THREE.DirectionalLight(0x1a2fff, 1.1)
-  rim.position.set(0, 5, 10)
-  scene.add(rim)
-
-  // Faint ambient so shadows aren't pure black
-  scene.add(new THREE.HemisphereLight(0x101828, 0x000000, 0.5))
-
-  // ─── WET ASPHALT FLOOR ─────────────────────────────────────────────────────
-  // Mirror reflector for wet-ground look
-  const reflector = new THREE.Reflector(new THREE.PlaneGeometry(80, 80), {
-    textureWidth:  512,
-    textureHeight: 512,
-    color: 0x222233,
+  // ─── WET FLOOR ───────────────────────────────────────────────────────────
+  const reflector = new THREE.Reflector(new THREE.PlaneGeometry(60, 60), {
+    textureWidth: 1024, textureHeight: 1024, color: 0x111118,
   })
   reflector.rotation.x = -Math.PI / 2
   scene.add(reflector)
 
-  // Dark asphalt overlay blended on top
   const asphaltMat = new THREE.MeshPhysicalMaterial({
-    color:       0x080a10,
-    roughness:   0.12,
-    metalness:   0.0,
-    transparent: true,
-    opacity:     0.78,
+    color: 0x05080d, roughness: 0.08, metalness: 0,
+    transparent: true, opacity: 0.72,
   })
-  const asphalt = new THREE.Mesh(new THREE.PlaneGeometry(80, 80), asphaltMat)
+  const asphalt = new THREE.Mesh(new THREE.PlaneGeometry(60, 60), asphaltMat)
   asphalt.rotation.x = -Math.PI / 2
   asphalt.position.y = 0.003
   scene.add(asphalt)
 
-  // ─── CITY BACKDROP — silhouette buildings ──────────────────────────────────
-  function addBuilding(x, z, w, d, h, color){
-    const geo = new THREE.BoxGeometry(w, h, d)
-    const mat = new THREE.MeshStandardMaterial({ color, roughness:1, metalness:0 })
-    const mesh = new THREE.Mesh(geo, mat)
-    mesh.position.set(x, h/2, z)
-    scene.add(mesh)
-
-    // Scattered amber window dots (instanced manually with small quads)
-    const winCount = Math.floor(w * h * 0.5)
-    for(let i=0; i<winCount; i++){
-      if(Math.random() > 0.25) continue
-      const wGeo = new THREE.PlaneGeometry(0.12, 0.18)
-      const wCol = Math.random() > 0.5 ? 0xffaa22 : 0x88aaff
-      const wMat = new THREE.MeshBasicMaterial({ color: wCol })
-      const win  = new THREE.Mesh(wGeo, wMat)
-      const side = Math.random() > 0.5 ? 1 : -1
-      win.position.set(
-        x + side*(w/2 + 0.01),
-        (Math.random()*0.85 + 0.07)*h,
-        z + (Math.random()-0.5)*d*0.85
-      )
-      win.rotation.y = side * Math.PI/2
-      scene.add(win)
-    }
-  }
-
-  // Back-row skyline (far)
-  const bldgs = [
-    [-22, 28, 5, 5, 22, 0x060810],
-    [-14, 30, 4, 4, 30, 0x05070e],
-    [ -7, 32, 6, 5, 18, 0x070910],
-    [  2, 30, 5, 6, 26, 0x060810],
-    [ 10, 28, 7, 5, 20, 0x05080f],
-    [ 18, 30, 4, 4, 34, 0x04060c],
-    [ 26, 28, 6, 5, 15, 0x060810],
-    [-30, 26, 8, 6, 28, 0x050710],
-    [ 34, 26, 8, 6, 24, 0x06080f],
-  ]
-  bldgs.forEach(b => addBuilding(...b))
-
-  // Mid-ground (closer, partially lit by street)
-  addBuilding(-12, 12, 3, 3, 12, 0x080b14)
-  addBuilding( 14, 14, 3, 3, 10, 0x07090f)
-  addBuilding( -6, 10, 2, 2,  8, 0x090c16)
-
-  // ─── RAIN PARTICLES ────────────────────────────────────────────────────────
-  const RAIN_COUNT = 4000
-  const rainPositions = new Float32Array(RAIN_COUNT * 3)
-  const rainVelocities = new Float32Array(RAIN_COUNT)
-  const RAIN_RANGE = 30
-  const RAIN_HEIGHT = 20
-
-  for(let i=0; i<RAIN_COUNT; i++){
-    rainPositions[i*3+0] = (Math.random()-0.5)*RAIN_RANGE*2
-    rainPositions[i*3+1] = Math.random()*RAIN_HEIGHT
-    rainPositions[i*3+2] = (Math.random()-0.5)*RAIN_RANGE*2
-    rainVelocities[i] = 0.08 + Math.random()*0.12
-  }
-
-  const rainGeo = new THREE.BufferGeometry()
-  rainGeo.setAttribute('position', new THREE.BufferAttribute(rainPositions, 3))
-
-  const rainMat = new THREE.PointsMaterial({
-    color: 0x6688aa,
-    size:  0.04,
-    transparent: true,
-    opacity: 0.45,
-  })
-  const rain = new THREE.Points(rainGeo, rainMat)
-  scene.add(rain)
-
-  // ─── CONTROLS ──────────────────────────────────────────────────────────────
+  // ─── CONTROLS ────────────────────────────────────────────────────────────
   const controls = new THREE.OrbitControls(camera, renderer.domElement)
   controls.enableDamping   = true
   controls.dampingFactor   = 0.09
@@ -184,124 +101,100 @@ function init(){
   controls.zoomSpeed       = 2
   controls.target.set(0, 0.6, 0)
 
-  // ─── WIREFRAME MATERIALS ───────────────────────────────────────────────────
+  // ─── WIREFRAME MATS ──────────────────────────────────────────────────────
   const whiteFillMat = new THREE.MeshBasicMaterial({
-    color: 0xffffff,
-    polygonOffset: true,
-    polygonOffsetFactor: 1,
-    polygonOffsetUnits: 1,
+    color: 0xffffff, polygonOffset: true,
+    polygonOffsetFactor: 1, polygonOffsetUnits: 1,
   })
-  const tealWireMat = new THREE.MeshBasicMaterial({
-    color: 0x00ffcc,
-    wireframe: true,
-  })
+  const wireLineMat = new THREE.MeshBasicMaterial({ color: 0x00e5ff, wireframe: true })
 
-  function attachWireOverlay(sourceMesh){
-    const wire = new THREE.Mesh(sourceMesh.geometry, tealWireMat)
-    wire.position.set(0,0,0)
-    wire.rotation.set(0,0,0)
-    wire.scale.set(1,1,1)
-    wire.userData.isWireOverlay = true
-    sourceMesh.add(wire)
+  function attachWireOverlay(mesh) {
+    const w = new THREE.Mesh(mesh.geometry, wireLineMat)
+    w.userData.isWireOverlay = true
+    mesh.add(w)
   }
-
-  function removeWireOverlays(root){
+  function removeWireOverlays(root) {
     root.traverse(obj => {
-      if(!obj.isMesh) return
+      if (!obj.isMesh) return
       obj.children.filter(c => c.userData.isWireOverlay).forEach(o => obj.remove(o))
     })
   }
 
-  // ─── CAR MODEL ─────────────────────────────────────────────────────────────
+  // ─── CAR ─────────────────────────────────────────────────────────────────
   new THREE.GLTFLoader().load('/assets/models/batmobile_armored.glb', gltf => {
     const model = gltf.scene
     loadedModel = model
-
     model.traverse(o => {
-      if(!o.isMesh) return
+      if (!o.isMesh) return
       o.castShadow = o.receiveShadow = true
-      const mat = o.material
-      if(!mat) return
-      if(mat.transparent || (mat.opacity !== undefined && mat.opacity < 0.95)){
-        mat.transmission = 0.7; mat.roughness = 0.04; mat.envMapIntensity = 2.5; return
+      const m = o.material
+      if (!m) return
+      if (m.transparent || (m.opacity != null && m.opacity < 0.95)) {
+        m.transmission = 0.7; m.roughness = 0.04; m.envMapIntensity = 3; return
       }
-      if(mat.metalness > 0.6){
-        mat.envMapIntensity = 2.2; mat.roughness = Math.max(mat.roughness, 0.18); return
+      if (m.metalness > 0.6) {
+        m.envMapIntensity = 2.5; m.roughness = Math.max(m.roughness, 0.15); return
       }
-      mat.clearcoat = 0.9; mat.clearcoatRoughness = 0.04; mat.envMapIntensity = 2.0
+      m.clearcoat = 1.0; m.clearcoatRoughness = 0.03; m.envMapIntensity = 2.2
     })
-
-    const box    = new THREE.Box3().setFromObject(model)
-    const center = box.getCenter(new THREE.Vector3())
-    model.position.sub(center)
-    const newBox = new THREE.Box3().setFromObject(model)
-    model.position.y -= newBox.min.y
-
+    const box = new THREE.Box3().setFromObject(model)
+    model.position.sub(box.getCenter(new THREE.Vector3()))
+    model.position.y -= new THREE.Box3().setFromObject(model).min.y
     scene.add(model)
+    modelLoaded = true
+    checkReady()
   })
 
-  // ─── WIREFRAME TOGGLE ──────────────────────────────────────────────────────
+  // ─── SPACE → WIREFRAME ───────────────────────────────────────────────────
   window.addEventListener('keydown', e => {
-    if(e.code !== 'Space') return
+    if (e.code !== 'Space') return
     isWireframe = !isWireframe
 
-    if(isWireframe){
-      bloom.strength = 1.2
-      if(loadedModel){
+    if (isWireframe) {
+      bloom.strength   = 1.0
+      scene.background = new THREE.Color(0x000000)
+      scene.fog        = new THREE.FogExp2(0x000000, 0.018)
+      reflector.visible = false
+      asphalt.material.color.set(0x111111)
+      asphalt.material.opacity = 1
+      if (loadedModel) {
         loadedModel.traverse(obj => {
-          if(!obj.isMesh || obj.userData.isWireOverlay) return
-          if(!obj.userData.origMat) obj.userData.origMat = obj.material
+          if (!obj.isMesh || obj.userData.isWireOverlay) return
+          if (!obj.userData.origMat) obj.userData.origMat = obj.material
           obj.material = whiteFillMat
           attachWireOverlay(obj)
         })
       }
-      reflector.visible = false
-      asphalt.material.color.set(0x111111)
-      asphalt.material.opacity = 1
     } else {
-      bloom.strength = 0.55
-      if(loadedModel){
+      bloom.strength   = 0.35
+      scene.background = envTexture || new THREE.Color(0x000000)
+      scene.fog        = null
+      reflector.visible = true
+      asphalt.material.color.set(0x05080d)
+      asphalt.material.opacity = 0.72
+      if (loadedModel) {
         loadedModel.traverse(obj => {
-          if(!obj.isMesh || obj.userData.isWireOverlay) return
-          if(obj.userData.origMat) obj.material = obj.userData.origMat
+          if (!obj.isMesh || obj.userData.isWireOverlay) return
+          if (obj.userData.origMat) obj.material = obj.userData.origMat
         })
         removeWireOverlays(loadedModel)
       }
-      reflector.visible = true
-      asphalt.material.color.set(0x080a10)
-      asphalt.material.opacity = 0.78
     }
   })
 
-  // ─── ANIMATE ───────────────────────────────────────────────────────────────
-  function animate(){
+  // ─── RENDER LOOP ─────────────────────────────────────────────────────────
+  function animate() {
     requestAnimationFrame(animate)
     controls.update()
-
-    // Rain update
-    const pos = rainGeo.attributes.position.array
-    for(let i=0; i<RAIN_COUNT; i++){
-      pos[i*3+1] -= rainVelocities[i]
-      if(pos[i*3+1] < 0){
-        pos[i*3+1] = RAIN_HEIGHT
-        pos[i*3+0] = (Math.random()-0.5)*RAIN_RANGE*2
-        pos[i*3+2] = (Math.random()-0.5)*RAIN_RANGE*2
-      }
-    }
-    rainGeo.attributes.position.needsUpdate = true
-
-    // Subtle street lamp flicker
-    streetL.intensity = 6 + Math.sin(Date.now()*0.003)*0.4 + (Math.random()-0.5)*0.3
-
     composer.render()
   }
   animate()
 
   window.addEventListener('resize', () => {
-    camera.aspect = window.innerWidth / window.innerHeight
+    camera.aspect = innerWidth / innerHeight
     camera.updateProjectionMatrix()
-    renderer.setSize(window.innerWidth, window.innerHeight)
-    composer.setSize(window.innerWidth, window.innerHeight)
+    renderer.setSize(innerWidth, innerHeight)
+    composer.setSize(innerWidth, innerHeight)
   })
 }
 init()
