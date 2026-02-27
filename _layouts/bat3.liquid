@@ -95,6 +95,8 @@ layout: default
 
 <style>
 
+
+
 /* Typewriter effect for name */
 #name-header {
   font-family: Inter, system-ui, sans-serif;
@@ -211,6 +213,11 @@ body.sticky-bottom-footer {
   align-items: center;
   gap: 1.4rem;
 }
+
+/* Optical size balancing for side icons */
+.side-icon:nth-child(1) svg { width: 34px; height: 34px; } /* GitHub - slightly smaller */
+.side-icon:nth-child(3) svg { width: 34px; height: 34px; } /* Email - slightly smaller */
+.side-icon:nth-child(4) svg { width: 34px; height: 34px; } /* Spotify - slightly smaller */
 
 .side-icon {
   display: flex;
