@@ -378,4 +378,24 @@ document.addEventListener("DOMContentLoaded", function () {
   
   initProfileRotator();
 });
+
+<script src="https://static.sketchfab.com/api/sketchfab-viewer-1.12.1.js"></script>
+
+client.init('sBv577Vdl9lrcvyFT3vbNvkGKml', {
+  success: function(api) {
+    api.start();
+    api.addEventListener('viewerready', function() {
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'c') {
+          api.getCameraLookAt(function(err, camera) {
+            console.log('position:', JSON.stringify(camera.position));
+            console.log('target:', JSON.stringify(camera.target));
+          });
+        }
+      });
+    });
+  },
+  error: function() { console.log('Sketchfab API error'); }
+});
+
 </script>
