@@ -17,6 +17,7 @@ layout: default
   <article>
     <div class="sketchfab-embed-wrapper" style="width: 100vw; height: 100vh; margin: 0; margin-left: calc(-50vw + 50%); position: relative;">
       <iframe 
+        id="sketchfab-iframe"
         title="batmobile armored" 
         frameborder="0" 
         allowfullscreen 
@@ -230,7 +231,6 @@ body.sticky-bottom-footer {
 </style>
 
 <script src="https://static.sketchfab.com/api/sketchfab-viewer-1.12.1.js"></script>
-
 <script>
 const birthDate = new Date("2006-12-30T02:00:00.700Z");
 
@@ -379,23 +379,22 @@ document.addEventListener("DOMContentLoaded", function () {
   if (nameEl) setTimeout(() => typeNameWithTypos(nameEl), 3300);
   
   initProfileRotator();
-});
 
-client.init('sBv577Vdl9lrcvyFT3vbNvkGKml', {
-  success: function(api) {
-    api.start();
-    api.addEventListener('viewerready', function() {
-      document.addEventListener('keydown', function(e) {
-        if (e.key === 'c') {
-          api.getCameraLookAt(function(err, camera) {
-            console.log('position:', JSON.stringify(camera.position));
-            console.log('target:', JSON.stringify(camera.target));
-          });
-        }
+  // Set hardcoded camera position
+  const iframe = document.getElementById("sketchfab-iframe");
+  const client = new Sketchfab(iframe);
+  client.init('sBv577Vdl9lrcvyFT3vbNvkGKml', {
+    success: function(api) {
+      api.start();
+      api.addEventListener('viewerready', function() {
+        api.setCameraLookAt(
+          [-1.4725504339282272, 1.9396574222844456, 0.4690231020040815],
+          [0.31627864335204425, -0.5322445027152902, 0.3064550439363906],
+          0
+        );
       });
-    });
-  },
-  error: function() { console.log('Sketchfab API error'); }
+    },
+    error: function() { console.log('Sketchfab API error'); }
+  });
 });
-
 </script>
