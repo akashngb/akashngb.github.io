@@ -1,0 +1,346 @@
+<!DOCTYPE html> <html lang="en"> <head> <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0"> <title>BananaSort — Algorithmic Ripening</title> <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&amp;family=Space+Mono:ital,wght@0,400;0,700;1,400&amp;display=swap" rel="stylesheet"> <style>:root{--banana:#ffd600;--banana-dark:#f9a800;--banana-light:#fff9c4;--peel:#8b6914;--brown:#1a1200;--cream:#fffde7;--green:#4caf50;--red:#e53935;--accent:#ff6f00;--bg:#0d0b00;--surface:#1a1500;--text:#fff9e6;--muted:#8a7a40}*{box-sizing:border-box;margin:0;padding:0}body{background:var(--bg);color:var(--text);font-family:'Space Mono',monospace;min-height:100vh;overflow-x:hidden}body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;z-index:999;opacity:.4}header{padding:2rem 2rem 1rem;display:flex;align-items:flex-end;justify-content:space-between;border-bottom:1px solid #2a2000}.logo{display:flex;align-items:center;gap:.75rem}.logo-banana{font-size:2.2rem;animation:sway 3s ease-in-out infinite;display:inline-block}@keyframes sway{0%,100%{transform:rotate(-8deg)}50%{transform:rotate(8deg)}}h1{font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(1.6rem,4vw,2.6rem);color:var(--banana);letter-spacing:-0.02em;line-height:1}h1 span{color:var(--muted);font-weight:400;font-size:.45em;display:block;letter-spacing:.1em;text-transform:uppercase;margin-top:.2em}.stats-bar{display:flex;gap:2rem;font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}.stat-val{display:block;color:var(--banana);font-size:1.3rem;font-weight:700}main{max-width:1100px;margin:0 auto;padding:2rem}.algo-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:.75rem;margin-bottom:2rem}.algo-btn{background:var(--surface);border:1px solid #2a2000;color:var(--text);padding:.9rem 1rem;cursor:pointer;font-family:'Syne',sans-serif;font-weight:700;font-size:.8rem;text-align:left;transition:all .15s;position:relative;overflow:hidden}.algo-btn::before{content:'';position:absolute;inset:0;background:var(--banana);transform:translateX(-100%);transition:transform .2s ease;z-index:0}.algo-btn:hover::before,.algo-btn.active::before{transform:translateX(0)}.algo-btn:hover,.algo-btn.active{color:var(--brown);border-color:var(--banana)}.algo-btn>*{position:relative;z-index:1}.algo-name{display:block;font-size:1rem;margin-bottom:.2rem}.algo-lore{display:block;font-family:'Space Mono',monospace;font-size:.62rem;font-weight:400;opacity:.6}.algo-complexity{display:block;font-size:.65rem;margin-top:.4rem;opacity:.5;font-family:'Space Mono',monospace}.controls{display:flex;gap:1rem;align-items:center;margin-bottom:1.5rem;flex-wrap:wrap}.btn{background:var(--banana);color:var(--brown);border:0;padding:.75rem 1.5rem;font-family:'Syne',sans-serif;font-weight:700;font-size:.85rem;cursor:pointer;text-transform:uppercase;letter-spacing:.05em;transition:all .15s}.btn:hover{background:var(--accent);color:white}.btn:disabled{opacity:.4;cursor:not-allowed}.btn-ghost{background:transparent;border:1px solid var(--muted);color:var(--muted)}.btn-ghost:hover{border-color:var(--banana);color:var(--banana);background:transparent}.slider-group{display:flex;flex-direction:column;gap:.2rem;font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}input[type=range]{-webkit-appearance:none;width:120px;height:3px;background:#2a2000;outline:0}input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;background:var(--banana);cursor:pointer}.viz-container{background:var(--surface);border:1px solid #2a2000;padding:1.5rem 1.5rem .5rem;margin-bottom:1.5rem;position:relative;min-height:280px}.viz-label{position:absolute;top:.75rem;right:1rem;font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:.1em}#bar-container{display:flex;align-items:flex-end;gap:2px;height:220px;width:100%}.bar{flex:1;background:var(--banana);position:relative;transition:background .05s;min-width:2px;border-radius:1px 1px 0 0}.bar.comparing{background:var(--accent)}.bar.swapping{background:var(--red)}.bar.sorted{background:var(--green)}.bar.pivot{background:#f0f}.bar-emoji{position:absolute;top:-18px;left:50%;transform:translateX(-50%);font-size:10px;pointer-events:none;opacity:0;transition:opacity .1s}.bar.swapping .bar-emoji{opacity:1}.lore-panel{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem}.panel{background:var(--surface);border:1px solid #2a2000;padding:1.25rem}.panel-title{font-family:'Syne',sans-serif;font-weight:700;font-size:.7rem;text-transform:uppercase;letter-spacing:.1em;color:var(--banana);margin-bottom:.75rem;padding-bottom:.5rem;border-bottom:1px solid #2a2000}#lore-text{font-size:.75rem;line-height:1.8;color:#c8b870;font-style:italic}#log{font-size:.65rem;line-height:1.9;color:var(--muted);max-height:120px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--banana) transparent}#log .op{color:var(--banana-light)}#log .cmp{color:#80cbc4}
+#log .swp{color:var(--accent)}.progress-wrap{height:3px;background:#2a2000;margin-bottom:1.5rem}#progress-bar{height:100%;background:var(--banana);width:0;transition:width .1s}footer{border-top:1px solid #2a2000;padding:1rem 2rem;font-size:.65rem;color:var(--muted);display:flex;justify-content:space-between;align-items:center}.status-dot{width:6px;height:6px;border-radius:50%;background:var(--green);display:inline-block;margin-right:.4rem;animation:pulse 2s ease infinite}@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}.status-dot.running{background:var(--accent);animation:pulse .5s ease infinite}.status-dot.done{background:var(--green);animation:none}.banana-rain{position:fixed;top:-30px;font-size:1.5rem;pointer-events:none;animation:fall linear forwards;z-index:1000}@keyframes fall{to{transform:translateY(110vh) rotate(720deg);opacity:0}}@media(max-width:600px){.lore-panel{grid-template-columns:1fr}.stats-bar{gap:1rem}h1{font-size:1.4rem}}</style> </head> <body> <header> <div class="logo"> <span class="logo-banana">🍌</span> <h1>BananaSort<span>Algorithmic Ripening v2.4</span> </h1> </div> <div class="stats-bar"> <div> <span class="stat-val" id="stat-comps">0</span>Comparisons</div> <div> <span class="stat-val" id="stat-swaps">0</span>Swaps</div> <div> <span class="stat-val" id="stat-time">—</span>Time (ms)</div> </div> </header> <main> <div class="algo-grid"> <button class="algo-btn active" data-algo="bubble" onclick="selectAlgo(this)"> <span class="algo-name">🍌 Ripple Sort</span> <span class="algo-lore">aka Bubble Sort</span> <span class="algo-complexity">O(n²) · Like watching bananas ripen one by one</span> </button> <button class="algo-btn" data-algo="selection" onclick="selectAlgo(this)"> <span class="algo-name">🍌 Forager Sort</span> <span class="algo-lore">aka Selection Sort</span> <span class="algo-complexity">O(n²) · Always finds the ripest first</span> </button> <button class="algo-btn" data-algo="insertion" onclick="selectAlgo(this)"> <span class="algo-name">🍌 Bunch Sort</span> <span class="algo-lore">aka Insertion Sort</span> <span class="algo-complexity">O(n²) · Sliding bananas into their bunch</span> </button> <button class="algo-btn" data-algo="merge" onclick="selectAlgo(this)"> <span class="algo-name">🍌 Split Sort</span> <span class="algo-lore">aka Merge Sort</span> <span class="algo-complexity">O(n log n) · Divide the bunch, conquer hunger</span> </button> <button class="algo-btn" data-algo="quick" onclick="selectAlgo(this)"> <span class="algo-name">🍌 Machete Sort</span> <span class="algo-lore">aka Quick Sort</span> <span class="algo-complexity">O(n log n) avg · One chop, two piles</span> </button> <button class="algo-btn" data-algo="shell" onclick="selectAlgo(this)"> <span class="algo-name">🍌 Monkey Sort</span> <span class="algo-lore">aka Shell Sort</span> <span class="algo-complexity">O(n log² n) · Long leaps, then fine-tunes</span> </button> </div> <div class="controls"> <button class="btn" id="btn-sort" onclick="startSort()">▶ Sort Bananas</button> <button class="btn btn-ghost" onclick="randomize()">⟳ New Bunch</button> <button class="btn btn-ghost" onclick="stopSort()" id="btn-stop" disabled>■ Stop</button> <div class="slider-group"> <label>Array Size <strong id="lbl-size">60</strong></label> <input type="range" id="sl-size" min="10" max="120" value="60" oninput="onSizeChange(this)"> </div> <div class="slider-group"> <label>Speed <strong id="lbl-speed">Medium</strong></label> <input type="range" id="sl-speed" min="1" max="5" value="3" oninput="onSpeedChange(this)"> </div> </div> <div class="progress-wrap"><div id="progress-bar"></div></div> <div class="viz-container"> <span class="viz-label" id="viz-algo-label">Ripple Sort</span> <div id="bar-container"></div> </div> <div class="lore-panel"> <div class="panel"> <div class="panel-title">🌿 The Lore</div> <div id="lore-text">Select an algorithm and press Sort Bananas to begin the ripening.</div> </div> <div class="panel"> <div class="panel-title">📟 Operation Log</div> <div id="log"><span class="op">// awaiting ripeness signal...</span></div> </div> </div> </main> <footer> <div> <span class="status-dot" id="status-dot"></span><span id="status-text">Ready to ripen</span> </div> <div>BananaSort · MIT License · 🍌 No bananas were harmed</div> </footer> <script>
+// ─── State ──────────────────────────────────────────────────────────────────
+let array = [];
+let isSorting = false;
+let stopFlag = false;
+let currentAlgo = 'bubble';
+let comparisons = 0;
+let swaps = 0;
+let speedDelay = 30;
+let startTime = 0;
+let logLines = [];
+
+const speedMap = { 1: 120, 2: 60, 3: 30, 4: 10, 5: 1 };
+const speedLabel = { 1:'Glacial', 2:'Slow', 3:'Medium', 4:'Fast', 5:'Instant' };
+
+const algos = {
+  bubble:    { name: 'Ripple Sort',  lore: 'In the beginning, the Great Bunch was chaos — every banana out of order, bruised by disorder. The Ripple Sort is the oldest of the ancient techniques. Two neighbouring bananas are compared; the heavier, darker one floats rightward. Wave after wave passes through the bunch, and slowly — painfully slowly — order emerges from chaos. The elders say a patient monkey can ripen an entire grove this way.' },
+  selection: { name: 'Forager Sort', lore: 'The Forager does not rush. It walks the entire grove, finds the most ripe banana of all, and places it first. Then it walks again. And again. It sees everything before it acts. Critics call it wasteful — why walk the whole grove each time? The Forager does not care for critics. It knows that perfect selection, repeated, leads to perfection.' },
+  insertion: { name: 'Bunch Sort',   lore: 'Watch a monkey carefully arrange a bunch. One banana is picked up, and slid — gently, deliberately — leftward along the row until it finds its rightful place among those already sorted. The bunch grows, one perfect insertion at a time. Efficient for nearly-ripe bunches. Elegant. The favourite of artisan banana farmers.' },
+  merge:     { name: 'Split Sort',   lore: 'The great schism. The bunch is torn in half. Each half torn again. Again. Until you hold only individual bananas — each, trivially sorted. Then the healing begins: halves are merged back together, always in order. What was divided is reunited, more organised than it ever could have been whole. Divide and conquer. The philosophy of the plantation.' },
+  quick:     { name: 'Machete Sort', lore: 'One banana is chosen as the Pivot — the standard by which all others are judged. Every banana less ripe than the Pivot moves left; every riper one, right. The Pivot takes its rightful place. Then Machete Sort recurses into both halves. Fast in practice. Feared in the worst case. The jungle\'s preferred method when time is short and hunger is real.' },
+  shell:     { name: 'Monkey Sort',  lore: 'The Monkey does not compare neighbours. It leaps — comparing bananas far apart across the grove, closing large-scale disorder in great bounds. The gap narrows with each pass: first by half, then quarters, until finally the Monkey is hopping over single steps, finishing what its great leaps began. Shell Sort is what happens when a monkey learns patience.' }
+};
+
+// ─── Array & Rendering ───────────────────────────────────────────────────────
+function randomize() {
+  if (isSorting) return;
+  const n = parseInt(document.getElementById('sl-size').value);
+  array = Array.from({length: n}, () => Math.floor(Math.random() * 95) + 5);
+  comparisons = 0; swaps = 0;
+  updateStats();
+  renderBars();
+  logLines = [];
+  renderLog([{type:'op', text:`// New bunch of ${n} bananas generated`}]);
+  document.getElementById('progress-bar').style.width = '0%';
+  setStatus('ready');
+}
+
+function renderBars(highlights = {}) {
+  const container = document.getElementById('bar-container');
+  const maxVal = Math.max(...array);
+  container.innerHTML = '';
+  array.forEach((v, i) => {
+    const bar = document.createElement('div');
+    bar.className = 'bar';
+    bar.style.height = `${(v / maxVal) * 100}%`;
+    if (highlights.comparing && highlights.comparing.includes(i)) bar.classList.add('comparing');
+    if (highlights.swapping  && highlights.swapping.includes(i))  bar.classList.add('swapping');
+    if (highlights.sorted    && highlights.sorted.includes(i))    bar.classList.add('sorted');
+    if (highlights.pivot     && highlights.pivot === i)            bar.classList.add('pivot');
+    const emoji = document.createElement('span');
+    emoji.className = 'bar-emoji';
+    emoji.textContent = '🍌';
+    bar.appendChild(emoji);
+    container.appendChild(bar);
+  });
+}
+
+function updateStats() {
+  document.getElementById('stat-comps').textContent = comparisons.toLocaleString();
+  document.getElementById('stat-swaps').textContent = swaps.toLocaleString();
+  const elapsed = startTime ? Date.now() - startTime : null;
+  document.getElementById('stat-time').textContent = elapsed ? `${elapsed}` : '—';
+}
+
+function addLog(entries) {
+  entries.forEach(e => logLines.push(e));
+  if (logLines.length > 80) logLines = logLines.slice(-80);
+  renderLog(logLines);
+}
+
+function renderLog(lines) {
+  const el = document.getElementById('log');
+  el.innerHTML = lines.map(l => `<div class="${l.type}">${l.text}</div>`).join('');
+  el.scrollTop = el.scrollHeight;
+}
+
+function setStatus(state, text) {
+  const dot = document.getElementById('status-dot');
+  const txt = document.getElementById('status-text');
+  dot.className = 'status-dot ' + (state === 'sorting' ? 'running' : state === 'done' ? 'done' : '');
+  txt.textContent = text || (state === 'sorting' ? 'Ripening in progress…' : state === 'done' ? 'Perfectly ripe!' : 'Ready to ripen');
+}
+
+function setProgress(pct) {
+  document.getElementById('progress-bar').style.width = `${pct}%`;
+}
+
+// ─── Sleep ───────────────────────────────────────────────────────────────────
+function sleep(ms) {
+  return new Promise(res => setTimeout(res, ms));
+}
+
+// ─── Controls ────────────────────────────────────────────────────────────────
+function selectAlgo(btn) {
+  if (isSorting) return;
+  document.querySelectorAll('.algo-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  currentAlgo = btn.dataset.algo;
+  document.getElementById('viz-algo-label').textContent = algos[currentAlgo].name;
+  document.getElementById('lore-text').textContent = algos[currentAlgo].lore;
+}
+
+function onSizeChange(el) {
+  document.getElementById('lbl-size').textContent = el.value;
+  if (!isSorting) randomize();
+}
+
+function onSpeedChange(el) {
+  speedDelay = speedMap[el.value];
+  document.getElementById('lbl-speed').textContent = speedLabel[el.value];
+}
+
+function stopSort() {
+  stopFlag = true;
+}
+
+async function startSort() {
+  if (isSorting) return;
+  if (array.length === 0) randomize();
+  isSorting = true;
+  stopFlag = false;
+  comparisons = 0; swaps = 0;
+  startTime = Date.now();
+  logLines = [];
+  document.getElementById('btn-sort').disabled = true;
+  document.getElementById('btn-stop').disabled = false;
+  setStatus('sorting');
+  document.getElementById('lore-text').textContent = algos[currentAlgo].lore;
+
+  const sortFns = { bubble, selection, insertion, merge: mergeSort, quick: quickSort, shell };
+  await sortFns[currentAlgo]();
+
+  if (!stopFlag) {
+    // Victory sweep
+    for (let i = 0; i < array.length; i++) {
+      if (stopFlag) break;
+      renderBars({ sorted: Array.from({length: i+1}, (_, k) => k) });
+      await sleep(Math.max(1, 6 - array.length / 20));
+    }
+    renderBars({ sorted: array.map((_, i) => i) });
+    setStatus('done');
+    const elapsed = Date.now() - startTime;
+    document.getElementById('stat-time').textContent = elapsed;
+    addLog([{type:'op', text:`// ✓ Sort complete in ${elapsed}ms — ${comparisons} comparisons, ${swaps} swaps`}]);
+    spawnBananas();
+  } else {
+    setStatus('ready', 'Stopped');
+    renderBars();
+  }
+
+  isSorting = false;
+  document.getElementById('btn-sort').disabled = false;
+  document.getElementById('btn-stop').disabled = true;
+}
+
+// ─── Sorting Algorithms ──────────────────────────────────────────────────────
+
+async function bubble() {
+  const n = array.length;
+  for (let i = 0; i < n - 1; i++) {
+    for (let j = 0; j < n - i - 1; j++) {
+      if (stopFlag) return;
+      comparisons++;
+      renderBars({ comparing: [j, j+1], sorted: Array.from({length: i}, (_,k) => n-1-k) });
+      updateStats();
+      addLog([{type:'cmp', text:`cmp[${j}]=${array[j]} vs [${j+1}]=${array[j+1]}`}]);
+      await sleep(speedDelay);
+      if (array[j] > array[j+1]) {
+        swaps++;
+        [array[j], array[j+1]] = [array[j+1], array[j]];
+        renderBars({ swapping: [j, j+1] });
+        addLog([{type:'swp', text:`swap → [${j}]↔[${j+1}] 🍌`}]);
+        await sleep(speedDelay);
+      }
+      setProgress(((i * (n-1) + j) / ((n-1)*(n-1))) * 100);
+    }
+  }
+}
+
+async function selection() {
+  const n = array.length;
+  for (let i = 0; i < n - 1; i++) {
+    let minIdx = i;
+    for (let j = i+1; j < n; j++) {
+      if (stopFlag) return;
+      comparisons++;
+      renderBars({ comparing: [j, minIdx], sorted: Array.from({length: i}, (_,k) => k) });
+      updateStats();
+      addLog([{type:'cmp', text:`scan [${j}]=${array[j]} (min so far: ${array[minIdx]})`}]);
+      await sleep(speedDelay);
+      if (array[j] < array[minIdx]) minIdx = j;
+    }
+    if (minIdx !== i) {
+      swaps++;
+      [array[i], array[minIdx]] = [array[minIdx], array[i]];
+      renderBars({ swapping: [i, minIdx] });
+      addLog([{type:'swp', text:`place ripest → [${i}]↔[${minIdx}] 🍌`}]);
+      await sleep(speedDelay * 2);
+    }
+    setProgress((i / n) * 100);
+  }
+}
+
+async function insertion() {
+  const n = array.length;
+  for (let i = 1; i < n; i++) {
+    if (stopFlag) return;
+    let key = array[i];
+    let j = i - 1;
+    addLog([{type:'op', text:`picking [${i}]=${key}`}]);
+    while (j >= 0 && array[j] > key) {
+      if (stopFlag) return;
+      comparisons++;
+      array[j+1] = array[j];
+      swaps++;
+      renderBars({ comparing: [j, j+1] });
+      updateStats();
+      addLog([{type:'swp', text:`slide [${j}] right 🍌`}]);
+      await sleep(speedDelay);
+      j--;
+    }
+    array[j+1] = key;
+    renderBars({ sorted: Array.from({length: i+1}, (_,k) => k) });
+    setProgress((i / n) * 100);
+    await sleep(speedDelay);
+  }
+}
+
+async function mergeSort() {
+  await mergeSortHelper(0, array.length - 1);
+}
+
+async function mergeSortHelper(l, r) {
+  if (stopFlag || l >= r) return;
+  const m = Math.floor((l + r) / 2);
+  await mergeSortHelper(l, m);
+  await mergeSortHelper(m+1, r);
+  await merge(l, m, r);
+  setProgress(((r - l + 1) / array.length) * 100);
+}
+
+async function merge(l, m, r) {
+  const left = array.slice(l, m+1);
+  const right = array.slice(m+1, r+1);
+  let i = 0, j = 0, k = l;
+  while (i < left.length && j < right.length) {
+    if (stopFlag) return;
+    comparisons++;
+    renderBars({ comparing: [k, m+1+j] });
+    updateStats();
+    addLog([{type:'cmp', text:`merge cmp L:${left[i]} R:${right[j]}`}]);
+    await sleep(speedDelay);
+    if (left[i] <= right[j]) { array[k++] = left[i++]; }
+    else { array[k++] = right[j++]; swaps++; }
+  }
+  while (i < left.length) { array[k++] = left[i++]; }
+  while (j < right.length) { array[k++] = right[j++]; }
+  renderBars({ sorted: Array.from({length: r-l+1}, (_,idx) => l+idx) });
+  await sleep(speedDelay);
+}
+
+async function quickSort() {
+  await quickHelper(0, array.length - 1);
+}
+
+async function quickHelper(lo, hi) {
+  if (stopFlag || lo >= hi) return;
+  const p = await partition(lo, hi);
+  await quickHelper(lo, p - 1);
+  await quickHelper(p + 1, hi);
+}
+
+async function partition(lo, hi) {
+  const pivot = array[hi];
+  addLog([{type:'op', text:`pivot=${pivot} at [${hi}]`}]);
+  let i = lo - 1;
+  for (let j = lo; j < hi; j++) {
+    if (stopFlag) return lo;
+    comparisons++;
+    renderBars({ comparing: [j], pivot: hi });
+    updateStats();
+    await sleep(speedDelay);
+    if (array[j] <= pivot) {
+      i++;
+      swaps++;
+      [array[i], array[j]] = [array[j], array[i]];
+      renderBars({ swapping: [i, j], pivot: hi });
+      addLog([{type:'swp', text:`swap [${i}]↔[${j}] 🍌`}]);
+      await sleep(speedDelay);
+    }
+  }
+  swaps++;
+  [array[i+1], array[hi]] = [array[hi], array[i+1]];
+  setProgress(((hi - lo) / array.length) * 80);
+  return i + 1;
+}
+
+async function shell() {
+  const n = array.length;
+  let gap = Math.floor(n / 2);
+  while (gap > 0) {
+    for (let i = gap; i < n; i++) {
+      if (stopFlag) return;
+      let temp = array[i];
+      let j = i;
+      while (j >= gap && array[j - gap] > temp) {
+        comparisons++;
+        swaps++;
+        array[j] = array[j - gap];
+        renderBars({ comparing: [j, j - gap] });
+        updateStats();
+        addLog([{type:'swp', text:`gap=${gap}: slide [${j-gap}]→[${j}] 🍌`}]);
+        await sleep(speedDelay);
+        j -= gap;
+      }
+      array[j] = temp;
+    }
+    gap = Math.floor(gap / 2);
+    setProgress((1 - gap / n) * 100);
+    renderBars();
+    await sleep(speedDelay);
+  }
+}
+
+// ─── Banana rain ─────────────────────────────────────────────────────────────
+function spawnBananas() {
+  for (let i = 0; i < 18; i++) {
+    setTimeout(() => {
+      const el = document.createElement('div');
+      el.className = 'banana-rain';
+      el.textContent = '🍌';
+      el.style.left = `${Math.random() * 100}vw`;
+      el.style.animationDuration = `${1.2 + Math.random() * 1.8}s`;
+      el.style.animationDelay = `${Math.random() * 0.5}s`;
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), 3000);
+    }, i * 80);
+  }
+}
+
+// ─── Init ─────────────────────────────────────────────────────────────────────
+randomize();
+document.getElementById('lore-text').textContent = algos['bubble'].lore;
+</script> </body> </html>
