@@ -1,5 +1,5 @@
-<!DOCTYPE html> <html lang="en"> <head> <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0"> <title>BananaScript 🍌</title> <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&amp;family=Syne:wght@700;800&amp;display=swap" rel="stylesheet"> <style>:root{--banana:#ffe135;--banana-dark:#c8a800;--banana-light:#fff176;--peel:#8d6e00;--bg:#0d0d00;--bg2:#141400;--bg3:#1c1c00;--terminal:#1a1a00;--green:#af0;--muted:#5a5a20;--white:#f5f5dc;--error:#f44;--comment:#4a4a1a}*{margin:0;padding:0;box-sizing:border-box}body{background:var(--bg);color:var(--white);font-family:'Space Mono',monospace;min-height:100vh;overflow-x:hidden;position:relative}body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0,transparent,transparent 2px,rgba(0,0,0,0.08) 2px,rgba(0,0,0,0.08) 4px);pointer-events:none;z-index:1000}body::after{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");pointer-events:none;z-index:999;opacity:.4}.header{border-bottom:1px solid var(--banana-dark);padding:24px 40px;display:flex;align-items:center;justify-content:space-between;background:linear-gradient(90deg,var(--bg2) 0%,var(--bg3) 100%)}.logo{font-family:'Syne',sans-serif;font-weight:800;font-size:2rem;color:var(--banana);letter-spacing:-1px;text-shadow:0 0 40px rgba(255,225,53,0.4);display:flex;align-items:center;gap:10px}.logo span{font-size:1.8rem}.version{font-size:.65rem;color:var(--muted);letter-spacing:3px;text-transform:uppercase;margin-top:4px}.header-right{display:flex;gap:20px;align-items:center}.badge{font-size:.7rem;letter-spacing:2px;text-transform:uppercase;color:var(--banana-dark);border:1px solid var(--banana-dark);padding:4px 10px;opacity:.7}.main{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:auto 1fr;height:calc(100vh - 81px);gap:0}.panel{border-right:1px solid #220;border-bottom:1px solid #220;display:flex;flex-direction:column}.panel-header{padding:10px 20px;background:var(--bg3);border-bottom:1px solid #220;display:flex;align-items:center;justify-content:space-between;font-size:.7rem;letter-spacing:2px;text-transform:uppercase;color:var(--muted)}.panel-header .dot{width:8px;height:8px;border-radius:50%;background:var(--banana);display:inline-block;margin-right:8px;box-shadow:0 0 8px var(--banana);animation:pulse 2s ease-in-out infinite}@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}#editor{flex:1;width:100%;background:var(--terminal);color:var(--white);font-family:'Space Mono',monospace;font-size:14px;line-height:1.7;padding:20px;border:0;outline:0;resize:none;caret-color:var(--banana);tab-size:2;letter-spacing:.3px}#editor::selection{background:rgba(255,225,53,0.2)}.highlighted-editor{flex:1;position:relative;overflow:hidden}#highlight-layer{position:absolute;inset:0;padding:20px;font-family:'Space Mono',monospace;font-size:14px;line-height:1.7;white-space:pre-wrap;word-wrap:break-word;pointer-events:none;background:var(--terminal);letter-spacing:.3px;overflow:auto}#editor-real{position:absolute;inset:0;padding:20px;font-family:'Space Mono',monospace;font-size:14px;line-height:1.7;white-space:pre-wrap;word-wrap:break-word;background:transparent;color:transparent;caret-color:var(--banana);border:0;outline:0;resize:none;tab-size:2;letter-spacing:.3px;overflow:auto;z-index:1}.kw{color:var(--banana);font-weight:700}.num{color:#ff9500}.str{color:#af8}.op{color:var(--banana-light)}.cmt{color:var(--comment);font-style:italic}.builtin{color:#ff6bff}.bool{color:#ff9500}.output-panel{background:var(--bg);display:flex;flex-direction:column}#output{flex:1;padding:20px;font-family:'Space Mono',monospace;font-size:13px;line-height:1.8;overflow-y:auto;background:var(--bg)}.out-line{color:var(--green)}.out-error{color:var(--error)}.out-info{color:var(--banana-dark)}.out-system{color:var(--muted);font-style:italic}.run-bar{padding:12px 20px;background:var(--bg3);border-top:1px solid #220;display:flex;gap:10px;align-items:center}.btn-run{background:var(--banana);color:var(--bg);border:0;padding:8px 24px;font-family:'Space Mono',monospace;font-weight:700;font-size:.8rem;letter-spacing:2px;text-transform:uppercase;cursor:pointer;transition:all .1s;position:relative;overflow:hidden}.btn-run::after{content:'';position:absolute;inset:0;background:white;opacity:0;transition:opacity .1s}.btn-run:hover{transform:translate(-1px,-1px);box-shadow:2px 2px 0 var(--banana-dark)}.btn-run:active{transform:translate(0,0);box-shadow:none}.btn-clear{background:transparent;color:var(--muted);border:1px solid #330;padding:8px 16px;font-family:'Space Mono',monospace;font-size:.75rem;letter-spacing:1px;text-transform:uppercase;cursor:pointer;transition:all .1s}.btn-clear:hover{color:var(--white);border-color:var(--muted)}.docs-panel{grid-column:1 / -1;border-top:2px solid var(--banana-dark);background:var(--bg2);max-height:220px;overflow-y:auto}.docs-inner{padding:20px 40px;display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px}
-.doc-item{border-left:2px solid var(--banana-dark);padding:8px 14px;font-size:.78rem;line-height:1.6}.doc-item .cmd{color:var(--banana);font-weight:700}.doc-item .desc{color:var(--muted);font-size:.72rem;margin-top:2px}.doc-item .ex{color:#666640;font-size:.68rem;margin-top:3px;font-style:italic}.docs-title{padding:10px 40px 0;font-size:.65rem;letter-spacing:3px;text-transform:uppercase;color:var(--banana-dark);font-family:'Syne',sans-serif}::-webkit-scrollbar{width:4px;height:4px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--banana-dark)}.glow-banana{text-shadow:0 0 20px rgba(255,225,53,0.6)}.example-btn{background:transparent;color:var(--banana-dark);border:1px solid #2a2a00;padding:5px 12px;font-family:'Space Mono',monospace;font-size:.65rem;letter-spacing:1px;cursor:pointer;transition:all .15s;text-transform:uppercase}.example-btn:hover{color:var(--banana);border-color:var(--banana-dark)}.cursor-blink{display:inline-block;width:8px;height:14px;background:var(--banana);animation:blink 1s step-end infinite;vertical-align:text-bottom;margin-left:2px}@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}@media(max-width:768px){.main{grid-template-columns:1fr}.panel{height:50vh}.docs-panel{display:none}}</style> </head> <body> <header class="header"> <div> <div class="logo"> <span>🍌</span> BananaScript</div> <div class="version">v1.0.0 — the only language that's never green</div> </div> <div class="header-right"> <div class="badge">Turing Complete*</div> <div class="badge">100% Potassium</div> </div> </header> <div class="main"> <div class="panel"> <div class="panel-header"> <span><span class="dot"></span>editor.🍌</span> <div style="display:flex;gap:8px;"> <button class="example-btn" onclick="loadExample('hello')">Hello World</button> <button class="example-btn" onclick="loadExample('fib')">Fibonacci</button> <button class="example-btn" onclick="loadExample('fizzbuzz')">FizzBuzz</button> </div> </div> <div class="highlighted-editor"> <div id="highlight-layer" aria-hidden="true"></div> <textarea id="editor-real" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off"></textarea> </div> </div> <div class="panel output-panel"> <div class="panel-header"> <span><span class="dot"></span>output</span> <span id="exec-time" style="font-size:0.65rem;"></span> </div> <div id="output"> <div class="out-system">🍌 BananaScript interpreter ready.</div> <div class="out-system">Write some code and press RUN, or load an example.</div> <div class="out-system"> </div> </div> <div class="run-bar"> <button class="btn-run" onclick="runCode()">▶ Run</button> <button class="btn-clear" onclick="clearOutput()">Clear</button> <span style="font-size:0.65rem;color:var(--muted);margin-left:auto;">Ctrl+Enter to run</span> </div> </div> <div class="docs-panel"> <div class="docs-title">Language Reference</div> <div class="docs-inner"> <div class="doc-item"> <span class="cmd">peel x = 5</span><div class="desc">Declare a variable</div> <div class="ex">peel name = "Cavendish"</div> </div> <div class="doc-item"> <span class="cmd">mash expr</span><div class="desc">Print to output</div> <div class="ex">mash "Hello, World!"</div> </div> <div class="doc-item"> <span class="cmd">ripe / spoiled / else</span><div class="desc">If / else if / else</div> <div class="ex">ripe x &gt; 0 { mash "positive" }</div> </div> <div class="doc-item"> <span class="cmd">bunch n times { }</span><div class="desc">Repeat n times</div> <div class="ex">bunch 5 times { mash "🍌" }</div> </div> <div class="doc-item"> <span class="cmd">while cond { }</span><div class="desc">While loop (use <code>while</code>)</div> <div class="ex">while x &lt; 10 { peel x = x + 1 }</div> </div> <div class="doc-item"> <span class="cmd">plantain fn(a, b) { }</span><div class="desc">Define a function</div> <div class="ex">plantain add(a, b) { harvest a + b }</div> </div> <div class="doc-item"> <span class="cmd">harvest expr</span><div class="desc">Return from a function</div> <div class="ex">harvest x * 2</div> </div> <div class="doc-item"> <span class="cmd">slip</span><div class="desc">break out of loop</div> <div class="ex">ripe x == 5 { slip }</div> </div> <div class="doc-item"> <span class="cmd">// comment</span><div class="desc">Single-line comment</div> <div class="ex">// this is potassium-rich</div> </div> <div class="doc-item"> <span class="cmd">mushy / firm</span><div class="desc">Boolean true / false</div> <div class="ex">peel ripe = mushy</div> </div> <div class="doc-item"> <span class="cmd">smoothie(a, b, ...)</span><div class="desc">String concatenation</div> <div class="ex">mash smoothie("Hi ", name)</div> </div> <div class="doc-item"> <span class="cmd">len(x)</span><div class="desc">String or array length</div> <div class="ex">mash len("banana")</div> </div> </div> </div> </div> <script>
+<!DOCTYPE html> <html lang="en"> <head> <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0"> <title>BananaScript 🍌</title> <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&amp;family=Syne:wght@700;800&amp;display=swap" rel="stylesheet"> <style>:root{--banana:#ffe135;--banana-dark:#c8a800;--banana-light:#fff176;--peel:#8d6e00;--bg:#0d0d00;--bg2:#141400;--bg3:#1c1c00;--terminal:#1a1a00;--green:#af0;--muted:#5a5a20;--white:#f5f5dc;--error:#f44;--comment:#4a4a1a}*{margin:0;padding:0;box-sizing:border-box}body{background:var(--bg);color:var(--white);font-family:'Space Mono',monospace;height:100vh;overflow:hidden;display:flex;flex-direction:column;position:relative}body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0,transparent,transparent 2px,rgba(0,0,0,0.08) 2px,rgba(0,0,0,0.08) 4px);pointer-events:none;z-index:1000}body::after{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");pointer-events:none;z-index:999;opacity:.4}.header{flex-shrink:0;border-bottom:1px solid var(--banana-dark);padding:24px 40px;display:flex;align-items:center;justify-content:space-between;background:linear-gradient(90deg,var(--bg2) 0%,var(--bg3) 100%)}.logo{font-family:'Syne',sans-serif;font-weight:800;font-size:2rem;color:var(--banana);letter-spacing:-1px;text-shadow:0 0 40px rgba(255,225,53,0.4);display:flex;align-items:center;gap:10px}.logo span{font-size:1.8rem}.version{font-size:.65rem;color:var(--muted);letter-spacing:3px;text-transform:uppercase;margin-top:4px}.header-right{display:flex;gap:20px;align-items:center}.badge{font-size:.7rem;letter-spacing:2px;text-transform:uppercase;color:var(--banana-dark);border:1px solid var(--banana-dark);padding:4px 10px;opacity:.7}.main{flex:1;display:flex;flex-direction:column;min-height:0}.editor-output-row{flex:1;min-height:0;display:grid;grid-template-columns:1fr 1fr}.panel{border-right:1px solid #220;border-bottom:1px solid #220;display:flex;flex-direction:column;min-height:0}.panel-header{flex-shrink:0;padding:10px 20px;background:var(--bg3);border-bottom:1px solid #220;display:flex;align-items:center;justify-content:space-between;font-size:.7rem;letter-spacing:2px;text-transform:uppercase;color:var(--muted)}.panel-header .dot{width:8px;height:8px;border-radius:50%;background:var(--banana);display:inline-block;margin-right:8px;box-shadow:0 0 8px var(--banana);animation:pulse 2s ease-in-out infinite}@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}.highlighted-editor{flex:1;position:relative;overflow:hidden;min-height:0}#highlight-layer{position:absolute;inset:0;padding:20px;font-family:'Space Mono',monospace;font-size:14px;line-height:1.7;white-space:pre-wrap;word-wrap:break-word;pointer-events:none;background:var(--terminal);letter-spacing:.3px;overflow:auto}#editor-real{position:absolute;inset:0;padding:20px;font-family:'Space Mono',monospace;font-size:14px;line-height:1.7;white-space:pre-wrap;word-wrap:break-word;background:transparent;color:transparent;caret-color:var(--banana);border:0;outline:0;resize:none;tab-size:2;letter-spacing:.3px;overflow:auto;z-index:1}.kw{color:var(--banana);font-weight:700}.num{color:#ff9500}.str{color:#af8}.op{color:var(--banana-light)}.cmt{color:var(--comment);font-style:italic}.builtin{color:#ff6bff}.bool{color:#ff9500}.output-panel{background:var(--bg);display:flex;flex-direction:column;min-height:0}#output{flex:1;padding:20px;font-family:'Space Mono',monospace;font-size:13px;line-height:1.8;overflow-y:auto;background:var(--bg);min-height:0}.out-line{color:var(--green)}.out-error{color:var(--error)}.out-info{color:var(--banana-dark)}.out-system{color:var(--muted);font-style:italic}.run-bar{flex-shrink:0;padding:12px 20px;background:var(--bg3);border-top:1px solid #220;display:flex;gap:10px;align-items:center}.btn-run{background:var(--banana);color:var(--bg);border:0;padding:8px 24px;font-family:'Space Mono',monospace;font-weight:700;font-size:.8rem;letter-spacing:2px;text-transform:uppercase;cursor:pointer;transition:all .1s}.btn-run:hover{transform:translate(-1px,-1px);box-shadow:2px 2px 0 var(--banana-dark)}.btn-run:active{transform:translate(0,0);box-shadow:none}.btn-clear{background:transparent;color:var(--muted);border:1px solid #330;padding:8px 16px;font-family:'Space Mono',monospace;font-size:.75rem;letter-spacing:1px;text-transform:uppercase;cursor:pointer;transition:all .1s}.btn-clear:hover{color:var(--white);border-color:var(--muted)}.docs-panel{flex-shrink:0;border-top:2px solid var(--banana-dark);background:var(--bg2);height:200px;overflow-y:auto}.docs-inner{padding:16px 40px 20px;display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}.doc-item{border-left:2px solid var(--banana-dark);padding:8px 14px;font-size:.78rem;line-height:1.6}.doc-item .cmd{color:var(--banana);font-weight:700}.doc-item .desc{color:var(--muted);font-size:.72rem;margin-top:2px}.doc-item .ex{color:#666640;font-size:.68rem;margin-top:3px;font-style:italic}.docs-title{padding:10px 40px 0;font-size:.65rem;letter-spacing:3px;text-transform:uppercase;color:var(--banana-dark);font-family:'Syne',sans-serif}
+::-webkit-scrollbar{width:4px;height:4px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--banana-dark)}.example-btn{background:transparent;color:var(--banana-dark);border:1px solid #2a2a00;padding:5px 12px;font-family:'Space Mono',monospace;font-size:.65rem;letter-spacing:1px;cursor:pointer;transition:all .15s;text-transform:uppercase}.example-btn:hover{color:var(--banana);border-color:var(--banana-dark)}@media(max-width:768px){.editor-output-row{grid-template-columns:1fr}.panel{height:45vh}.docs-panel{height:160px}}</style> </head> <body> <header class="header"> <div> <div class="logo"> <span>🍌</span> BananaScript</div> <div class="version">v1.0.0 — the only language that's never green</div> </div> <div class="header-right"> <div class="badge">Turing Complete*</div> <div class="badge">100% Potassium</div> </div> </header> <div class="main"> <div class="editor-output-row"> <div class="panel"> <div class="panel-header"> <span><span class="dot"></span>editor.🍌</span> <div style="display:flex;gap:8px;"> <button class="example-btn" onclick="loadExample('hello')">Hello World</button> <button class="example-btn" onclick="loadExample('fib')">Fibonacci</button> <button class="example-btn" onclick="loadExample('fizzbuzz')">FizzBuzz</button> </div> </div> <div class="highlighted-editor"> <div id="highlight-layer" aria-hidden="true"></div> <textarea id="editor-real" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off"></textarea> </div> </div> <div class="panel output-panel"> <div class="panel-header"> <span><span class="dot"></span>output</span> <span id="exec-time" style="font-size:0.65rem;"></span> </div> <div id="output"> <div class="out-system">🍌 BananaScript interpreter ready.</div> <div class="out-system">Write some code and press RUN, or load an example.</div> <div class="out-system"> </div> </div> <div class="run-bar"> <button class="btn-run" onclick="runCode()">▶ Run</button> <button class="btn-clear" onclick="clearOutput()">Clear</button> <span style="font-size:0.65rem;color:var(--muted);margin-left:auto;">Ctrl+Enter to run</span> </div> </div> </div> <div class="docs-panel"> <div class="docs-title">Language Reference</div> <div class="docs-inner"> <div class="doc-item"> <span class="cmd">peel x = 5</span><div class="desc">Declare a variable</div> <div class="ex">peel name = "Cavendish"</div> </div> <div class="doc-item"> <span class="cmd">mash expr</span><div class="desc">Print to output</div> <div class="ex">mash "Hello, World!"</div> </div> <div class="doc-item"> <span class="cmd">ripe / spoiled / else</span><div class="desc">If / else if / else</div> <div class="ex">ripe x &gt; 0 { mash "positive" }</div> </div> <div class="doc-item"> <span class="cmd">bunch n times { }</span><div class="desc">Repeat n times</div> <div class="ex">bunch 5 times { mash "🍌" }</div> </div> <div class="doc-item"> <span class="cmd">while cond { }</span><div class="desc">While loop (use <code>while</code>)</div> <div class="ex">while x &lt; 10 { peel x = x + 1 }</div> </div> <div class="doc-item"> <span class="cmd">plantain fn(a, b) { }</span><div class="desc">Define a function</div> <div class="ex">plantain add(a, b) { harvest a + b }</div> </div> <div class="doc-item"> <span class="cmd">harvest expr</span><div class="desc">Return from a function</div> <div class="ex">harvest x * 2</div> </div> <div class="doc-item"> <span class="cmd">slip</span><div class="desc">break out of loop</div> <div class="ex">ripe x == 5 { slip }</div> </div> <div class="doc-item"> <span class="cmd">// comment</span><div class="desc">Single-line comment</div> <div class="ex">// this is potassium-rich</div> </div> <div class="doc-item"> <span class="cmd">mushy / firm</span><div class="desc">Boolean true / false</div> <div class="ex">peel ripe = mushy</div> </div> <div class="doc-item"> <span class="cmd">smoothie(a, b, ...)</span><div class="desc">String concatenation</div> <div class="ex">mash smoothie("Hi ", name)</div> </div> <div class="doc-item"> <span class="cmd">len(x)</span><div class="desc">String or array length</div> <div class="ex">mash len("banana")</div> </div> </div> </div> </div> <script>
 // ─── EXAMPLES ──────────────────────────────────────────────────────────────
 const examples = {
   hello: `// Hello, World! in BananaScript 🍌
@@ -67,35 +67,29 @@ function escapeHtml(s) {
 function highlight(code) {
   const lines = code.split('\n');
   return lines.map(line => {
-    // Comment
     if (line.trimStart().startsWith('//')) {
       return `<span class="cmt">${escapeHtml(line)}</span>`;
     }
-    // Tokenize
     let result = '';
     let i = 0;
     const safe = line;
     while (i < safe.length) {
-      // Comment mid-line
       if (safe[i] === '/' && safe[i+1] === '/') {
         result += `<span class="cmt">${escapeHtml(safe.slice(i))}</span>`;
         break;
       }
-      // String
       if (safe[i] === '"') {
         let j = i + 1;
         while (j < safe.length && safe[j] !== '"') j++;
         result += `<span class="str">${escapeHtml(safe.slice(i, j+1))}</span>`;
         i = j + 1; continue;
       }
-      // Number
       if (/[0-9]/.test(safe[i])) {
         let j = i;
         while (j < safe.length && /[0-9.]/.test(safe[j])) j++;
         result += `<span class="num">${escapeHtml(safe.slice(i,j))}</span>`;
         i = j; continue;
       }
-      // Word
       if (/[a-zA-Z_]/.test(safe[i])) {
         let j = i;
         while (j < safe.length && /[a-zA-Z0-9_]/.test(safe[j])) j++;
@@ -106,7 +100,6 @@ function highlight(code) {
         else result += escapeHtml(word);
         i = j; continue;
       }
-      // Operator
       if (/[+\-*/%=<>!&|]/.test(safe[i])) {
         result += `<span class="op">${escapeHtml(safe[i])}</span>`;
         i++; continue;
@@ -122,7 +115,6 @@ function syncHighlight() {
   const ta = document.getElementById('editor-real');
   const hl = document.getElementById('highlight-layer');
   hl.innerHTML = highlight(ta.value) + '\n';
-  // sync scroll
   hl.scrollTop = ta.scrollTop;
   hl.scrollLeft = ta.scrollLeft;
 }
@@ -145,12 +137,9 @@ document.getElementById('editor-real').addEventListener('keydown', e => {
   }
 });
 
-// Load default example
 loadExample('hello');
 
 // ─── INTERPRETER ──────────────────────────────────────────────────────────
-
-// LEXER
 const TT = {
   NUM:'NUM', STR:'STR', IDENT:'IDENT', KEYWORD:'KEYWORD',
   PLUS:'+', MINUS:'-', MUL:'*', DIV:'/', MOD:'%',
@@ -166,13 +155,9 @@ function lex(src) {
   const tokens = [];
   let i = 0;
   while (i < src.length) {
-    // skip whitespace (not newlines)
     if (src[i] === ' ' || src[i] === '\t' || src[i] === '\r') { i++; continue; }
-    // comment
     if (src[i] === '/' && src[i+1] === '/') { while (i < src.length && src[i] !== '\n') i++; continue; }
-    // newline
     if (src[i] === '\n') { tokens.push({t:TT.NEWLINE}); i++; continue; }
-    // string
     if (src[i] === '"') {
       i++;
       let s = '';
@@ -181,22 +166,19 @@ function lex(src) {
         else if (src[i] === '\\' && src[i+1] === '"') { s += '"'; i+=2; }
         else s += src[i++];
       }
-      i++; // closing "
+      i++;
       tokens.push({t:TT.STR, v:s}); continue;
     }
-    // number
     if (/[0-9]/.test(src[i])) {
       let s = '';
       while (i < src.length && /[0-9.]/.test(src[i])) s += src[i++];
       tokens.push({t:TT.NUM, v:parseFloat(s)}); continue;
     }
-    // ident/keyword
     if (/[a-zA-Z_]/.test(src[i])) {
       let s = '';
       while (i < src.length && /[a-zA-Z0-9_]/.test(src[i])) s += src[i++];
       tokens.push({t: KW.has(s) ? TT.KEYWORD : TT.IDENT, v:s}); continue;
     }
-    // two-char ops
     const two = src.slice(i, i+2);
     if (two === '==') { tokens.push({t:TT.EQ}); i+=2; continue; }
     if (two === '!=') { tokens.push({t:TT.NEQ}); i+=2; continue; }
@@ -204,18 +186,16 @@ function lex(src) {
     if (two === '>=') { tokens.push({t:TT.GTE}); i+=2; continue; }
     if (two === '&&') { tokens.push({t:TT.AND}); i+=2; continue; }
     if (two === '||') { tokens.push({t:TT.OR}); i+=2; continue; }
-    // single-char
     const singles = {'+':TT.PLUS,'-':TT.MINUS,'*':TT.MUL,'/':TT.DIV,'%':TT.MOD,
       '<':TT.LT,'>':TT.GT,'=':TT.ASSIGN,'(':TT.LPAREN,')':TT.RPAREN,
       '{':TT.LBRACE,'}':TT.RBRACE,',':TT.COMMA,';':TT.SEMI,'!':TT.NOT};
     if (singles[src[i]]) { tokens.push({t:singles[src[i]]}); i++; continue; }
-    i++; // skip unknown
+    i++;
   }
   tokens.push({t:TT.EOF});
   return tokens;
 }
 
-// PARSER → AST
 function parse(tokens) {
   let pos = 0;
   const peek = () => tokens[pos];
@@ -248,12 +228,11 @@ function parse(tokens) {
       if (tok.v === 'harvest') return parseHarvest();
       if (tok.v === 'slip') { consume(); return {type:'Slip'}; }
     }
-    // expression statement (function call, assignment)
     return parseExprStmt();
   }
 
   function parsePeel() {
-    consume(); // peel
+    consume();
     const name = expect(TT.IDENT).v;
     expect(TT.ASSIGN);
     const val = parseExpr();
@@ -261,13 +240,13 @@ function parse(tokens) {
   }
 
   function parseMash() {
-    consume(); // mash
+    consume();
     const val = parseExpr();
     return {type:'Mash', val};
   }
 
   function parseIf() {
-    consume(); // ripe
+    consume();
     const cond = parseExpr();
     const body = parseBlock();
     const elseifs = [];
@@ -288,22 +267,22 @@ function parse(tokens) {
   }
 
   function parseBunch() {
-    consume(); // bunch
+    consume();
     const count = parseExpr();
-    expect(TT.KEYWORD); // times
+    expect(TT.KEYWORD);
     const body = parseBlock();
     return {type:'Bunch', count, body};
   }
 
   function parseWhile() {
-    consume(); // while
+    consume();
     const cond = parseExpr();
     const body = parseBlock();
     return {type:'While', cond, body};
   }
 
   function parsePlantain() {
-    consume(); // plantain
+    consume();
     const name = expect(TT.IDENT).v;
     expect(TT.LPAREN);
     const params = [];
@@ -317,7 +296,7 @@ function parse(tokens) {
   }
 
   function parseHarvest() {
-    consume(); // harvest
+    consume();
     const val = peek().t !== TT.NEWLINE && peek().t !== TT.SEMI && peek().t !== TT.RBRACE
       ? parseExpr() : {type:'Literal', val:null};
     return {type:'Harvest', val};
@@ -328,21 +307,17 @@ function parse(tokens) {
     return {type:'ExprStmt', expr:e};
   }
 
-  // Expressions
   function parseExpr() { return parseOr(); }
-
   function parseOr() {
     let l = parseAnd();
     while (peek().t === TT.OR) { consume(); l = {type:'BinOp', op:'||', l, r:parseAnd()}; }
     return l;
   }
-
   function parseAnd() {
     let l = parseEq();
     while (peek().t === TT.AND) { consume(); l = {type:'BinOp', op:'&&', l, r:parseEq()}; }
     return l;
   }
-
   function parseEq() {
     let l = parseCmp();
     while ([TT.EQ, TT.NEQ].includes(peek().t)) {
@@ -351,7 +326,6 @@ function parse(tokens) {
     }
     return l;
   }
-
   function parseCmp() {
     let l = parseAdd();
     while ([TT.LT, TT.GT, TT.LTE, TT.GTE].includes(peek().t)) {
@@ -360,7 +334,6 @@ function parse(tokens) {
     }
     return l;
   }
-
   function parseAdd() {
     let l = parseMul();
     while ([TT.PLUS, TT.MINUS].includes(peek().t)) {
@@ -369,7 +342,6 @@ function parse(tokens) {
     }
     return l;
   }
-
   function parseMul() {
     let l = parseUnary();
     while ([TT.MUL, TT.DIV, TT.MOD].includes(peek().t)) {
@@ -378,13 +350,11 @@ function parse(tokens) {
     }
     return l;
   }
-
   function parseUnary() {
     if (peek().t === TT.MINUS) { consume(); return {type:'UnaryOp', op:'-', v:parseUnary()}; }
     if (peek().t === TT.NOT) { consume(); return {type:'UnaryOp', op:'!', v:parseUnary()}; }
     return parseCall();
   }
-
   function parseCall() {
     let base = parsePrimary();
     while (peek().t === TT.LPAREN) {
@@ -399,7 +369,6 @@ function parse(tokens) {
     }
     return base;
   }
-
   function parsePrimary() {
     const tok = peek();
     if (tok.t === TT.NUM) { consume(); return {type:'Literal', val:tok.v}; }
@@ -416,7 +385,6 @@ function parse(tokens) {
     throw new Error(`Unexpected token: ${tok.t} ('${tok.v||tok.t}')`);
   }
 
-  // Parse all statements
   const stmts = [];
   skip();
   while (peek().t !== TT.EOF) {
@@ -426,7 +394,6 @@ function parse(tokens) {
   return stmts;
 }
 
-// INTERPRETER
 class BananaError extends Error {}
 class HarvestSignal { constructor(v){this.val=v;} }
 class SlipSignal {}
@@ -477,7 +444,8 @@ function interpret(ast, outputFn) {
       case 'BinOp': {
         const ops = {
           '+': (a,b) => typeof a === 'string' || typeof b === 'string' ? String(a)+String(b) : a+b,
-          '-': (a,b)=>a-b, '*': (a,b)=>a*b, '/': (a,b)=>{ if(b===0) throw new BananaError('Division by zero (the banana split!)'); return a/b; },
+          '-': (a,b)=>a-b, '*': (a,b)=>a*b,
+          '/': (a,b)=>{ if(b===0) throw new BananaError('Division by zero (the banana split!)'); return a/b; },
           '%': (a,b)=>a%b, '==': (a,b)=>a===b, '!=': (a,b)=>a!==b,
           '<': (a,b)=>a<b, '>': (a,b)=>a>b, '<=': (a,b)=>a<=b, '>=': (a,b)=>a>=b,
           '&&': (a,b)=>a&&b, '||': (a,b)=>a||b,
@@ -491,9 +459,7 @@ function interpret(ast, outputFn) {
         break;
       }
       case 'If': {
-        if (evalNode(node.cond, env)) {
-          return execBlock(node.body, env);
-        }
+        if (evalNode(node.cond, env)) { return execBlock(node.body, env); }
         for (const ei of node.elseifs) {
           if (evalNode(ei.cond, env)) return execBlock(ei.body, env);
         }
@@ -531,7 +497,6 @@ function interpret(ast, outputFn) {
           if (r instanceof HarvestSignal) return r.val;
           return null;
         };
-        // also register globally
         globalEnv[node.name] = env[node.name];
         return null;
       }
@@ -555,7 +520,6 @@ function interpret(ast, outputFn) {
       const r = evalNode(stmt, env);
       if (r instanceof HarvestSignal || r instanceof SlipSignal) return r;
     }
-    // propagate peel assignments upward (simple scope)
     for (const k in env) parentEnv[k] = env[k];
     return null;
   }
@@ -567,18 +531,13 @@ function interpret(ast, outputFn) {
   }
 }
 
-// ─── RUN ───────────────────────────────────────────────────────────────────
 function runCode() {
   const code = document.getElementById('editor-real').value;
   const output = document.getElementById('output');
   const execTime = document.getElementById('exec-time');
-
-  // Clear output
   output.innerHTML = '';
-
   const lines = [];
   const outputFn = (line) => lines.push(line);
-
   const start = performance.now();
   try {
     const tokens = lex(code);
@@ -586,7 +545,6 @@ function runCode() {
     interpret(ast, outputFn);
     const elapsed = (performance.now() - start).toFixed(1);
     execTime.textContent = `${elapsed}ms`;
-
     if (lines.length === 0) {
       output.innerHTML = '<div class="out-system">// no output</div>';
     } else {
@@ -617,6 +575,5 @@ function clearOutput() {
   document.getElementById('exec-time').textContent = '';
 }
 
-// Init
 syncHighlight();
 </script> </body> </html>
