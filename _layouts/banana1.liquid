@@ -28,8 +28,10 @@
     background: var(--bg);
     color: var(--white);
     font-family: 'Space Mono', monospace;
-    min-height: 100vh;
-    overflow-x: hidden;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
     position: relative;
   }
 
@@ -49,7 +51,6 @@
     z-index: 1000;
   }
 
-  /* Noise texture */
   body::after {
     content: '';
     position: fixed;
@@ -61,6 +62,7 @@
   }
 
   .header {
+    flex-shrink: 0;
     border-bottom: 1px solid var(--banana-dark);
     padding: 24px 40px;
     display: flex;
@@ -107,12 +109,19 @@
     opacity: 0.7;
   }
 
+  /* Main layout: column, editor row grows, docs sits below */
   .main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  .editor-output-row {
+    flex: 1;
+    min-height: 0;
     display: grid;
     grid-template-columns: 1fr 1fr;
-    grid-template-rows: auto 1fr;
-    height: calc(100vh - 81px);
-    gap: 0;
   }
 
   .panel {
@@ -120,9 +129,11 @@
     border-bottom: 1px solid #222200;
     display: flex;
     flex-direction: column;
+    min-height: 0;
   }
 
   .panel-header {
+    flex-shrink: 0;
     padding: 10px 20px;
     background: var(--bg3);
     border-bottom: 1px solid #222200;
@@ -150,29 +161,11 @@
     50% { opacity: 0.4; }
   }
 
-  #editor {
-    flex: 1;
-    width: 100%;
-    background: var(--terminal);
-    color: var(--white);
-    font-family: 'Space Mono', monospace;
-    font-size: 14px;
-    line-height: 1.7;
-    padding: 20px;
-    border: none;
-    outline: none;
-    resize: none;
-    caret-color: var(--banana);
-    tab-size: 2;
-    letter-spacing: 0.3px;
-  }
-
-  #editor::selection { background: rgba(255,225,53,0.2); }
-
   .highlighted-editor {
     flex: 1;
     position: relative;
     overflow: hidden;
+    min-height: 0;
   }
 
   #highlight-layer {
@@ -224,6 +217,7 @@
     background: var(--bg);
     display: flex;
     flex-direction: column;
+    min-height: 0;
   }
 
   #output {
@@ -234,6 +228,7 @@
     line-height: 1.8;
     overflow-y: auto;
     background: var(--bg);
+    min-height: 0;
   }
 
   .out-line { color: var(--green); }
@@ -242,6 +237,7 @@
   .out-system { color: var(--muted); font-style: italic; }
 
   .run-bar {
+    flex-shrink: 0;
     padding: 12px 20px;
     background: var(--bg3);
     border-top: 1px solid #222200;
@@ -262,17 +258,6 @@
     text-transform: uppercase;
     cursor: pointer;
     transition: all 0.1s;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .btn-run::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: white;
-    opacity: 0;
-    transition: opacity 0.1s;
   }
 
   .btn-run:hover { transform: translate(-1px, -1px); box-shadow: 2px 2px 0 var(--banana-dark); }
@@ -293,19 +278,20 @@
 
   .btn-clear:hover { color: var(--white); border-color: var(--muted); }
 
+  /* Docs panel — sits BELOW the editor row, fixed height, scrollable */
   .docs-panel {
-    grid-column: 1 / -1;
+    flex-shrink: 0;
     border-top: 2px solid var(--banana-dark);
     background: var(--bg2);
-    max-height: 220px;
+    height: 200px;
     overflow-y: auto;
   }
 
   .docs-inner {
-    padding: 20px 40px;
+    padding: 16px 40px 20px;
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-    gap: 16px;
+    gap: 14px;
   }
 
   .doc-item {
@@ -333,8 +319,6 @@
   ::-webkit-scrollbar-track { background: var(--bg); }
   ::-webkit-scrollbar-thumb { background: var(--banana-dark); }
 
-  .glow-banana { text-shadow: 0 0 20px rgba(255,225,53,0.6); }
-
   .example-btn {
     background: transparent;
     color: var(--banana-dark);
@@ -349,22 +333,10 @@
   }
   .example-btn:hover { color: var(--banana); border-color: var(--banana-dark); }
 
-  .cursor-blink {
-    display: inline-block;
-    width: 8px;
-    height: 14px;
-    background: var(--banana);
-    animation: blink 1s step-end infinite;
-    vertical-align: text-bottom;
-    margin-left: 2px;
-  }
-
-  @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
-
   @media (max-width: 768px) {
-    .main { grid-template-columns: 1fr; }
-    .panel { height: 50vh; }
-    .docs-panel { display: none; }
+    .editor-output-row { grid-template-columns: 1fr; }
+    .panel { height: 45vh; }
+    .docs-panel { height: 160px; }
   }
 </style>
 </head>
@@ -382,41 +354,43 @@
 </header>
 
 <div class="main">
-  <!-- Editor -->
-  <div class="panel">
-    <div class="panel-header">
-      <span><span class="dot"></span>editor.🍌</span>
-      <div style="display:flex;gap:8px;">
-        <button class="example-btn" onclick="loadExample('hello')">Hello World</button>
-        <button class="example-btn" onclick="loadExample('fib')">Fibonacci</button>
-        <button class="example-btn" onclick="loadExample('fizzbuzz')">FizzBuzz</button>
+  <div class="editor-output-row">
+    <!-- Editor -->
+    <div class="panel">
+      <div class="panel-header">
+        <span><span class="dot"></span>editor.🍌</span>
+        <div style="display:flex;gap:8px;">
+          <button class="example-btn" onclick="loadExample('hello')">Hello World</button>
+          <button class="example-btn" onclick="loadExample('fib')">Fibonacci</button>
+          <button class="example-btn" onclick="loadExample('fizzbuzz')">FizzBuzz</button>
+        </div>
+      </div>
+      <div class="highlighted-editor">
+        <div id="highlight-layer" aria-hidden="true"></div>
+        <textarea id="editor-real" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off"></textarea>
       </div>
     </div>
-    <div class="highlighted-editor">
-      <div id="highlight-layer" aria-hidden="true"></div>
-      <textarea id="editor-real" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off"></textarea>
+
+    <!-- Output -->
+    <div class="panel output-panel">
+      <div class="panel-header">
+        <span><span class="dot"></span>output</span>
+        <span id="exec-time" style="font-size:0.65rem;"></span>
+      </div>
+      <div id="output">
+        <div class="out-system">🍌 BananaScript interpreter ready.</div>
+        <div class="out-system">Write some code and press RUN, or load an example.</div>
+        <div class="out-system">&nbsp;</div>
+      </div>
+      <div class="run-bar">
+        <button class="btn-run" onclick="runCode()">▶ Run</button>
+        <button class="btn-clear" onclick="clearOutput()">Clear</button>
+        <span style="font-size:0.65rem;color:var(--muted);margin-left:auto;">Ctrl+Enter to run</span>
+      </div>
     </div>
   </div>
 
-  <!-- Output -->
-  <div class="panel output-panel">
-    <div class="panel-header">
-      <span><span class="dot"></span>output</span>
-      <span id="exec-time" style="font-size:0.65rem;"></span>
-    </div>
-    <div id="output">
-      <div class="out-system">🍌 BananaScript interpreter ready.</div>
-      <div class="out-system">Write some code and press RUN, or load an example.</div>
-      <div class="out-system">&nbsp;</div>
-    </div>
-    <div class="run-bar">
-      <button class="btn-run" onclick="runCode()">▶ Run</button>
-      <button class="btn-clear" onclick="clearOutput()">Clear</button>
-      <span style="font-size:0.65rem;color:var(--muted);margin-left:auto;">Ctrl+Enter to run</span>
-    </div>
-  </div>
-
-  <!-- Docs -->
+  <!-- Docs — now BELOW the editor/output row -->
   <div class="docs-panel">
     <div class="docs-title">Language Reference</div>
     <div class="docs-inner">
@@ -504,35 +478,29 @@ function escapeHtml(s) {
 function highlight(code) {
   const lines = code.split('\n');
   return lines.map(line => {
-    // Comment
     if (line.trimStart().startsWith('//')) {
       return `<span class="cmt">${escapeHtml(line)}</span>`;
     }
-    // Tokenize
     let result = '';
     let i = 0;
     const safe = line;
     while (i < safe.length) {
-      // Comment mid-line
       if (safe[i] === '/' && safe[i+1] === '/') {
         result += `<span class="cmt">${escapeHtml(safe.slice(i))}</span>`;
         break;
       }
-      // String
       if (safe[i] === '"') {
         let j = i + 1;
         while (j < safe.length && safe[j] !== '"') j++;
         result += `<span class="str">${escapeHtml(safe.slice(i, j+1))}</span>`;
         i = j + 1; continue;
       }
-      // Number
       if (/[0-9]/.test(safe[i])) {
         let j = i;
         while (j < safe.length && /[0-9.]/.test(safe[j])) j++;
         result += `<span class="num">${escapeHtml(safe.slice(i,j))}</span>`;
         i = j; continue;
       }
-      // Word
       if (/[a-zA-Z_]/.test(safe[i])) {
         let j = i;
         while (j < safe.length && /[a-zA-Z0-9_]/.test(safe[j])) j++;
@@ -543,7 +511,6 @@ function highlight(code) {
         else result += escapeHtml(word);
         i = j; continue;
       }
-      // Operator
       if (/[+\-*/%=<>!&|]/.test(safe[i])) {
         result += `<span class="op">${escapeHtml(safe[i])}</span>`;
         i++; continue;
@@ -559,7 +526,6 @@ function syncHighlight() {
   const ta = document.getElementById('editor-real');
   const hl = document.getElementById('highlight-layer');
   hl.innerHTML = highlight(ta.value) + '\n';
-  // sync scroll
   hl.scrollTop = ta.scrollTop;
   hl.scrollLeft = ta.scrollLeft;
 }
@@ -582,12 +548,9 @@ document.getElementById('editor-real').addEventListener('keydown', e => {
   }
 });
 
-// Load default example
 loadExample('hello');
 
 // ─── INTERPRETER ──────────────────────────────────────────────────────────
-
-// LEXER
 const TT = {
   NUM:'NUM', STR:'STR', IDENT:'IDENT', KEYWORD:'KEYWORD',
   PLUS:'+', MINUS:'-', MUL:'*', DIV:'/', MOD:'%',
@@ -603,13 +566,9 @@ function lex(src) {
   const tokens = [];
   let i = 0;
   while (i < src.length) {
-    // skip whitespace (not newlines)
     if (src[i] === ' ' || src[i] === '\t' || src[i] === '\r') { i++; continue; }
-    // comment
     if (src[i] === '/' && src[i+1] === '/') { while (i < src.length && src[i] !== '\n') i++; continue; }
-    // newline
     if (src[i] === '\n') { tokens.push({t:TT.NEWLINE}); i++; continue; }
-    // string
     if (src[i] === '"') {
       i++;
       let s = '';
@@ -618,22 +577,19 @@ function lex(src) {
         else if (src[i] === '\\' && src[i+1] === '"') { s += '"'; i+=2; }
         else s += src[i++];
       }
-      i++; // closing "
+      i++;
       tokens.push({t:TT.STR, v:s}); continue;
     }
-    // number
     if (/[0-9]/.test(src[i])) {
       let s = '';
       while (i < src.length && /[0-9.]/.test(src[i])) s += src[i++];
       tokens.push({t:TT.NUM, v:parseFloat(s)}); continue;
     }
-    // ident/keyword
     if (/[a-zA-Z_]/.test(src[i])) {
       let s = '';
       while (i < src.length && /[a-zA-Z0-9_]/.test(src[i])) s += src[i++];
       tokens.push({t: KW.has(s) ? TT.KEYWORD : TT.IDENT, v:s}); continue;
     }
-    // two-char ops
     const two = src.slice(i, i+2);
     if (two === '==') { tokens.push({t:TT.EQ}); i+=2; continue; }
     if (two === '!=') { tokens.push({t:TT.NEQ}); i+=2; continue; }
@@ -641,18 +597,16 @@ function lex(src) {
     if (two === '>=') { tokens.push({t:TT.GTE}); i+=2; continue; }
     if (two === '&&') { tokens.push({t:TT.AND}); i+=2; continue; }
     if (two === '||') { tokens.push({t:TT.OR}); i+=2; continue; }
-    // single-char
     const singles = {'+':TT.PLUS,'-':TT.MINUS,'*':TT.MUL,'/':TT.DIV,'%':TT.MOD,
       '<':TT.LT,'>':TT.GT,'=':TT.ASSIGN,'(':TT.LPAREN,')':TT.RPAREN,
       '{':TT.LBRACE,'}':TT.RBRACE,',':TT.COMMA,';':TT.SEMI,'!':TT.NOT};
     if (singles[src[i]]) { tokens.push({t:singles[src[i]]}); i++; continue; }
-    i++; // skip unknown
+    i++;
   }
   tokens.push({t:TT.EOF});
   return tokens;
 }
 
-// PARSER → AST
 function parse(tokens) {
   let pos = 0;
   const peek = () => tokens[pos];
@@ -685,12 +639,11 @@ function parse(tokens) {
       if (tok.v === 'harvest') return parseHarvest();
       if (tok.v === 'slip') { consume(); return {type:'Slip'}; }
     }
-    // expression statement (function call, assignment)
     return parseExprStmt();
   }
 
   function parsePeel() {
-    consume(); // peel
+    consume();
     const name = expect(TT.IDENT).v;
     expect(TT.ASSIGN);
     const val = parseExpr();
@@ -698,13 +651,13 @@ function parse(tokens) {
   }
 
   function parseMash() {
-    consume(); // mash
+    consume();
     const val = parseExpr();
     return {type:'Mash', val};
   }
 
   function parseIf() {
-    consume(); // ripe
+    consume();
     const cond = parseExpr();
     const body = parseBlock();
     const elseifs = [];
@@ -725,22 +678,22 @@ function parse(tokens) {
   }
 
   function parseBunch() {
-    consume(); // bunch
+    consume();
     const count = parseExpr();
-    expect(TT.KEYWORD); // times
+    expect(TT.KEYWORD);
     const body = parseBlock();
     return {type:'Bunch', count, body};
   }
 
   function parseWhile() {
-    consume(); // while
+    consume();
     const cond = parseExpr();
     const body = parseBlock();
     return {type:'While', cond, body};
   }
 
   function parsePlantain() {
-    consume(); // plantain
+    consume();
     const name = expect(TT.IDENT).v;
     expect(TT.LPAREN);
     const params = [];
@@ -754,7 +707,7 @@ function parse(tokens) {
   }
 
   function parseHarvest() {
-    consume(); // harvest
+    consume();
     const val = peek().t !== TT.NEWLINE && peek().t !== TT.SEMI && peek().t !== TT.RBRACE
       ? parseExpr() : {type:'Literal', val:null};
     return {type:'Harvest', val};
@@ -765,21 +718,17 @@ function parse(tokens) {
     return {type:'ExprStmt', expr:e};
   }
 
-  // Expressions
   function parseExpr() { return parseOr(); }
-
   function parseOr() {
     let l = parseAnd();
     while (peek().t === TT.OR) { consume(); l = {type:'BinOp', op:'||', l, r:parseAnd()}; }
     return l;
   }
-
   function parseAnd() {
     let l = parseEq();
     while (peek().t === TT.AND) { consume(); l = {type:'BinOp', op:'&&', l, r:parseEq()}; }
     return l;
   }
-
   function parseEq() {
     let l = parseCmp();
     while ([TT.EQ, TT.NEQ].includes(peek().t)) {
@@ -788,7 +737,6 @@ function parse(tokens) {
     }
     return l;
   }
-
   function parseCmp() {
     let l = parseAdd();
     while ([TT.LT, TT.GT, TT.LTE, TT.GTE].includes(peek().t)) {
@@ -797,7 +745,6 @@ function parse(tokens) {
     }
     return l;
   }
-
   function parseAdd() {
     let l = parseMul();
     while ([TT.PLUS, TT.MINUS].includes(peek().t)) {
@@ -806,7 +753,6 @@ function parse(tokens) {
     }
     return l;
   }
-
   function parseMul() {
     let l = parseUnary();
     while ([TT.MUL, TT.DIV, TT.MOD].includes(peek().t)) {
@@ -815,13 +761,11 @@ function parse(tokens) {
     }
     return l;
   }
-
   function parseUnary() {
     if (peek().t === TT.MINUS) { consume(); return {type:'UnaryOp', op:'-', v:parseUnary()}; }
     if (peek().t === TT.NOT) { consume(); return {type:'UnaryOp', op:'!', v:parseUnary()}; }
     return parseCall();
   }
-
   function parseCall() {
     let base = parsePrimary();
     while (peek().t === TT.LPAREN) {
@@ -836,7 +780,6 @@ function parse(tokens) {
     }
     return base;
   }
-
   function parsePrimary() {
     const tok = peek();
     if (tok.t === TT.NUM) { consume(); return {type:'Literal', val:tok.v}; }
@@ -853,7 +796,6 @@ function parse(tokens) {
     throw new Error(`Unexpected token: ${tok.t} ('${tok.v||tok.t}')`);
   }
 
-  // Parse all statements
   const stmts = [];
   skip();
   while (peek().t !== TT.EOF) {
@@ -863,7 +805,6 @@ function parse(tokens) {
   return stmts;
 }
 
-// INTERPRETER
 class BananaError extends Error {}
 class HarvestSignal { constructor(v){this.val=v;} }
 class SlipSignal {}
@@ -914,7 +855,8 @@ function interpret(ast, outputFn) {
       case 'BinOp': {
         const ops = {
           '+': (a,b) => typeof a === 'string' || typeof b === 'string' ? String(a)+String(b) : a+b,
-          '-': (a,b)=>a-b, '*': (a,b)=>a*b, '/': (a,b)=>{ if(b===0) throw new BananaError('Division by zero (the banana split!)'); return a/b; },
+          '-': (a,b)=>a-b, '*': (a,b)=>a*b,
+          '/': (a,b)=>{ if(b===0) throw new BananaError('Division by zero (the banana split!)'); return a/b; },
           '%': (a,b)=>a%b, '==': (a,b)=>a===b, '!=': (a,b)=>a!==b,
           '<': (a,b)=>a<b, '>': (a,b)=>a>b, '<=': (a,b)=>a<=b, '>=': (a,b)=>a>=b,
           '&&': (a,b)=>a&&b, '||': (a,b)=>a||b,
@@ -928,9 +870,7 @@ function interpret(ast, outputFn) {
         break;
       }
       case 'If': {
-        if (evalNode(node.cond, env)) {
-          return execBlock(node.body, env);
-        }
+        if (evalNode(node.cond, env)) { return execBlock(node.body, env); }
         for (const ei of node.elseifs) {
           if (evalNode(ei.cond, env)) return execBlock(ei.body, env);
         }
@@ -968,7 +908,6 @@ function interpret(ast, outputFn) {
           if (r instanceof HarvestSignal) return r.val;
           return null;
         };
-        // also register globally
         globalEnv[node.name] = env[node.name];
         return null;
       }
@@ -992,7 +931,6 @@ function interpret(ast, outputFn) {
       const r = evalNode(stmt, env);
       if (r instanceof HarvestSignal || r instanceof SlipSignal) return r;
     }
-    // propagate peel assignments upward (simple scope)
     for (const k in env) parentEnv[k] = env[k];
     return null;
   }
@@ -1004,18 +942,13 @@ function interpret(ast, outputFn) {
   }
 }
 
-// ─── RUN ───────────────────────────────────────────────────────────────────
 function runCode() {
   const code = document.getElementById('editor-real').value;
   const output = document.getElementById('output');
   const execTime = document.getElementById('exec-time');
-
-  // Clear output
   output.innerHTML = '';
-
   const lines = [];
   const outputFn = (line) => lines.push(line);
-
   const start = performance.now();
   try {
     const tokens = lex(code);
@@ -1023,7 +956,6 @@ function runCode() {
     interpret(ast, outputFn);
     const elapsed = (performance.now() - start).toFixed(1);
     execTime.textContent = `${elapsed}ms`;
-
     if (lines.length === 0) {
       output.innerHTML = '<div class="out-system">// no output</div>';
     } else {
@@ -1054,7 +986,6 @@ function clearOutput() {
   document.getElementById('exec-time').textContent = '';
 }
 
-// Init
 syncHighlight();
 </script>
 </body>
