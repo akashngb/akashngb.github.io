@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 24 24" fill="#000000">
+  <g fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+    <!-- Flat-top hexagon traced from logo -->
+    <path stroke-dasharray="60" stroke-dashoffset="60"
+          d="M12,2 L20.66,7 L20.66,17 L12,22 L3.34,17 L3.34,7 Z">
+      <animate fill="freeze" attributeName="stroke-dashoffset" dur="0.6s" values="60;0"/>
+    </path>
+    <!-- D left vertical bar: x=8.69, y=7.4 to y=16.6 -->
+    <path stroke-dasharray="10" stroke-dashoffset="10"
+          d="M8.69,7.4 L8.69,16.6">
+      <animate fill="freeze" attributeName="stroke-dashoffset" begin="0.65s" dur="0.2s" values="10;0"/>
+    </path>
+    <!-- D curve: flat top, semicircle peaking at x=16.75 y=12, flat bottom -->
+    <path stroke-dasharray="24" stroke-dashoffset="24"
+          d="M8.69,7.4 L11.5,7.4 C15,7.4 16.75,9.4 16.75,12 C16.75,14.6 15,16.6 11.5,16.6 L8.69,16.6">
+      <animate fill="freeze" attributeName="stroke-dashoffset" begin="0.85s" dur="0.4s" values="24;0"/>
+    </path>
+  </g>
+</svg>
