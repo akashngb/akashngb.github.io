@@ -1,4 +1,12 @@
-<div style="width: 100vw; height: 100vh; margin: 0; position: relative;">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: #000; }
+  .post, article, .post-header, header, main, .page, #main, #content { 
+    margin: 0 !important; padding: 0 !important; 
+  }
+</style>
+
+<div style="position: fixed; inset: 0; width: 100vw; height: 100vh; margin: 0; padding: 0;">
   <iframe 
     title="batmobile armored" 
     frameborder="0" 
@@ -11,7 +19,7 @@
     execution-while-not-rendered 
     web-share 
     allowtransparency="true"
-    style="width: 100%; height: 100%; background: transparent;"
+    style="position: absolute; inset: 0; width: 100%; height: 100%; border: none; display: block; background: #000;"
     src="https://sketchfab.com/models/sBv577Vdl9lrcvyFT3vbNvkGKml/embed?autostart=1&preload=1&transparent=1&ui_animations=0&ui_infos=0&ui_stop=0&ui_inspector=0&ui_watermark_link=0&ui_watermark=0&ui_hint=0&ui_ar=0&ui_help=0&ui_settings=0&ui_vr=0&ui_fullscreen=0&ui_annotations=0&ui_downloads=0&ui_share=0">
   </iframe>
 
@@ -25,6 +33,8 @@
     flex-direction: column;
     align-items: center;
     gap: 1.4rem;
+    mix-blend-mode: difference;
+    filter: invert(1);
   ">
     <a href="https://github.com/akashngb" target="_blank" style="display: flex; align-items: center; justify-content: center; opacity: 0.85; transition: transform 0.2s ease, opacity 0.2s ease;" onmouseover="this.style.transform='scale(1.15) translateX(-3px)'; this.style.opacity='1'" onmouseout="this.style.transform='scale(1) translateX(0)'; this.style.opacity='0.85'">
       <img src="/assets/icons/github-animated.svg" alt="GitHub" style="width: 38px; height: 38px;">
@@ -34,6 +44,9 @@
     </a>
     <a href="mailto:akash.nagabhirava@mail.utoronto.ca" style="display: flex; align-items: center; justify-content: center; opacity: 0.85; transition: transform 0.2s ease, opacity 0.2s ease;" onmouseover="this.style.transform='scale(1.15) translateX(-3px)'; this.style.opacity='1'" onmouseout="this.style.transform='scale(1) translateX(0)'; this.style.opacity='0.85'">
       <img src="/assets/icons/email-animated.svg" alt="Email" style="width: 38px; height: 38px;">
+    </a>
+    <a href="https://devpost.com/akash30n" target="_blank" style="display: flex; align-items: center; justify-content: center; opacity: 0.85; transition: transform 0.2s ease, opacity 0.2s ease;" onmouseover="this.style.transform='scale(1.15) translateX(-3px)'; this.style.opacity='1'" onmouseout="this.style.transform='scale(1) translateX(0)'; this.style.opacity='0.85'">
+      <img src="/assets/icons/devpost-animated.svg" alt="Devpost" style="width: 38px; height: 38px;">
     </a>
   </div>
 </div>
