@@ -10,6 +10,7 @@
     inset: 0;
     background: #fff;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
     z-index: 99999;
@@ -28,10 +29,13 @@
   }
 </style>
 
+<script src="https://unpkg.com/@lottiefiles/dotlottie-wc@0.9.8/dist/dotlottie-wc.js" type="module"></script>
+
 <div style="position: fixed; inset: 0; width: 100vw; height: 100vh; margin: 0; padding: 0;">
 
   <!-- Loading screen -->
   <div id="loading-screen">
+    <dotlottie-wc src="https://lottie.host/57fc8b1f-4e6f-4613-8713-816930f1ee1c/0URiQdlZkM.lottie" style="width: 300px; height: 300px;" autoplay loop></dotlottie-wc>
     <span>loading batmobile...</span>
   </div>
 
@@ -81,12 +85,12 @@
 </div>
 
 <script>
-  // Hide loading screen after 1.25s
+  // Hide loading screen after 1.4s
   setTimeout(function() {
     document.getElementById('loading-screen').classList.add('hidden');
-  }, 1450);
+  }, 1400);
 
-  // Inject and reveal icons at 2s so SVG animations start from frame one
+  // Inject and reveal icons at 3s so SVG animations start from frame one
   setTimeout(function() {
     var icons = document.getElementById('social-icons');
     icons.innerHTML = `
