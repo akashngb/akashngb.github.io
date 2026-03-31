@@ -13,7 +13,7 @@
     align-items: center;
     justify-content: center;
     z-index: 99999;
-    transition: opacity 0.8s ease;
+    transition: opacity 0.9s ease;
   }
   #loading-screen.hidden {
     opacity: 0;
@@ -29,7 +29,7 @@
 
   #social-icons {
     opacity: 0;
-    transition: opacity 0.8s ease;
+    transition: opacity 9s ease;
   }
   #social-icons.visible {
     opacity: 1;
@@ -91,7 +91,7 @@
   // Hide loading screen after 0.5s
   setTimeout(function() {
     document.getElementById('loading-screen').classList.add('hidden');
-  }, 800);
+  }, 900);
 
   // Reveal icons after 1.3s
   setTimeout(function() {
