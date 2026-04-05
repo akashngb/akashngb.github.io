@@ -1,5 +1,4 @@
-<!DOCTYPE html> <html lang="en"> <head> <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0"> <title>Hand Draw</title> <style>@import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap');*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}:root{--bg:#0a0a0f;--surface:#13131a;--border:#1e1e2e;--cyan:#00f5ff;--red:#ff2d55;--yellow:#ffd60a;--text:#c8c8d8;--dim:#555570}body{background:var(--bg);color:var(--text);font-family:'Space Mono',monospace;height:100vh;overflow:hidden;display:flex;flex-direction:column}#header{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;border-bottom:1px solid var(--border);background:var(--surface);z-index:10;flex-shrink:0}#header h1{font-size:13px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--cyan)}#status-bar{display:flex;align-items:center;gap:20px;font-size:11px;color:var(--dim)}.status-item{display:flex;align-items:center;gap:6px}.status-dot{width:7px;height:7px;border-radius:50%;background:var(--dim);transition:background .2s}.status-dot.active{background:var(--cyan);box-shadow:0 0 6px var(--cyan)}.status-dot.drawing{background:var(--red);box-shadow:0 0 6px var(--red)}.status-dot.grabbing{background:var(--yellow);box-shadow:0 0 6px var(--yellow)}#controls{display:flex;gap:8px;align-items:center}button{background:var(--border);border:1px solid #2a2a3e;color:var(--text);font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.1em;padding:5px 12px;cursor:pointer;text-transform:uppercase;transition:all .15s}button:hover{background:#252535;border-color:var(--cyan);color:var(--cyan)}button.danger:hover{border-color:var(--red);color:var(--red)}#main{display:flex;flex:1;overflow:hidden;position:relative}#canvas-container{position:relative;flex:1}#drawCanvas{position:absolute;top:0;left:0;width:100%;height:100%}#handCanvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none}#webcam{position:absolute;bottom:12px;right:12px;width:180px;height:135px;border:1px solid var(--border);object-fit:cover;transform:scaleX(-1);z-index:5;opacity:.85}#legend{position:absolute;top:12px;left:12px;background:rgba(10,10,15,0.85);border:1px solid var(--border);padding:12px 14px;z-index:5;font-size:10px;line-height:2;backdrop-filter:blur(4px)}.legend-row{display:flex;align-items:center;gap:8px}.legend-swatch{width:8px;height:8px;border-radius:50%;flex-shrink:0}#loading-overlay{position:absolute;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;z-index:20}#loading-overlay p{font-size:12px;letter-spacing:.12em;color:var(--dim)}.spinner{width:36px;height:36px;border:2px solid var(--border);border-top-color:var(--cyan);border-radius:50%;animation:spin .8s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}#loading-label{font-size:11px;color:var(--cyan);letter-spacing:.15em;text-transform:uppercase}.grid-bg{position:absolute;inset:0;background-image:linear-gradient(rgba(30,30,46,0.5) 1px,transparent 1px),linear-gradient(90deg,rgba(30,30,46,0.5) 1px,transparent 1px);background-size:40px 40px;pointer-events:none}</style> </head> <body> <div id="header"> <h1>✦ Hand Draw</h1> <div id="status-bar"> <div class="status-item"> <div class="status-dot" id="dot-cam"></div> <span id="lbl-cam">camera</span> </div> <div class="status-item"> <div class="status-dot" id="dot-hand"></div> <span id="lbl-hand">no hand</span> </div> <div class="status-item"> <div class="status-dot" id="dot-mode"></div> <span id="lbl-mode">idle</span> </div> </div> <div id="controls"> <button class="danger" onclick="clearCanvas()">Clear</button> <button onclick="downloadCanvas()">Export</button> </div> </div> <div id="main"> <div id="canvas-container"> <div class="grid-bg"></div> <canvas id="drawCanvas"></canvas> <canvas id="handCanvas"></canvas> <video id="webcam" autoplay playsinline muted></video> <div id="legend"> <div class="legend-row"> <div class="legend-swatch" style="background:var(--cyan)"></div> <span>hand skeleton</span> </div> <div class="legend-row"> <div class="legend-swatch" style="background:var(--red)"></div> <span>draw — point index finger</span> </div> <div class="legend-row"> <div class="legend-swatch" style="background:var(--yellow)"></div> <span>grab — pinch to move</span> </div> </div> </div> </div> <div id="loading-overlay"> <div class="spinner"></div> <div id="loading-label">Loading MediaPipe</div> <p id="loading-sub">initialising hand tracking model…</p> </div> <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script> <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script> <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script> <script>
-// ─── Canvas Setup ────────────────────────────────────────────────────────────
+<!DOCTYPE html> <html lang="en"> <head> <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0"> <title>Hand Draw</title> <style>*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}body{background:#000;width:100vw;height:100vh;overflow:hidden}#canvas-container{position:relative;width:100%;height:100%}#drawCanvas,#handCanvas{position:absolute;top:0;left:0;width:100%;height:100%}#handCanvas{pointer-events:none}#webcam{display:none}</style> </head> <body> <div id="canvas-container"> <canvas id="drawCanvas"></canvas> <canvas id="handCanvas"></canvas> <video id="webcam" autoplay playsinline muted></video> </div> <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script> <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script> <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script> <script>
 const drawCanvas = document.getElementById('drawCanvas');
 const handCanvas = document.getElementById('handCanvas');
 const dCtx = drawCanvas.getContext('2d');
@@ -7,25 +6,19 @@ const hCtx = handCanvas.getContext('2d');
 const video = document.getElementById('webcam');
 
 function resizeCanvases() {
-  const container = document.getElementById('canvas-container');
-  const w = container.clientWidth, h = container.clientHeight;
+  const w = window.innerWidth, h = window.innerHeight;
   [drawCanvas, handCanvas].forEach(c => { c.width = w; c.height = h; });
   redrawStrokes();
 }
 window.addEventListener('resize', resizeCanvases);
 
-// ─── State ───────────────────────────────────────────────────────────────────
-let strokes = [];          // Array of {points: [{x,y}], color}
+let strokes = [];
 let currentStroke = null;
-let mode = 'idle';         // 'idle' | 'drawing' | 'grabbing'
-let grabState = null;      // {strokeIdx, offsetX, offsetY}
-let lastLandmarks = null;
+let mode = 'idle';
+let grabState = null;
 
-// ─── Gesture Detection ───────────────────────────────────────────────────────
-// Returns world coords mapped to canvas
 function lmToCanvas(lm) {
   const w = drawCanvas.width, h = drawCanvas.height;
-  // mirror x because video is mirrored
   return { x: (1 - lm.x) * w, y: lm.y * h };
 }
 
@@ -33,14 +26,11 @@ function dist2D(a, b) {
   return Math.hypot(a.x - b.x, a.y - b.y);
 }
 
-// Pointing: index finger extended, others curled
 function isPointing(lms) {
-  // Index tip vs index MCP (base knuckle)
   const indexTip = lms[8], indexMCP = lms[5];
   const middleTip = lms[12], middleMCP = lms[9];
   const ringTip = lms[16], ringMCP = lms[13];
   const pinkyTip = lms[20], pinkyMCP = lms[17];
-  const thumbTip = lms[4], thumbMCP = lms[2];
 
   const indexExtended = indexTip.y < indexMCP.y - 0.04;
   const middleCurled = middleTip.y > middleMCP.y - 0.01;
@@ -50,14 +40,11 @@ function isPointing(lms) {
   return indexExtended && middleCurled && ringCurled && pinkyCurled;
 }
 
-// Pinching: thumb tip close to index tip
 function isPinching(lms) {
   const thumbTip = lms[4], indexTip = lms[8];
-  const d = dist2D(thumbTip, indexTip);
-  return d < 0.065;
+  return dist2D(thumbTip, indexTip) < 0.065;
 }
 
-// ─── Drawing Logic ───────────────────────────────────────────────────────────
 function redrawStrokes() {
   dCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
   for (const stroke of strokes) {
@@ -76,17 +63,6 @@ function redrawStrokes() {
     dCtx.stroke();
     dCtx.shadowBlur = 0;
   }
-}
-
-function strokeBoundingBox(stroke) {
-  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-  for (const p of stroke.points) {
-    if (p.x < minX) minX = p.x;
-    if (p.y < minY) minY = p.y;
-    if (p.x > maxX) maxX = p.x;
-    if (p.y > maxY) maxY = p.y;
-  }
-  return { minX, minY, maxX, maxY };
 }
 
 function pointInStroke(px, py, stroke, threshold = 20) {
@@ -110,30 +86,10 @@ function translateStroke(stroke, dx, dy) {
   }
 }
 
-// ─── UI State Helpers ────────────────────────────────────────────────────────
-const dotCam = document.getElementById('dot-cam');
-const dotHand = document.getElementById('dot-hand');
-const dotMode = document.getElementById('dot-mode');
-const lblHand = document.getElementById('lbl-hand');
-const lblMode = document.getElementById('lbl-mode');
-
-function setMode(m) {
-  mode = m;
-  dotMode.className = 'status-dot';
-  if (m === 'drawing') { dotMode.classList.add('drawing'); lblMode.textContent = 'drawing'; }
-  else if (m === 'grabbing') { dotMode.classList.add('grabbing'); lblMode.textContent = 'grabbing'; }
-  else { lblMode.textContent = 'idle'; }
-}
-
-// ─── MediaPipe Hand Results ───────────────────────────────────────────────────
 function onResults(results) {
   hCtx.clearRect(0, 0, handCanvas.width, handCanvas.height);
 
   if (!results.multiHandLandmarks || results.multiHandLandmarks.length === 0) {
-    dotHand.className = 'status-dot';
-    lblHand.textContent = 'no hand';
-
-    // Finalize any in-progress stroke
     if (mode === 'drawing' && currentStroke) {
       strokes.push(currentStroke);
       currentStroke = null;
@@ -144,21 +100,13 @@ function onResults(results) {
       grabState = null;
       redrawStrokes();
     }
-    setMode('idle');
+    mode = 'idle';
     return;
   }
 
-  dotHand.classList.add('active');
-  dotHand.className = 'status-dot active';
-  lblHand.textContent = 'tracking';
-
   const lms = results.multiHandLandmarks[0];
-  lastLandmarks = lms;
-
-  // Draw hand skeleton
   drawHand(lms);
 
-  // Gesture logic
   const pinching = isPinching(lms);
   const pointing = !pinching && isPointing(lms);
 
@@ -168,13 +116,12 @@ function onResults(results) {
   const pinchMidY = (indexTip.y + thumbTip.y) / 2;
 
   if (pointing) {
-    // End grab if was grabbing
     if (mode === 'grabbing') {
       strokes.forEach(s => s.highlight = false);
       grabState = null;
       redrawStrokes();
     }
-    setMode('drawing');
+    mode = 'drawing';
 
     if (!currentStroke) {
       currentStroke = { points: [{ x: indexTip.x, y: indexTip.y }] };
@@ -185,7 +132,6 @@ function onResults(results) {
       }
     }
 
-    // Draw live stroke
     redrawStrokes();
     if (currentStroke && currentStroke.points.length > 1) {
       dCtx.beginPath();
@@ -202,18 +148,14 @@ function onResults(results) {
       dCtx.stroke();
       dCtx.shadowBlur = 0;
     }
-
   } else if (pinching) {
-    // Finish any drawing stroke
     if (mode === 'drawing' && currentStroke) {
       strokes.push(currentStroke);
       currentStroke = null;
     }
-
-    setMode('grabbing');
+    mode = 'grabbing';
 
     if (!grabState) {
-      // Try to grab a stroke under pinch
       const idx = findStrokeUnderPoint(pinchMidX, pinchMidY);
       if (idx >= 0) {
         strokes.forEach(s => s.highlight = false);
@@ -221,7 +163,6 @@ function onResults(results) {
         grabState = { strokeIdx: idx, lastX: pinchMidX, lastY: pinchMidY };
       }
     } else {
-      // Drag the grabbed stroke
       const dx = pinchMidX - grabState.lastX;
       const dy = pinchMidY - grabState.lastY;
       translateStroke(strokes[grabState.strokeIdx], dx, dy);
@@ -231,7 +172,6 @@ function onResults(results) {
     redrawStrokes();
 
   } else {
-    // Idle / transition
     if (mode === 'drawing' && currentStroke) {
       strokes.push(currentStroke);
       currentStroke = null;
@@ -242,11 +182,10 @@ function onResults(results) {
       grabState = null;
       redrawStrokes();
     }
-    setMode('idle');
+    mode = 'idle';
   }
 }
 
-// ─── Draw Hand Skeleton ───────────────────────────────────────────────────────
 const CONNECTIONS = [
   [0,1],[1,2],[2,3],[3,4],      // thumb
   [0,5],[5,6],[6,7],[7,8],      // index
@@ -257,10 +196,7 @@ const CONNECTIONS = [
 ];
 
 function drawHand(lms) {
-  const w = handCanvas.width, h = handCanvas.height;
-
-  // Connections
-  hCtx.strokeStyle = '#00f5ff88';
+  hCtx.strokeStyle = '#00f5ff';
   hCtx.lineWidth = 1.5;
   hCtx.lineCap = 'round';
   hCtx.shadowColor = '#00f5ff';
@@ -273,67 +209,19 @@ function drawHand(lms) {
     hCtx.lineTo(pb.x, pb.y);
     hCtx.stroke();
   }
-
-  // Joints
-  hCtx.shadowBlur = 12;
-  for (let i = 0; i < lms.length; i++) {
-    const p = lmToCanvas(lms[i]);
-    const isTip = [4,8,12,16,20].includes(i);
-    hCtx.beginPath();
-    hCtx.arc(p.x, p.y, isTip ? 5 : 3, 0, Math.PI * 2);
-    hCtx.fillStyle = isTip ? '#00f5ff' : '#00f5ffaa';
-    hCtx.fill();
-  }
-  hCtx.shadowBlur = 0;
 }
 
-// ─── Clear & Export ───────────────────────────────────────────────────────────
-function clearCanvas() {
-  strokes = [];
-  currentStroke = null;
-  grabState = null;
-  redrawStrokes();
-}
-
-function downloadCanvas() {
-  // Compose draw canvas onto a temporary canvas with bg
-  const tmp = document.createElement('canvas');
-  tmp.width = drawCanvas.width; tmp.height = drawCanvas.height;
-  const ctx = tmp.getContext('2d');
-  ctx.fillStyle = '#0a0a0f';
-  ctx.fillRect(0, 0, tmp.width, tmp.height);
-  ctx.drawImage(drawCanvas, 0, 0);
-  const a = document.createElement('a');
-  a.href = tmp.toDataURL('image/png');
-  a.download = 'hand-draw.png';
-  a.click();
-}
-
-// ─── Init MediaPipe ───────────────────────────────────────────────────────────
 async function init() {
-  const overlay = document.getElementById('loading-overlay');
-  const loadLabel = document.getElementById('loading-label');
-  const loadSub = document.getElementById('loading-sub');
-
   resizeCanvases();
-
-  loadLabel.textContent = 'Requesting Camera';
-  loadSub.textContent = 'please allow camera access…';
-
-  let stream;
+  
   try {
-    stream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } });
+    const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } });
     video.srcObject = stream;
     await video.play();
-    dotCam.classList.add('active');
   } catch (e) {
-    loadLabel.textContent = 'Camera Error';
-    loadSub.textContent = e.message;
+    console.error("Camera Error:", e);
     return;
   }
-
-  loadLabel.textContent = 'Loading Model';
-  loadSub.textContent = 'downloading hand detection weights…';
 
   const hands = new Hands({
     locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
@@ -357,14 +245,6 @@ async function init() {
   });
 
   await camera.start();
-
-  loadLabel.textContent = 'Ready';
-  loadSub.textContent = 'hand tracking active';
-  setTimeout(() => {
-    overlay.style.transition = 'opacity 0.4s';
-    overlay.style.opacity = '0';
-    setTimeout(() => overlay.remove(), 400);
-  }, 600);
 }
 
 init();
