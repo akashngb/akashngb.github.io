@@ -16,6 +16,7 @@ let strokes = [];
 let currentStroke = null;
 let mode = 'idle';
 let grabState = null;
+let eraseGestureState = 'idle';
 
 function lmToCanvas(lm) {
   const w = drawCanvas.width, h = drawCanvas.height;
@@ -43,6 +44,28 @@ function isPointing(lms) {
 function isPinching(lms) {
   const thumbTip = lms[4], indexTip = lms[8];
   return dist2D(thumbTip, indexTip) < 0.065;
+}
+
+function isFist(lms) {
+  const indexTip = lms[8], indexMCP = lms[5];
+  const middleTip = lms[12], middleMCP = lms[9];
+  const ringTip = lms[16], ringMCP = lms[13];
+  const pinkyTip = lms[20], pinkyMCP = lms[17];
+  return indexTip.y > indexMCP.y &&
+         middleTip.y > middleMCP.y &&
+         ringTip.y > ringMCP.y &&
+         pinkyTip.y > pinkyMCP.y;
+}
+
+function isOpenHand(lms) {
+  const indexTip = lms[8], indexMCP = lms[5];
+  const middleTip = lms[12], middleMCP = lms[9];
+  const ringTip = lms[16], ringMCP = lms[13];
+  const pinkyTip = lms[20], pinkyMCP = lms[17];
+  return indexTip.y < indexMCP.y - 0.04 &&
+         middleTip.y < middleMCP.y - 0.04 &&
+         ringTip.y < ringMCP.y - 0.04 &&
+         pinkyTip.y < pinkyMCP.y - 0.04;
 }
 
 function redrawStrokes() {
@@ -109,6 +132,22 @@ function onResults(results) {
 
   const pinching = isPinching(lms);
   const pointing = !pinching && isPointing(lms);
+  const fist = isFist(lms);
+  const openHand = isOpenHand(lms);
+
+  if (fist) {
+    eraseGestureState = 'fist';
+  } else if (openHand && eraseGestureState === 'fist') {
+    strokes = [];
+    currentStroke = null;
+    grabState = null;
+    eraseGestureState = 'idle';
+    redrawStrokes();
+  }
+
+  if (pointing || pinching) {
+    eraseGestureState = 'idle';
+  }
 
   const indexTip = lmToCanvas(lms[8]);
   const thumbTip = lmToCanvas(lms[4]);
