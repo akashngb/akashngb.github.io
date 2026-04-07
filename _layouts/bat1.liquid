@@ -1,194 +1,185 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>{{ page.title }}</title>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/RGBELoader.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
-
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/VignetteShader.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/GammaCorrectionShader.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/objects/Reflector.js"></script>
-
 <style>
-*{margin:0;padding:0;box-sizing:border-box}
-body{background:#f5f5f5;overflow:hidden}
-#three-container{width:100vw;height:100vh}
-#name-overlay {
-  position: fixed;
-  top: 36px;
-  left: 40px;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
-  font-size: clamp(1.6rem, 2.8vw, 2.4rem);
-  font-weight: 700;
-  color: #111;
-  opacity: 0;
-  pointer-events: none;
-  white-space: nowrap;
-  z-index: 100;
-  letter-spacing: -0.01em;
-}
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: #fff; }
+  .post, article, .post-header, header, main, .page, #main, #content { 
+    margin: 0 !important; padding: 0 !important; 
+  }
+
+  #loading-screen {
+    position: fixed;
+    inset: 0;
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 99999;
+    transition: opacity 0.4s ease;
+  }
+  #loading-screen.hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+  #loading-screen span {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 14px;
+    font-weight: 400;
+    color: #000;
+    letter-spacing: 0.02em;
+  }
 </style>
-</head>
-<body>
-<div id="three-container"></div>
-<div id="name-overlay">Akash Nagabhirava</div>
+
+<script src="https://unpkg.com/@lottiefiles/dotlottie-wc@0.9.8/dist/dotlottie-wc.js" type="module"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+
+<div style="position: fixed; inset: 0; width: 100vw; height: 100vh; margin: 0; padding: 0;">
+
+  <!-- Loading screen -->
+  <div id="loading-screen">
+    <dotlottie-wc src="https://lottie.host/57fc8b1f-4e6f-4613-8713-816930f1ee1c/0URiQdlZkM.lottie" style="width: 300px; height: 300px;" autoplay loop></dotlottie-wc>
+  </div>
+
+  <iframe 
+    id="sketchfab-iframe"
+    title="batmobile armored" 
+    frameborder="0" 
+    allowfullscreen 
+    mozallowfullscreen="true" 
+    webkitallowfullscreen="true" 
+    allow="autoplay; fullscreen; xr-spatial-tracking" 
+    xr-spatial-tracking 
+    execution-while-out-of-viewport 
+    execution-while-not-rendered 
+    web-share 
+    allowtransparency="true"
+    style="position: absolute; inset: 0; width: 100%; height: 100%; border: none; display: block; background: transparent;"
+    src="https://sketchfab.com/models/sBv577Vdl9lrcvyFT3vbNvkGKml/embed?autostart=1&preload=1&transparent=1&ui_animations=0&ui_infos=0&ui_stop=0&ui_inspector=0&ui_watermark_link=0&ui_watermark=0&ui_hint=0&ui_ar=0&ui_help=0&ui_settings=0&ui_vr=0&ui_fullscreen=0&ui_annotations=0&ui_downloads=0&ui_share=0">
+  </iframe>
+
+  <!-- Hand tracking canvas — above everything except loading screen -->
+  <video id="hand-video" playsinline style="position:absolute;visibility:hidden;width:1px;height:1px;"></video>
+  <canvas id="hand-canvas" style="position:fixed;inset:0;width:100vw;height:100vh;z-index:99998;pointer-events:none;transform:scaleX(-1);"></canvas>
+
+  <div style="
+    position: fixed;
+    right: 1.5rem;
+    top: 1.5rem;
+    z-index: 9999;
+    mix-blend-mode: difference;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 13px;
+    font-weight: 400;
+    color: #fff;
+    letter-spacing: 0.08em;
+  ">akash</div>
+
+  <div id="social-icons" style="
+    position: fixed;
+    right: 1.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 9999;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.4rem;
+    mix-blend-mode: difference;
+  "></div>
+
+</div>
 
 <script>
-function init(){
-  let visible = false;
-  const nameOverlay = document.getElementById('name-overlay');
+  setTimeout(function() {
+    document.getElementById('loading-screen').classList.add('hidden');
+  }, 1600);
 
-  const container = document.getElementById('three-container');
-  const scene = new THREE.Scene();
-  scene.background = new THREE.Color(0xf5f5f5);
-
-  const camera = new THREE.PerspectiveCamera(35, window.innerWidth/window.innerHeight, 0.1, 1000);
-  camera.position.set(4.1, 2.1, 4.9);
-
-  const renderer = new THREE.WebGLRenderer({ antialias: true });
-  renderer.setSize(window.innerWidth, window.innerHeight);
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-  renderer.outputEncoding = THREE.sRGBEncoding;
-  renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.2;
-  renderer.shadowMap.enabled = true;
-  container.appendChild(renderer.domElement);
-
-  const composer = new THREE.EffectComposer(renderer);
-  composer.addPass(new THREE.RenderPass(scene, camera));
-  composer.addPass(new THREE.UnrealBloomPass(
-    new THREE.Vector2(window.innerWidth, window.innerHeight), 0.12, 0.4, 0.9
-  ));
-  composer.addPass(new THREE.ShaderPass(THREE.VignetteShader));
-  composer.addPass(new THREE.ShaderPass(THREE.GammaCorrectionShader));
-
-  new THREE.RGBELoader().load('/assets/hdri/studio_small_09_1k.hdr', (hdr) => {
-    const pmrem = new THREE.PMREMGenerator(renderer);
-    scene.environment = pmrem.fromEquirectangular(hdr).texture;
-    hdr.dispose(); pmrem.dispose();
-  }, undefined, () => {});
-
-  const key = new THREE.DirectionalLight(0xffffff, 2.5);
-  key.position.set(6,10,6); key.castShadow = true; scene.add(key);
-  const fill = new THREE.DirectionalLight(0xffffff, 0.5);
-  fill.position.set(-6,4,2); scene.add(fill);
-  const rim = new THREE.DirectionalLight(0xffffff, 1);
-  rim.position.set(0,6,-8); scene.add(rim);
-  scene.add(new THREE.HemisphereLight(0xffffff, 0xcccccc, 0.25));
-
-  const reflector = new THREE.Reflector(new THREE.PlaneGeometry(30,30), {
-    textureWidth:1024, textureHeight:1024, color:0xbdbdbd, clipBias:0.003, multisample:4
-  });
-  reflector.rotation.x = -Math.PI/2;
-  scene.add(reflector);
-
-  const reflectionFade = new THREE.Mesh(
-    new THREE.PlaneGeometry(30,30),
-    new THREE.MeshPhysicalMaterial({ color:0xffffff, roughness:0.35, metalness:0, transparent:true, opacity:0.25 })
-  );
-  reflectionFade.rotation.x = -Math.PI/2;
-  reflectionFade.position.y = 0.002;
-  scene.add(reflectionFade);
-
-  const controls = new THREE.OrbitControls(camera, renderer.domElement);
-  controls.enableDamping = true;
-  controls.dampingFactor = 0.07;
-  controls.autoRotate = true;
-  controls.autoRotateSpeed = 0.25;
-  controls.zoomSpeed = 3;
-  controls.target.set(0, 0.8, 0);
-  controls.update();
-
-  new THREE.GLTFLoader().load('/assets/models/batmobile_armored.glb', (gltf) => {
-    const model = gltf.scene;
-    model.rotation.y = Math.PI * 0.75 - Math.PI / 3;
-    model.position.set(0,0,0);
-    model.scale.set(1,1,1);
-    model.traverse(o => {
-      if (!o.isMesh) return;
-      o.castShadow = o.receiveShadow = true;
-      const mat = o.material;
-      if (!mat) return;
-      if (mat.transparent || mat.opacity < 0.95) {
-        mat.transmission=0.6; mat.roughness=0.05; mat.envMapIntensity=2.5; return;
-      }
-      if (mat.metalness > 0.6) {
-        mat.envMapIntensity=2; mat.roughness=Math.max(mat.roughness,0.2); return;
-      }
-      mat.clearcoat=0.6; mat.clearcoatRoughness=0.08; mat.envMapIntensity=1.6;
-    });
-    scene.add(model);
-  }, undefined, (e) => console.error(e));
-
-  // ── Smile emoji on a canvas plane ─────────────────────────────────
-  const emojiCanvas = document.createElement('canvas');
-  emojiCanvas.width = 256; emojiCanvas.height = 256;
-  const ectx = emojiCanvas.getContext('2d');
-  ectx.font = '200px serif';
-  ectx.textAlign = 'center';
-  ectx.textBaseline = 'middle';
-  ectx.fillText('😊', 128, 138);
-
-  const emojiTex = new THREE.CanvasTexture(emojiCanvas);
-  const emojiMesh = new THREE.Mesh(
-    new THREE.PlaneGeometry(1.2, 1.2),
-    new THREE.MeshBasicMaterial({ map: emojiTex, transparent: true, opacity: 0, depthWrite: false, side: THREE.DoubleSide })
-  );
-  // Float above and to the right of the car, facing camera
-  emojiMesh.position.set(2.5, 2.8, 2.5);
-  emojiMesh.lookAt(camera.position);
-  scene.add(emojiMesh);
-
-  // ── Space toggle ───────────────────────────────────────────────────
-  function show() {
-    gsap.fromTo(emojiMesh.scale, { x: 0, y: 0 }, { x: 1, y: 1, duration: 0.5, ease: 'back.out(2.5)' });
-    gsap.to(emojiMesh.material, { opacity: 1, duration: 0.3, ease: 'power2.out' });
-    gsap.to(nameOverlay, { opacity: 1, duration: 0.5, ease: 'power2.out' });
-  }
-
-  function hide() {
-    gsap.to(emojiMesh.scale, { x: 0, y: 0, duration: 0.3, ease: 'back.in(2)' });
-    gsap.to(emojiMesh.material, { opacity: 0, duration: 0.2 });
-    gsap.to(nameOverlay, { opacity: 0, duration: 0.3 });
-  }
-
-  window.addEventListener('keydown', e => {
-    if (e.code === 'Space') {
-      visible = !visible;
-      if (visible) show(); else hide();
-    }
-  });
-
-  // Gentle bob
-  const clock = new THREE.Clock();
-  function animate() {
-    requestAnimationFrame(animate);
-    controls.update();
-    if (visible) emojiMesh.position.y = 2.8 + Math.sin(clock.getElapsedTime() * 1.2) * 0.08;
-    composer.render();
-  }
-  animate();
-
-  window.addEventListener('resize', () => {
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    composer.setSize(window.innerWidth, window.innerHeight);
-  });
-}
-init();
+  setTimeout(function() {
+    var icons = document.getElementById('social-icons');
+    icons.innerHTML = `
+      <a href="https://github.com/akashngb" target="_blank" style="display: flex; align-items: center; justify-content: center; opacity: 0.85; transition: transform 0.2s ease, opacity 0.2s ease;" onmouseover="this.style.transform='scale(1.15) translateX(-3px)'; this.style.opacity='1'" onmouseout="this.style.transform='scale(1) translateX(0)'; this.style.opacity='0.85'">
+        <img src="/assets/icons/github-animated.svg" alt="GitHub" style="width: 38px; height: 38px;">
+      </a>
+      <a href="https://www.linkedin.com/in/akash-nagabhirava-164155327/" target="_blank" style="display: flex; align-items: center; justify-content: center; opacity: 0.85; transition: transform 0.2s ease, opacity 0.2s ease;" onmouseover="this.style.transform='scale(1.15) translateX(-3px)'; this.style.opacity='1'" onmouseout="this.style.transform='scale(1) translateX(0)'; this.style.opacity='0.85'">
+        <img src="/assets/icons/linkedin-animated.svg" alt="LinkedIn" style="width: 38px; height: 38px;">
+      </a>
+      <a href="https://devpost.com/akash30n" target="_blank" style="display: flex; align-items: center; justify-content: center; opacity: 0.85; transition: transform 0.2s ease, opacity 0.2s ease;" onmouseover="this.style.transform='scale(1.15) translateX(-3px)'; this.style.opacity='1'" onmouseout="this.style.transform='scale(1) translateX(0)'; this.style.opacity='0.85'">
+        <img src="/assets/icons/devpost-animated.svg" alt="Devpost" style="width: 38px; height: 38px;">
+      </a>
+      <a href="mailto:akash.nagabhirava@mail.utoronto.ca" style="display: flex; align-items: center; justify-content: center; opacity: 0.85; transition: transform 0.2s ease, opacity 0.2s ease;" onmouseover="this.style.transform='scale(1.15) translateX(-3px)'; this.style.opacity='1'" onmouseout="this.style.transform='scale(1) translateX(0)'; this.style.opacity='0.85'">
+        <img src="/assets/icons/email-animated.svg" alt="Email" style="width: 38px; height: 38px;">
+      </a>
+    `;
+    icons.style.display = 'flex';
+  }, 3000);
 </script>
-</body>
-</html>
+
+<script>
+  const videoEl = document.getElementById('hand-video');
+  const canvas = document.getElementById('hand-canvas');
+  const ctx = canvas.getContext('2d');
+
+  function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+  window.addEventListener('resize', resizeCanvas);
+  resizeCanvas();
+
+  function drawNeonSkeleton(landmarks) {
+    const blue = '#00f2ff';
+    ctx.save();
+    ctx.shadowBlur = 15;
+    ctx.shadowColor = blue;
+    ctx.strokeStyle = blue;
+    ctx.lineWidth = 3;
+
+    const connections = [
+      [0,1],[1,2],[2,3],[3,4],[0,5],[5,6],[6,7],[7,8],
+      [5,9],[9,10],[10,11],[11,12],[9,13],[13,14],[14,15],[15,16],
+      [13,17],[17,18],[18,19],[19,20],[0,17]
+    ];
+
+    connections.forEach(([a, b]) => {
+      ctx.beginPath();
+      ctx.moveTo(landmarks[a].x * canvas.width, landmarks[a].y * canvas.height);
+      ctx.lineTo(landmarks[b].x * canvas.width, landmarks[b].y * canvas.height);
+      ctx.stroke();
+    });
+
+    ctx.fillStyle = blue;
+    landmarks.forEach(point => {
+      ctx.beginPath();
+      ctx.arc(point.x * canvas.width, point.y * canvas.height, 4, 0, Math.PI * 2);
+      ctx.fill();
+    });
+    ctx.restore();
+  }
+
+  function onResults(results) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+      drawNeonSkeleton(results.multiHandLandmarks[0]);
+    }
+  }
+
+  const hands = new Hands({
+    locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
+  });
+
+  hands.setOptions({
+    maxNumHands: 1,
+    modelComplexity: 1,
+    minDetectionConfidence: 0.9,
+    minTrackingConfidence: 0.9
+  });
+
+  hands.onResults(onResults);
+
+  const camera = new Camera(videoEl, {
+    onFrame: async () => { await hands.send({ image: videoEl }); },
+    width: 1280,
+    height: 720
+  });
+  camera.start();
+</script>
