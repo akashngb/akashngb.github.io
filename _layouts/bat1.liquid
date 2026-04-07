@@ -172,10 +172,10 @@
 
   // ─── Draw neon skeleton (RED) ──────────────────────────────────────────────────
   function drawNeonSkeleton(lms) {
-    const c = '#ff1a1a';
+    const c = '#006633';
     ctx.save();
     ctx.shadowBlur = 20;
-    ctx.shadowColor = '#ff4444';
+    ctx.shadowColor = '#008844';
     ctx.strokeStyle = c;
     ctx.lineWidth = 3;
     const conn = [
@@ -255,10 +255,8 @@
     // Dead zone filter
     if (Math.abs(dx) < MIN_DELTA && Math.abs(dy) < MIN_DELTA) return;
 
-    // Apply incremental rotation to cached camera
+    // Apply horizontal rotation only (no vertical)
     cTheta -= dx * GAIN;   // finger right → model surface moves right
-    cPhi   += dy * GAIN;   // finger down → model tilts down
-    cPhi = Math.max(-1.4, Math.min(1.4, cPhi));
 
     const newEye = fromSpherical(cTarget, cR, cTheta, cPhi);
     sfApi.setCameraLookAt(newEye, cTarget, 0);
