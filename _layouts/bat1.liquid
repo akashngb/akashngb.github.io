@@ -120,7 +120,7 @@
   let camReady = false;
 
   // Cached camera state (owned while hand is active)
-  let cTheta = 0, cPhi = 0, cR = 0, cTarget = [0,0,0];
+  let cEye = null, cTarget = null;
   let handActive = false;
 
   // Smoothed finger tracking
@@ -130,15 +130,18 @@
   const GAIN  = 4.0;        // Radians per normalized-screen-unit of finger movement
   const MIN_DELTA = 0.0008; // Dead zone to ignore jitter
 
-  // ─── Vector math ───────────────────────────────────────────────────────────────
-  function vecSub(a, b) { return [a[0]-b[0], a[1]-b[1], a[2]-b[2]]; }
-  function vecLen(v) { return Math.sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2]); }
-  function toSpherical(e, t) {
-    const d = vecSub(e, t), r = vecLen(d);
-    return { r, th: Math.atan2(d[0], d[2]), ph: Math.asin(Math.max(-1, Math.min(1, d[1]/r))) };
-  }
-  function fromSpherical(t, r, th, ph) {
-    return [t[0]+r*Math.sin(th)*Math.cos(ph), t[1]+r*Math.sin(ph), t[2]+r*Math.cos(th)*Math.cos(ph)];
+  // ─── Rotate point around Y-axis (pure horizontal) ──────────────────────────────
+  function rotateYAxis(eye, target, angle) {
+    const dx = eye[0] - target[0];
+    const dy = eye[1] - target[1]; // stays constant
+    const dz = eye[2] - target[2];
+    const cos = Math.cos(angle);
+    const sin = Math.sin(angle);
+    return [
+      target[0] + dx * cos - dz * sin,
+      target[1] + dy,  // Y never changes
+      target[2] + dx * sin + dz * cos
+    ];
   }
 
   // ─── Init Sketchfab ────────────────────────────────────────────────────────────
@@ -170,12 +173,12 @@
   window.addEventListener('resize', resizeCanvas);
   resizeCanvas();
 
-  // ─── Draw neon skeleton (RED) ──────────────────────────────────────────────────
+  // ─── Draw neon skeleton (DEEP NEON BLUE) ───────────────────────────────────────
   function drawNeonSkeleton(lms) {
-    const c = '#006633';
+    const c = '#0066ff';
     ctx.save();
     ctx.shadowBlur = 20;
-    ctx.shadowColor = '#008844';
+    ctx.shadowColor = '#0088ff';
     ctx.strokeStyle = c;
     ctx.lineWidth = 3;
     const conn = [
@@ -238,8 +241,7 @@
       prevSX = smoothX; prevSY = smoothY;
       sfApi.getCameraLookAt(function(err, cam) {
         if (!err) {
-          const s = toSpherical(cam.position, cam.target);
-          cTheta = s.th; cPhi = s.ph; cR = s.r;
+          cEye = cam.position.slice();
           cTarget = cam.target.slice();
         }
       });
@@ -248,18 +250,16 @@
 
     // Frame-to-frame delta from smoothed position (like a trackpad)
     const dx = smoothX - prevSX;
-    const dy = smoothY - prevSY;
     prevSX = smoothX;
     prevSY = smoothY;
 
-    // Dead zone filter
-    if (Math.abs(dx) < MIN_DELTA && Math.abs(dy) < MIN_DELTA) return;
+    // Dead zone filter — only check horizontal movement
+    if (Math.abs(dx) < MIN_DELTA) return;
 
-    // Apply horizontal rotation only (no vertical)
-    cTheta -= dx * GAIN;   // finger right → model surface moves right
-
-    const newEye = fromSpherical(cTarget, cR, cTheta, cPhi);
-    sfApi.setCameraLookAt(newEye, cTarget, 0);
+    // Pure Y-axis rotation: eye orbits target horizontally, Y never changes
+    const angle = -dx * GAIN;  // finger right → model surface moves right
+    cEye = rotateYAxis(cEye, cTarget, angle);
+    sfApi.setCameraLookAt(cEye, cTarget, 0);
   }
 
   // ─── Init MediaPipe ────────────────────────────────────────────────────────────
