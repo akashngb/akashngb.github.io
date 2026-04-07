@@ -115,11 +115,12 @@
 </script>
 
 <script>
-  // ─── Sketchfab Viewer API — rotation only ──────────────────────────────────────
+  // ─── Sketchfab Viewer API ──────────────────────────────────────────────────────
   let sfApi = null;
   let camEye = null, camTarget = null, camReady = false;
+  let handActive = false; // true while pointing gesture is active
 
-  // Velocity accumulator — only orbit
+  // Velocity accumulator for smooth orbit
   let velX = 0, velY = 0;
   const DAMPING    = 0.88;
   const DEAD_ZONE  = 0.0003;
@@ -130,22 +131,23 @@
   function vecLen(v) { return Math.sqrt(v[0]*v[0]+v[1]*v[1]+v[2]*v[2]); }
 
   function toSpherical(eye, tgt) {
-    const d=vecSub(eye,tgt), r=vecLen(d);
-    return { r, theta: Math.atan2(d[0],d[2]), phi: Math.asin(Math.max(-1,Math.min(1,d[1]/r))) };
+    const d = vecSub(eye, tgt), r = vecLen(d);
+    return { r, theta: Math.atan2(d[0], d[2]), phi: Math.asin(Math.max(-1, Math.min(1, d[1]/r))) };
   }
   function fromSpherical(tgt, r, th, ph) {
     return [tgt[0]+r*Math.sin(th)*Math.cos(ph), tgt[1]+r*Math.sin(ph), tgt[2]+r*Math.cos(th)*Math.cos(ph)];
   }
 
-  // ─── 60fps rAF camera loop — orbit only ───────────────────────────────────────
+  // ─── 60fps rAF camera loop ────────────────────────────────────────────────────
   function cameraLoop() {
     requestAnimationFrame(cameraLoop);
-    if (!sfApi || !camReady) return;
+    if (!sfApi || !camReady || !handActive) return;
     if (Math.abs(velX) < DEAD_ZONE && Math.abs(velY) < DEAD_ZONE) return;
 
     const sph = toSpherical(camEye, camTarget);
-    sph.theta += velX * ORBIT_GAIN;
-    sph.phi   -= velY * ORBIT_GAIN;
+    // Finger right → theta decreases → model surface moves right (direct manipulation)
+    sph.theta -= velX * ORBIT_GAIN;
+    sph.phi   += velY * ORBIT_GAIN;
     sph.phi = Math.max(-1.5, Math.min(1.5, sph.phi));
     camEye = fromSpherical(camTarget, sph.r, sph.theta, sph.phi);
     velX *= DAMPING;
@@ -154,7 +156,21 @@
   }
   requestAnimationFrame(cameraLoop);
 
-  // ─── Init Sketchfab — delay camera cache so viewer settles ─────────────────────
+  // ─── Sync cache from Sketchfab (picks up mouse changes) ───────────────────────
+  function syncCamera() {
+    if (!sfApi || handActive) return;
+    sfApi.getCameraLookAt(function(err, cam) {
+      if (!err) {
+        camEye = cam.position.slice();
+        camTarget = cam.target.slice();
+        camReady = true;
+      }
+    });
+  }
+  // Poll every 200ms when hand is idle to pick up mouse orbit changes
+  setInterval(syncCamera, 200);
+
+  // ─── Init Sketchfab ────────────────────────────────────────────────────────────
   (function() {
     const iframe = document.getElementById('sketchfab-iframe');
     const client = new Sketchfab(iframe);
@@ -162,8 +178,9 @@
       success: function(api) {
         sfApi = api;
         api.start(function() {
-          api.setUserInteraction(false);
-          // Wait for Sketchfab to fully settle on its default camera before caching
+          // Mouse controls ENABLED — hand is added on top
+          api.setUserInteraction(true);
+          // Seed camera cache after viewer settles
           setTimeout(function() {
             api.getCameraLookAt(function(err, cam) {
               if (!err) {
@@ -172,7 +189,7 @@
                 camReady = true;
               }
             });
-          }, 2000);
+          }, 2500);
         });
       },
       error: function() { console.error('Sketchfab init failed'); },
@@ -196,12 +213,12 @@
   window.addEventListener('resize', resizeCanvas);
   resizeCanvas();
 
-  // ─── Draw neon skeleton (DEEP BLUE) ────────────────────────────────────────────
+  // ─── Draw neon skeleton (MAGENTA) ──────────────────────────────────────────────
   function drawNeonSkeleton(lms) {
-    const c = '#0066ff';
+    const c = '#ff00ff';
     ctx.save();
     ctx.shadowBlur = 20;
-    ctx.shadowColor = '#0088ff';
+    ctx.shadowColor = '#ff44ff';
     ctx.strokeStyle = c;
     ctx.lineWidth = 3;
     const conn = [
@@ -224,23 +241,79 @@
     ctx.restore();
   }
 
-  // ─── Hand gesture — any hand movement = orbit ──────────────────────────────────
+  // ─── Gesture: pointing = index extended, all others curled ─────────────────────
+  function isPointing(l) {
+    const indexUp   = l[8].y  < l[6].y  - 0.02;
+    const midDown   = l[12].y > l[10].y - 0.01;
+    const ringDown  = l[16].y > l[14].y - 0.01;
+    const pinkyDown = l[20].y > l[18].y - 0.01;
+    return indexUp && midDown && ringDown && pinkyDown;
+  }
+
+  // ─── Smoothed finger position tracking ─────────────────────────────────────────
   let prevPos = null;
+  let smoothX = null, smoothY = null;
+  const POS_SMOOTH = 0.35; // Lower = smoother but laggier
 
   function onResults(results) {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+
     if (!results.multiHandLandmarks || !results.multiHandLandmarks.length) {
-      prevPos = null;
+      // Hand lost — stop gesturing, reset state, let mouse take over
+      if (handActive) { handActive = false; syncCamera(); }
+      prevPos = null; smoothX = null; smoothY = null;
       return;
     }
+
     const l = results.multiHandLandmarks[0];
     drawNeonSkeleton(l);
 
-    // Use wrist (landmark 0) as tracking anchor — most stable point
-    const cur = { x: 1 - l[0].x, y: l[0].y };
+    if (!isPointing(l)) {
+      // Not pointing — stop gesturing, reset, let mouse take over
+      if (handActive) { handActive = false; syncCamera(); }
+      prevPos = null; smoothX = null; smoothY = null;
+      return;
+    }
+
+    // Pointing gesture detected — activate hand control
+    if (!handActive) {
+      // First frame of pointing: sync camera from Sketchfab before taking over
+      handActive = true;
+      if (sfApi) {
+        sfApi.getCameraLookAt(function(err, cam) {
+          if (!err) {
+            camEye = cam.position.slice();
+            camTarget = cam.target.slice();
+            camReady = true;
+          }
+        });
+      }
+      prevPos = null; smoothX = null; smoothY = null;
+      return; // Skip this frame to let sync complete
+    }
+
+    // Track index fingertip (landmark 8), mirrored X
+    const rawX = 1 - l[8].x;
+    const rawY = l[8].y;
+
+    // Smooth position to eliminate MediaPipe jitter
+    if (smoothX === null) {
+      smoothX = rawX; smoothY = rawY;
+    } else {
+      smoothX += POS_SMOOTH * (rawX - smoothX);
+      smoothY += POS_SMOOTH * (rawY - smoothY);
+    }
+
+    // Compute delta from smoothed position and accumulate velocity
+    const cur = { x: smoothX, y: smoothY };
     if (prevPos) {
-      velX += cur.x - prevPos.x;
-      velY += cur.y - prevPos.y;
+      const dx = cur.x - prevPos.x;
+      const dy = cur.y - prevPos.y;
+      // Only accumulate if delta is meaningful (extra jitter filter)
+      if (Math.abs(dx) > 0.001 || Math.abs(dy) > 0.001) {
+        velX += dx;
+        velY += dy;
+      }
     }
     prevPos = cur;
   }
