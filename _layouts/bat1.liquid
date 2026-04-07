@@ -32,6 +32,7 @@
 <script src="https://unpkg.com/@lottiefiles/dotlottie-wc@0.9.8/dist/dotlottie-wc.js" type="module"></script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+<script type="text/javascript" src="https://static.sketchfab.com/api/sketchfab-viewer-1.12.1.js"></script>
 
 <div style="position: fixed; inset: 0; width: 100vw; height: 100vh; margin: 0; padding: 0;">
 
@@ -53,8 +54,7 @@
     execution-while-not-rendered 
     web-share 
     allowtransparency="true"
-    style="position: absolute; inset: 0; width: 100%; height: 100%; border: none; display: block; background: transparent;"
-    src="https://sketchfab.com/models/sBv577Vdl9lrcvyFT3vbNvkGKml/embed?autostart=1&preload=1&transparent=1&ui_animations=0&ui_infos=0&ui_stop=0&ui_inspector=0&ui_watermark_link=0&ui_watermark=0&ui_hint=0&ui_ar=0&ui_help=0&ui_settings=0&ui_vr=0&ui_fullscreen=0&ui_annotations=0&ui_downloads=0&ui_share=0">
+    style="position: absolute; inset: 0; width: 100%; height: 100%; border: none; display: block; background: transparent;">
   </iframe>
 
   <!-- Hand tracking canvas — above everything except loading screen -->
@@ -115,17 +115,86 @@
 </script>
 
 <script>
+  // ─── Sketchfab Viewer API ──────────────────────────────────────────────────────
+  let sketchfabAPI = null;
+
+  (function initSketchfab() {
+    const iframe = document.getElementById('sketchfab-iframe');
+    const uid = 'sBv577Vdl9lrcvyFT3vbNvkGKml';
+    const client = new Sketchfab(iframe);
+
+    client.init(uid, {
+      success: function(api) {
+        sketchfabAPI = api;
+        api.start(function() {
+          console.log('[Sketchfab] Viewer started');
+          // Disable default mouse/touch orbit so ONLY hand controls work
+          api.setUserInteraction(false);
+        });
+      },
+      error: function() {
+        console.error('[Sketchfab] Failed to init viewer');
+      },
+      autostart: 1,
+      preload: 1,
+      transparent: 1,
+      ui_animations: 0,
+      ui_infos: 0,
+      ui_stop: 0,
+      ui_inspector: 0,
+      ui_watermark_link: 0,
+      ui_watermark: 0,
+      ui_hint: 0,
+      ui_ar: 0,
+      ui_help: 0,
+      ui_settings: 0,
+      ui_vr: 0,
+      ui_fullscreen: 0,
+      ui_annotations: 0,
+      ui_downloads: 0,
+      ui_share: 0,
+    });
+  })();
+
+  // ─── Camera math helpers ───────────────────────────────────────────────────────
+  function vecSub(a, b) { return [a[0]-b[0], a[1]-b[1], a[2]-b[2]]; }
+  function vecAdd(a, b) { return [a[0]+b[0], a[1]+b[1], a[2]+b[2]]; }
+  function vecScale(v, s) { return [v[0]*s, v[1]*s, v[2]*s]; }
+  function vecLen(v) { return Math.sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2]); }
+  function vecNorm(v) { const l = vecLen(v); return l ? [v[0]/l, v[1]/l, v[2]/l] : [0,0,1]; }
+  function vecCross(a, b) {
+    return [a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2], a[0]*b[1]-a[1]*b[0]];
+  }
+
+  function toSpherical(eye, target) {
+    const d = vecSub(eye, target);
+    const r = vecLen(d);
+    const theta = Math.atan2(d[0], d[2]); // azimuth
+    const phi = Math.asin(Math.max(-1, Math.min(1, d[1] / r))); // elevation
+    return { r, theta, phi };
+  }
+
+  function fromSpherical(target, r, theta, phi) {
+    return [
+      target[0] + r * Math.sin(theta) * Math.cos(phi),
+      target[1] + r * Math.sin(phi),
+      target[2] + r * Math.cos(theta) * Math.cos(phi),
+    ];
+  }
+
+  // ─── Hand tracking setup ───────────────────────────────────────────────────────
   const videoEl = document.getElementById('hand-video');
-  const canvas = document.getElementById('hand-canvas');
-  const ctx = canvas.getContext('2d');
+  const canvas  = document.getElementById('hand-canvas');
+  const ctx     = canvas.getContext('2d');
 
   function resizeCanvas() {
-    canvas.width = window.innerWidth;
+    canvas.width  = window.innerWidth;
     canvas.height = window.innerHeight;
   }
   window.addEventListener('resize', resizeCanvas);
   resizeCanvas();
 
+  // ─── Draw neon skeleton ────────────────────────────────────────────────────────
   function drawNeonSkeleton(landmarks) {
     const blue = '#00f2ff';
     ctx.save();
@@ -156,13 +225,159 @@
     ctx.restore();
   }
 
+  // ─── Gesture detection ─────────────────────────────────────────────────────────
+  function dist2D(a, b) {
+    return Math.hypot(a.x - b.x, a.y - b.y);
+  }
+
+  function isPinching(lms) {
+    return dist2D(lms[4], lms[8]) < 0.06;
+  }
+
+  function isOneFingerExtended(lms) {
+    // Index extended, middle/ring/pinky curled, NOT pinching
+    const indexUp  = lms[8].y  < lms[6].y - 0.02;
+    const midDown  = lms[12].y > lms[10].y - 0.01;
+    const ringDown = lms[16].y > lms[14].y - 0.01;
+    const pinkyDown= lms[20].y > lms[18].y - 0.01;
+    return indexUp && midDown && ringDown && pinkyDown;
+  }
+
+  function isTwoFingersExtended(lms) {
+    // Index + middle extended, ring/pinky curled
+    const indexUp  = lms[8].y  < lms[6].y - 0.02;
+    const midUp    = lms[12].y < lms[10].y - 0.02;
+    const ringDown = lms[16].y > lms[14].y - 0.01;
+    const pinkyDown= lms[20].y > lms[18].y - 0.01;
+    return indexUp && midUp && ringDown && pinkyDown;
+  }
+
+  // ─── Gesture state tracking ────────────────────────────────────────────────────
+  let prevGesture = 'idle'; // 'idle' | 'pinch' | 'one_finger' | 'two_finger'
+  let prevPinchDist  = null;
+  let prevFingerPos  = null; // {x, y} in normalised coords [0..1]
+
+  const ZOOM_SENSITIVITY  = 8.0;
+  const ORBIT_SENSITIVITY = 4.0;
+  const PAN_SENSITIVITY   = 6.0;
+
+  // ─── Apply camera transforms ──────────────────────────────────────────────────
+  function applyZoom(delta) {
+    if (!sketchfabAPI) return;
+    sketchfabAPI.getCameraLookAt(function(err, cam) {
+      if (err) return;
+      const eye = cam.position, target = cam.target;
+      const dir = vecSub(eye, target);
+      const factor = 1.0 + delta * ZOOM_SENSITIVITY;
+      const newEye = vecAdd(target, vecScale(dir, Math.max(0.1, factor)));
+      sketchfabAPI.setCameraLookAt(newEye, target, 0);
+    });
+  }
+
+  function applyOrbit(dx, dy) {
+    if (!sketchfabAPI) return;
+    sketchfabAPI.getCameraLookAt(function(err, cam) {
+      if (err) return;
+      const eye = cam.position, target = cam.target;
+      const sph = toSpherical(eye, target);
+      // dx moves azimuth, dy moves elevation
+      sph.theta -= dx * ORBIT_SENSITIVITY;
+      sph.phi   += dy * ORBIT_SENSITIVITY;
+      // Clamp elevation to avoid flipping
+      sph.phi = Math.max(-Math.PI/2 + 0.05, Math.min(Math.PI/2 - 0.05, sph.phi));
+      const newEye = fromSpherical(target, sph.r, sph.theta, sph.phi);
+      sketchfabAPI.setCameraLookAt(newEye, target, 0);
+    });
+  }
+
+  function applyPan(dx, dy) {
+    if (!sketchfabAPI) return;
+    sketchfabAPI.getCameraLookAt(function(err, cam) {
+      if (err) return;
+      const eye = cam.position, target = cam.target;
+      // Compute camera right and up vectors
+      const forward = vecNorm(vecSub(target, eye));
+      const worldUp = [0, 1, 0];
+      const right = vecNorm(vecCross(forward, worldUp));
+      const up    = vecCross(right, forward);
+      const r = vecLen(vecSub(eye, target));
+      const panScale = r * PAN_SENSITIVITY;
+      const offset = vecAdd(vecScale(right, -dx * panScale), vecScale(up, dy * panScale));
+      const newEye    = vecAdd(eye, offset);
+      const newTarget = vecAdd(target, offset);
+      sketchfabAPI.setCameraLookAt(newEye, newTarget, 0);
+    });
+  }
+
+  // ─── Main hand results callback ────────────────────────────────────────────────
   function onResults(results) {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
-      drawNeonSkeleton(results.multiHandLandmarks[0]);
+
+    if (!results.multiHandLandmarks || results.multiHandLandmarks.length === 0) {
+      prevGesture   = 'idle';
+      prevPinchDist = null;
+      prevFingerPos = null;
+      return;
+    }
+
+    const lms = results.multiHandLandmarks[0];
+    drawNeonSkeleton(lms);
+
+    // Determine current gesture (priority: pinch > two-finger > one-finger)
+    let gesture = 'idle';
+    if (isPinching(lms)) {
+      gesture = 'pinch';
+    } else if (isTwoFingersExtended(lms)) {
+      gesture = 'two_finger';
+    } else if (isOneFingerExtended(lms)) {
+      gesture = 'one_finger';
+    }
+
+    // Handle gesture transitions — reset tracking state on change
+    if (gesture !== prevGesture) {
+      prevPinchDist = null;
+      prevFingerPos = null;
+      prevGesture = gesture;
+    }
+
+    if (gesture === 'pinch') {
+      // Zoom: track thumb-index distance delta
+      const curDist = dist2D(lms[4], lms[8]);
+      if (prevPinchDist !== null) {
+        const delta = curDist - prevPinchDist;
+        applyZoom(delta);
+      }
+      prevPinchDist = curDist;
+
+    } else if (gesture === 'one_finger') {
+      // Orbit: track index fingertip position delta (mirrored x)
+      const curPos = { x: 1 - lms[8].x, y: lms[8].y };
+      if (prevFingerPos !== null) {
+        const dx = curPos.x - prevFingerPos.x;
+        const dy = curPos.y - prevFingerPos.y;
+        applyOrbit(dx, dy);
+      }
+      prevFingerPos = curPos;
+
+    } else if (gesture === 'two_finger') {
+      // Pan: track midpoint of index + middle fingertips (mirrored x)
+      const mx = 1 - (lms[8].x + lms[12].x) / 2;
+      const my = (lms[8].y + lms[12].y) / 2;
+      const curPos = { x: mx, y: my };
+      if (prevFingerPos !== null) {
+        const dx = curPos.x - prevFingerPos.x;
+        const dy = curPos.y - prevFingerPos.y;
+        applyPan(dx, dy);
+      }
+      prevFingerPos = curPos;
+
+    } else {
+      prevPinchDist = null;
+      prevFingerPos = null;
     }
   }
 
+  // ─── Init MediaPipe ────────────────────────────────────────────────────────────
   const hands = new Hands({
     locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
   });
