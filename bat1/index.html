@@ -22,88 +22,115 @@
     icons.style.display = 'flex';
   }, 3000);
 </script> <script>
-  // ─── Sketchfab Viewer API ──────────────────────────────────────────────────────
-  let sketchfabAPI = null;
+  // ─── Sketchfab Viewer API — camera control with rAF interpolation ──────────────
+  let sfApi = null;
+  let camEye = null, camTarget = null, camReady = false;
 
-  // Cached camera state — updated locally each frame for smooth control
-  let camEye    = null;  // [x, y, z]
-  let camTarget = null;  // [x, y, z]
-  let camReady  = false;
+  // Velocity accumulators — written by MediaPipe, consumed by rAF loop
+  let velOrbitX = 0, velOrbitY = 0;   // orbit (azimuth, elevation)
+  let velPanX = 0, velPanY = 0;       // pan (right, up)
+  let velZoom = 0;                     // zoom (distance scale)
 
-  (function initSketchfab() {
-    const iframe = document.getElementById('sketchfab-iframe');
-    const uid = 'sBv577Vdl9lrcvyFT3vbNvkGKml';
-    const client = new Sketchfab(iframe);
-
-    client.init(uid, {
-      success: function(api) {
-        sketchfabAPI = api;
-        api.start(function() {
-          console.log('[Sketchfab] Viewer started');
-          api.setUserInteraction(false);
-          // Seed the cached camera state
-          api.getCameraLookAt(function(err, cam) {
-            if (!err) {
-              camEye    = cam.position.slice();
-              camTarget = cam.target.slice();
-              camReady  = true;
-              console.log('[Sketchfab] Camera cached', camEye, camTarget);
-            }
-          });
-        });
-      },
-      error: function() {
-        console.error('[Sketchfab] Failed to init viewer');
-      },
-      autostart: 1,
-      preload: 1,
-      transparent: 1,
-      ui_animations: 0,
-      ui_infos: 0,
-      ui_stop: 0,
-      ui_inspector: 0,
-      ui_watermark_link: 0,
-      ui_watermark: 0,
-      ui_hint: 0,
-      ui_ar: 0,
-      ui_help: 0,
-      ui_settings: 0,
-      ui_vr: 0,
-      ui_fullscreen: 0,
-      ui_annotations: 0,
-      ui_downloads: 0,
-      ui_share: 0,
-    });
-  })();
+  const DAMPING     = 0.85;   // Per-frame velocity damping for smooth deceleration
+  const DEAD_ZONE   = 0.0005; // Ignore deltas below this
+  const ORBIT_GAIN  = 2.5;
+  const PAN_GAIN    = 3.0;
+  const ZOOM_GAIN   = 4.0;
 
   // ─── Vector math ───────────────────────────────────────────────────────────────
   function vecSub(a, b) { return [a[0]-b[0], a[1]-b[1], a[2]-b[2]]; }
   function vecAdd(a, b) { return [a[0]+b[0], a[1]+b[1], a[2]+b[2]]; }
   function vecScale(v, s) { return [v[0]*s, v[1]*s, v[2]*s]; }
-  function vecLen(v) { return Math.sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2]); }
-  function vecNorm(v) { const l = vecLen(v); return l ? [v[0]/l, v[1]/l, v[2]/l] : [0,0,1]; }
+  function vecLen(v) { return Math.sqrt(v[0]*v[0]+v[1]*v[1]+v[2]*v[2]); }
+  function vecNorm(v) { const l=vecLen(v); return l?[v[0]/l,v[1]/l,v[2]/l]:[0,0,1]; }
   function vecCross(a, b) {
     return [a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2], a[0]*b[1]-a[1]*b[0]];
   }
-  function lerp(a, b, t) { return a + (b - a) * t; }
 
-  function toSpherical(eye, target) {
-    const d = vecSub(eye, target);
-    const r = vecLen(d);
-    const theta = Math.atan2(d[0], d[2]);
-    const phi = Math.asin(Math.max(-1, Math.min(1, d[1] / r)));
-    return { r, theta, phi };
+  function toSpherical(eye, tgt) {
+    const d=vecSub(eye,tgt), r=vecLen(d);
+    return { r, theta: Math.atan2(d[0],d[2]), phi: Math.asin(Math.max(-1,Math.min(1,d[1]/r))) };
+  }
+  function fromSpherical(tgt, r, th, ph) {
+    return [tgt[0]+r*Math.sin(th)*Math.cos(ph), tgt[1]+r*Math.sin(ph), tgt[2]+r*Math.cos(th)*Math.cos(ph)];
   }
 
-  function fromSpherical(target, r, theta, phi) {
-    return [
-      target[0] + r * Math.sin(theta) * Math.cos(phi),
-      target[1] + r * Math.sin(phi),
-      target[2] + r * Math.cos(theta) * Math.cos(phi),
-    ];
-  }
+  // ─── 60fps rAF camera loop ────────────────────────────────────────────────────
+  function cameraLoop() {
+    requestAnimationFrame(cameraLoop);
+    if (!sfApi || !camReady) return;
 
-  // ─── Hand tracking setup ───────────────────────────────────────────────────────
+    let dirty = false;
+
+    // Orbit
+    if (Math.abs(velOrbitX) > DEAD_ZONE || Math.abs(velOrbitY) > DEAD_ZONE) {
+      const sph = toSpherical(camEye, camTarget);
+      sph.theta += velOrbitX * ORBIT_GAIN;
+      sph.phi   -= velOrbitY * ORBIT_GAIN;
+      sph.phi = Math.max(-1.5, Math.min(1.5, sph.phi));
+      camEye = fromSpherical(camTarget, sph.r, sph.theta, sph.phi);
+      velOrbitX *= DAMPING;
+      velOrbitY *= DAMPING;
+      dirty = true;
+    }
+
+    // Pan
+    if (Math.abs(velPanX) > DEAD_ZONE || Math.abs(velPanY) > DEAD_ZONE) {
+      const fwd = vecNorm(vecSub(camTarget, camEye));
+      const right = vecNorm(vecCross(fwd, [0,1,0]));
+      const up = vecCross(right, fwd);
+      const s = vecLen(vecSub(camEye, camTarget)) * PAN_GAIN;
+      const off = vecAdd(vecScale(right, -velPanX*s), vecScale(up, velPanY*s));
+      camEye = vecAdd(camEye, off);
+      camTarget = vecAdd(camTarget, off);
+      velPanX *= DAMPING;
+      velPanY *= DAMPING;
+      dirty = true;
+    }
+
+    // Zoom
+    if (Math.abs(velZoom) > DEAD_ZONE) {
+      const dir = vecSub(camEye, camTarget);
+      const factor = 1.0 + velZoom * ZOOM_GAIN;
+      camEye = vecAdd(camTarget, vecScale(dir, Math.max(0.05, factor)));
+      velZoom *= DAMPING;
+      dirty = true;
+    }
+
+    if (dirty) {
+      sfApi.setCameraLookAt(camEye, camTarget, 0);
+    }
+  }
+  requestAnimationFrame(cameraLoop);
+
+  // ─── Init Sketchfab Viewer API ─────────────────────────────────────────────────
+  (function() {
+    const iframe = document.getElementById('sketchfab-iframe');
+    const client = new Sketchfab(iframe);
+    client.init('sBv577Vdl9lrcvyFT3vbNvkGKml', {
+      success: function(api) {
+        sfApi = api;
+        api.start(function() {
+          api.setUserInteraction(false);
+          api.getCameraLookAt(function(err, cam) {
+            if (!err) {
+              camEye = cam.position.slice();
+              camTarget = cam.target.slice();
+              camReady = true;
+            }
+          });
+        });
+      },
+      error: function() { console.error('Sketchfab init failed'); },
+      autostart: 1, preload: 1, transparent: 1,
+      ui_animations:0, ui_infos:0, ui_stop:0, ui_inspector:0,
+      ui_watermark_link:0, ui_watermark:0, ui_hint:0, ui_ar:0,
+      ui_help:0, ui_settings:0, ui_vr:0, ui_fullscreen:0,
+      ui_annotations:0, ui_downloads:0, ui_share:0,
+    });
+  })();
+
+  // ─── Hand tracking ─────────────────────────────────────────────────────────────
   const videoEl = document.getElementById('hand-video');
   const canvas  = document.getElementById('hand-canvas');
   const ctx     = canvas.getContext('2d');
@@ -115,219 +142,94 @@
   window.addEventListener('resize', resizeCanvas);
   resizeCanvas();
 
-  // ─── Draw neon skeleton (RED) ──────────────────────────────────────────────────
-  function drawNeonSkeleton(landmarks) {
-    const color = '#ff2040';
+  // ─── Draw neon skeleton (GREEN) ────────────────────────────────────────────────
+  function drawNeonSkeleton(lms) {
+    const c = '#39ff14';
     ctx.save();
     ctx.shadowBlur = 18;
-    ctx.shadowColor = color;
-    ctx.strokeStyle = color;
+    ctx.shadowColor = c;
+    ctx.strokeStyle = c;
     ctx.lineWidth = 3;
-
-    const connections = [
+    const conn = [
       [0,1],[1,2],[2,3],[3,4],[0,5],[5,6],[6,7],[7,8],
       [5,9],[9,10],[10,11],[11,12],[9,13],[13,14],[14,15],[15,16],
       [13,17],[17,18],[18,19],[19,20],[0,17]
     ];
-
-    connections.forEach(([a, b]) => {
+    conn.forEach(([a,b]) => {
       ctx.beginPath();
-      ctx.moveTo(landmarks[a].x * canvas.width, landmarks[a].y * canvas.height);
-      ctx.lineTo(landmarks[b].x * canvas.width, landmarks[b].y * canvas.height);
+      ctx.moveTo(lms[a].x*canvas.width, lms[a].y*canvas.height);
+      ctx.lineTo(lms[b].x*canvas.width, lms[b].y*canvas.height);
       ctx.stroke();
     });
-
-    ctx.fillStyle = color;
-    landmarks.forEach(point => {
+    ctx.fillStyle = c;
+    lms.forEach(p => {
       ctx.beginPath();
-      ctx.arc(point.x * canvas.width, point.y * canvas.height, 4, 0, Math.PI * 2);
+      ctx.arc(p.x*canvas.width, p.y*canvas.height, 4, 0, Math.PI*2);
       ctx.fill();
     });
     ctx.restore();
   }
 
   // ─── Gesture detection ─────────────────────────────────────────────────────────
-  function dist2D(a, b) {
-    return Math.hypot(a.x - b.x, a.y - b.y);
+  function d2(a,b) { return Math.hypot(a.x-b.x, a.y-b.y); }
+
+  function isThreeFingerPinch(l) {
+    return d2(l[4],l[8])<0.08 && d2(l[4],l[12])<0.08 && d2(l[8],l[12])<0.08;
+  }
+  function isPointing(l) {
+    return l[8].y<l[6].y-0.02 && l[12].y>l[10].y-0.01 &&
+           l[16].y>l[14].y-0.01 && l[20].y>l[18].y-0.01 && d2(l[4],l[8])>0.07;
+  }
+  function isOpenPalm(l) {
+    return l[8].y<l[6].y-0.02 && l[12].y<l[10].y-0.02 &&
+           l[16].y<l[14].y-0.02 && l[20].y<l[18].y-0.02;
   }
 
-  // 3-finger pinch: thumb, index, middle tips all close together
-  function isThreeFingerPinch(lms) {
-    const d1 = dist2D(lms[4], lms[8]);   // thumb–index
-    const d2 = dist2D(lms[4], lms[12]);  // thumb–middle
-    const d3 = dist2D(lms[8], lms[12]);  // index–middle
-    return d1 < 0.08 && d2 < 0.08 && d3 < 0.08;
-  }
+  // ─── Gesture state ─────────────────────────────────────────────────────────────
+  let prevG = 'idle', prevPos = null, prevPinch = null;
 
-  // One finger pointing: only index extended
-  function isPointing(lms) {
-    const indexUp   = lms[8].y  < lms[6].y  - 0.02;
-    const midDown   = lms[12].y > lms[10].y - 0.01;
-    const ringDown  = lms[16].y > lms[14].y - 0.01;
-    const pinkyDown = lms[20].y > lms[18].y - 0.01;
-    // Also make sure not pinching (thumb far from index)
-    const notPinch  = dist2D(lms[4], lms[8]) > 0.07;
-    return indexUp && midDown && ringDown && pinkyDown && notPinch;
-  }
-
-  // Open palm: all 5 fingers extended
-  function isOpenPalm(lms) {
-    const thumbUp  = lms[4].x  < lms[3].x  - 0.01 || lms[4].x  > lms[3].x  + 0.01; // thumb extended laterally
-    const indexUp  = lms[8].y  < lms[6].y  - 0.02;
-    const midUp    = lms[12].y < lms[10].y - 0.02;
-    const ringUp   = lms[16].y < lms[14].y - 0.02;
-    const pinkyUp  = lms[20].y < lms[18].y - 0.02;
-    return indexUp && midUp && ringUp && pinkyUp;
-  }
-
-  // ─── Smoothing state ──────────────────────────────────────────────────────────
-  const SMOOTH = 0.25;  // Exponential smoothing factor (lower = smoother, laggier)
-  let smoothDX = 0, smoothDY = 0, smoothDZ = 0;
-
-  let prevGesture    = 'idle';
-  let prevPinchDist  = null;
-  let prevFingerPos  = null;
-
-  const ZOOM_SPEED   = 5.0;
-  const ORBIT_SPEED  = 3.5;
-  const PAN_SPEED    = 4.0;
-
-  // ─── Camera manipulation (synchronous, cached) ────────────────────────────────
-  function commitCamera() {
-    if (!sketchfabAPI || !camReady) return;
-    sketchfabAPI.setCameraLookAt(camEye, camTarget, 0);
-  }
-
-  function doZoom(rawDelta) {
-    if (!camReady) return;
-    smoothDZ = lerp(smoothDZ, rawDelta, SMOOTH);
-    const dir = vecSub(camEye, camTarget);
-    const factor = 1.0 + smoothDZ * ZOOM_SPEED;
-    camEye = vecAdd(camTarget, vecScale(dir, Math.max(0.05, factor)));
-    commitCamera();
-  }
-
-  function doOrbit(rawDX, rawDY) {
-    if (!camReady) return;
-    smoothDX = lerp(smoothDX, rawDX, SMOOTH);
-    smoothDY = lerp(smoothDY, rawDY, SMOOTH);
-    const sph = toSpherical(camEye, camTarget);
-    // Positive screen dx (hand moves right) → positive azimuth (model turns right from viewer's POV)
-    sph.theta += smoothDX * ORBIT_SPEED;
-    // Positive screen dy (hand moves down) → negative elevation
-    sph.phi   -= smoothDY * ORBIT_SPEED;
-    sph.phi = Math.max(-Math.PI / 2 + 0.05, Math.min(Math.PI / 2 - 0.05, sph.phi));
-    camEye = fromSpherical(camTarget, sph.r, sph.theta, sph.phi);
-    commitCamera();
-  }
-
-  function doPan(rawDX, rawDY) {
-    if (!camReady) return;
-    smoothDX = lerp(smoothDX, rawDX, SMOOTH);
-    smoothDY = lerp(smoothDY, rawDY, SMOOTH);
-    const forward = vecNorm(vecSub(camTarget, camEye));
-    const worldUp = [0, 1, 0];
-    const right   = vecNorm(vecCross(forward, worldUp));
-    const up      = vecCross(right, forward);
-    const r       = vecLen(vecSub(camEye, camTarget));
-    const scale   = r * PAN_SPEED;
-    // Hand moves right → camera slides right (both eye+target shift)
-    const offset = vecAdd(
-      vecScale(right, -smoothDX * scale),
-      vecScale(up, smoothDY * scale)
-    );
-    camEye    = vecAdd(camEye, offset);
-    camTarget = vecAdd(camTarget, offset);
-    commitCamera();
-  }
-
-  // ─── Main hand results callback ────────────────────────────────────────────────
   function onResults(results) {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    if (!results.multiHandLandmarks || results.multiHandLandmarks.length === 0) {
-      prevGesture    = 'idle';
-      prevPinchDist  = null;
-      prevFingerPos  = null;
-      smoothDX = smoothDY = smoothDZ = 0;
+    if (!results.multiHandLandmarks || !results.multiHandLandmarks.length) {
+      prevG = 'idle'; prevPos = null; prevPinch = null;
       return;
     }
+    const l = results.multiHandLandmarks[0];
+    drawNeonSkeleton(l);
 
-    const lms = results.multiHandLandmarks[0];
-    drawNeonSkeleton(lms);
+    let g = 'idle';
+    if (isThreeFingerPinch(l)) g = 'pinch';
+    else if (isPointing(l)) g = 'point';
+    else if (isOpenPalm(l)) g = 'palm';
 
-    // Gesture priority: 3-finger pinch > pointing > open palm > idle
-    let gesture = 'idle';
-    if (isThreeFingerPinch(lms)) {
-      gesture = 'pinch';
-    } else if (isPointing(lms)) {
-      gesture = 'point';
-    } else if (isOpenPalm(lms)) {
-      gesture = 'palm';
-    }
+    if (g !== prevG) { prevPos = null; prevPinch = null; prevG = g; }
 
-    // Reset state on gesture change
-    if (gesture !== prevGesture) {
-      prevPinchDist = null;
-      prevFingerPos = null;
-      smoothDX = smoothDY = smoothDZ = 0;
-      prevGesture = gesture;
-    }
-
-    if (gesture === 'pinch') {
-      // 3-finger pinch: zoom via average pairwise distance
-      const avg = (dist2D(lms[4], lms[8]) + dist2D(lms[4], lms[12]) + dist2D(lms[8], lms[12])) / 3;
-      if (prevPinchDist !== null) {
-        const delta = avg - prevPinchDist;
-        doZoom(delta);
-      }
-      prevPinchDist = avg;
-
-    } else if (gesture === 'point') {
-      // Index finger orbit — use mirrored x so directions match screen
-      const curPos = { x: 1 - lms[8].x, y: lms[8].y };
-      if (prevFingerPos !== null) {
-        const dx = curPos.x - prevFingerPos.x;
-        const dy = curPos.y - prevFingerPos.y;
-        doOrbit(dx, dy);
-      }
-      prevFingerPos = curPos;
-
-    } else if (gesture === 'palm') {
-      // Open palm pan — use wrist (lms[0]) as anchor for stability
-      const curPos = { x: 1 - lms[0].x, y: lms[0].y };
-      if (prevFingerPos !== null) {
-        const dx = curPos.x - prevFingerPos.x;
-        const dy = curPos.y - prevFingerPos.y;
-        doPan(dx, dy);
-      }
-      prevFingerPos = curPos;
-
+    if (g === 'pinch') {
+      const avg = (d2(l[4],l[8]) + d2(l[4],l[12]) + d2(l[8],l[12])) / 3;
+      if (prevPinch !== null) velZoom += (avg - prevPinch);
+      prevPinch = avg;
+    } else if (g === 'point') {
+      const cur = { x: 1-l[8].x, y: l[8].y };
+      if (prevPos) { velOrbitX += cur.x-prevPos.x; velOrbitY += cur.y-prevPos.y; }
+      prevPos = cur;
+    } else if (g === 'palm') {
+      const cur = { x: 1-l[0].x, y: l[0].y };
+      if (prevPos) { velPanX += cur.x-prevPos.x; velPanY += cur.y-prevPos.y; }
+      prevPos = cur;
     } else {
-      prevPinchDist = null;
-      prevFingerPos = null;
-      smoothDX = smoothDY = smoothDZ = 0;
+      prevPos = null; prevPinch = null;
     }
   }
 
   // ─── Init MediaPipe ────────────────────────────────────────────────────────────
   const hands = new Hands({
-    locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
+    locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${f}`
   });
-
-  hands.setOptions({
-    maxNumHands: 1,
-    modelComplexity: 1,
-    minDetectionConfidence: 0.85,
-    minTrackingConfidence: 0.85
-  });
-
+  hands.setOptions({ maxNumHands:1, modelComplexity:1, minDetectionConfidence:0.85, minTrackingConfidence:0.85 });
   hands.onResults(onResults);
-
-  const camera = new Camera(videoEl, {
-    onFrame: async () => { await hands.send({ image: videoEl }); },
-    width: 1280,
-    height: 720
+  const cam = new Camera(videoEl, {
+    onFrame: async () => { await hands.send({image:videoEl}); },
+    width: 1280, height: 720
   });
-  camera.start();
+  cam.start();
 </script> </body> </html>
