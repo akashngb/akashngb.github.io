@@ -26,24 +26,26 @@
   let sfApi = null;
   let camReady = false;
 
-  // Stored camera state for hand-based orbit
-  let baseTheta = 0, basePhi = 0, baseR = 0;
-  let baseTarget = [0, 0, 0];
-  let startFingerX = 0, startFingerY = 0;
+  // Cached camera state (owned while hand is active)
+  let cTheta = 0, cPhi = 0, cR = 0, cTarget = [0,0,0];
   let handActive = false;
 
-  const ROTATION_GAIN = 3.0;  // How many radians per full-screen finger sweep
+  // Smoothed finger tracking
+  let smoothX = null, smoothY = null;
+  let prevSX = null, prevSY = null;
+  const ALPHA = 0.35;       // Position smoothing (lower = smoother)
+  const GAIN  = 4.0;        // Radians per normalized-screen-unit of finger movement
+  const MIN_DELTA = 0.0008; // Dead zone to ignore jitter
 
   // ─── Vector math ───────────────────────────────────────────────────────────────
   function vecSub(a, b) { return [a[0]-b[0], a[1]-b[1], a[2]-b[2]]; }
   function vecLen(v) { return Math.sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2]); }
-
-  function toSpherical(eye, tgt) {
-    const d = vecSub(eye, tgt), r = vecLen(d);
-    return { r, theta: Math.atan2(d[0], d[2]), phi: Math.asin(Math.max(-1, Math.min(1, d[1] / r))) };
+  function toSpherical(e, t) {
+    const d = vecSub(e, t), r = vecLen(d);
+    return { r, th: Math.atan2(d[0], d[2]), ph: Math.asin(Math.max(-1, Math.min(1, d[1]/r))) };
   }
-  function fromSpherical(tgt, r, th, ph) {
-    return [tgt[0] + r*Math.sin(th)*Math.cos(ph), tgt[1] + r*Math.sin(ph), tgt[2] + r*Math.cos(th)*Math.cos(ph)];
+  function fromSpherical(t, r, th, ph) {
+    return [t[0]+r*Math.sin(th)*Math.cos(ph), t[1]+r*Math.sin(ph), t[2]+r*Math.cos(th)*Math.cos(ph)];
   }
 
   // ─── Init Sketchfab ────────────────────────────────────────────────────────────
@@ -54,12 +56,12 @@
       success: function(api) {
         sfApi = api;
         api.start(function() {
-          api.setUserInteraction(true); // Mouse controls stay enabled
+          api.setUserInteraction(true); // Mouse stays enabled
           setTimeout(function() { camReady = true; }, 2500);
         });
       },
       error: function() { console.error('Sketchfab init failed'); },
-      autostart: 1, preload: 1, transparent: 1,
+      autostart:1, preload:1, transparent:1,
       ui_animations:0, ui_infos:0, ui_stop:0, ui_inspector:0,
       ui_watermark_link:0, ui_watermark:0, ui_hint:0, ui_ar:0,
       ui_help:0, ui_settings:0, ui_vr:0, ui_fullscreen:0,
@@ -71,20 +73,16 @@
   const videoEl = document.getElementById('hand-video');
   const canvas  = document.getElementById('hand-canvas');
   const ctx     = canvas.getContext('2d');
-
-  function resizeCanvas() {
-    canvas.width  = window.innerWidth;
-    canvas.height = window.innerHeight;
-  }
+  function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
   window.addEventListener('resize', resizeCanvas);
   resizeCanvas();
 
-  // ─── Draw neon skeleton (DEEP NEON BLUE) ───────────────────────────────────────
+  // ─── Draw neon skeleton (RED) ──────────────────────────────────────────────────
   function drawNeonSkeleton(lms) {
-    const c = '#0066ff';
+    const c = '#ff1a1a';
     ctx.save();
     ctx.shadowBlur = 20;
-    ctx.shadowColor = '#0088ff';
+    ctx.shadowColor = '#ff4444';
     ctx.strokeStyle = c;
     ctx.lineWidth = 3;
     const conn = [
@@ -107,71 +105,70 @@
     ctx.restore();
   }
 
-  // ─── Gesture: pointing = index extended, all others curled ─────────────────────
+  // ─── Gesture: pointer finger extended, all others curled ───────────────────────
   function isPointing(l) {
-    const indexUp   = l[8].y  < l[6].y  - 0.02;
-    const midDown   = l[12].y > l[10].y - 0.01;
-    const ringDown  = l[16].y > l[14].y - 0.01;
-    const pinkyDown = l[20].y > l[18].y - 0.01;
-    return indexUp && midDown && ringDown && pinkyDown;
+    return l[8].y < l[6].y - 0.02 &&
+           l[12].y > l[10].y - 0.01 &&
+           l[16].y > l[14].y - 0.01 &&
+           l[20].y > l[18].y - 0.01;
   }
 
-  // ─── Smoothed finger position ──────────────────────────────────────────────────
-  let smoothX = null, smoothY = null;
-  const ALPHA = 0.4; // Smoothing factor
-
+  // ─── Main callback ─────────────────────────────────────────────────────────────
   function onResults(results) {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     if (!results.multiHandLandmarks || !results.multiHandLandmarks.length) {
       handActive = false;
-      smoothX = null; smoothY = null;
+      smoothX = smoothY = prevSX = prevSY = null;
       return;
     }
 
     const l = results.multiHandLandmarks[0];
     drawNeonSkeleton(l);
 
+    // Only orbit when pointing (= "mousedown")
     if (!isPointing(l) || !sfApi || !camReady) {
       handActive = false;
-      smoothX = null; smoothY = null;
+      smoothX = smoothY = prevSX = prevSY = null;
       return;
     }
 
-    // Smooth fingertip position (mirrored X so screen matches physical hand)
+    // Smooth the finger tip position (mirrored X)
     const rawX = 1 - l[8].x;
     const rawY = l[8].y;
     if (smoothX === null) { smoothX = rawX; smoothY = rawY; }
     else { smoothX += ALPHA * (rawX - smoothX); smoothY += ALPHA * (rawY - smoothY); }
 
+    // First frame of pointing: snapshot camera, initialize prev position
     if (!handActive) {
-      // First frame of pointing — capture starting camera + finger position
       handActive = true;
-      startFingerX = smoothX;
-      startFingerY = smoothY;
-      // Snapshot current camera orientation (includes any mouse changes)
+      prevSX = smoothX; prevSY = smoothY;
       sfApi.getCameraLookAt(function(err, cam) {
         if (!err) {
-          const sph = toSpherical(cam.position, cam.target);
-          baseTheta = sph.theta;
-          basePhi = sph.phi;
-          baseR = sph.r;
-          baseTarget = cam.target.slice();
+          const s = toSpherical(cam.position, cam.target);
+          cTheta = s.th; cPhi = s.ph; cR = s.r;
+          cTarget = cam.target.slice();
         }
       });
-      return;
+      return; // Skip first frame for async sync
     }
 
-    // Direct mapping: total finger displacement → camera rotation offset
-    const dx = smoothX - startFingerX;
-    const dy = smoothY - startFingerY;
+    // Frame-to-frame delta from smoothed position (like a trackpad)
+    const dx = smoothX - prevSX;
+    const dy = smoothY - prevSY;
+    prevSX = smoothX;
+    prevSY = smoothY;
 
-    // Finger moves right (dx > 0) → theta decreases → model surface moves right
-    const newTheta = baseTheta - dx * ROTATION_GAIN;
-    const newPhi = Math.max(-1.4, Math.min(1.4, basePhi + dy * ROTATION_GAIN));
-    const newEye = fromSpherical(baseTarget, baseR, newTheta, newPhi);
+    // Dead zone filter
+    if (Math.abs(dx) < MIN_DELTA && Math.abs(dy) < MIN_DELTA) return;
 
-    sfApi.setCameraLookAt(newEye, baseTarget, 0);
+    // Apply incremental rotation to cached camera
+    cTheta -= dx * GAIN;   // finger right → model surface moves right
+    cPhi   += dy * GAIN;   // finger down → model tilts down
+    cPhi = Math.max(-1.4, Math.min(1.4, cPhi));
+
+    const newEye = fromSpherical(cTarget, cR, cTheta, cPhi);
+    sfApi.setCameraLookAt(newEye, cTarget, 0);
   }
 
   // ─── Init MediaPipe ────────────────────────────────────────────────────────────
