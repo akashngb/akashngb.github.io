@@ -24,58 +24,27 @@
 </script> <script>
   // ─── Sketchfab Viewer API ──────────────────────────────────────────────────────
   let sfApi = null;
-  let camEye = null, camTarget = null, camReady = false;
-  let handActive = false; // true while pointing gesture is active
+  let camReady = false;
 
-  // Velocity accumulator for smooth orbit
-  let velX = 0, velY = 0;
-  const DAMPING    = 0.88;
-  const DEAD_ZONE  = 0.0003;
-  const ORBIT_GAIN = 2.5;
+  // Stored camera state for hand-based orbit
+  let baseTheta = 0, basePhi = 0, baseR = 0;
+  let baseTarget = [0, 0, 0];
+  let startFingerX = 0, startFingerY = 0;
+  let handActive = false;
+
+  const ROTATION_GAIN = 3.0;  // How many radians per full-screen finger sweep
 
   // ─── Vector math ───────────────────────────────────────────────────────────────
-  function vecSub(a,b) { return [a[0]-b[0],a[1]-b[1],a[2]-b[2]]; }
-  function vecLen(v) { return Math.sqrt(v[0]*v[0]+v[1]*v[1]+v[2]*v[2]); }
+  function vecSub(a, b) { return [a[0]-b[0], a[1]-b[1], a[2]-b[2]]; }
+  function vecLen(v) { return Math.sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2]); }
 
   function toSpherical(eye, tgt) {
     const d = vecSub(eye, tgt), r = vecLen(d);
-    return { r, theta: Math.atan2(d[0], d[2]), phi: Math.asin(Math.max(-1, Math.min(1, d[1]/r))) };
+    return { r, theta: Math.atan2(d[0], d[2]), phi: Math.asin(Math.max(-1, Math.min(1, d[1] / r))) };
   }
   function fromSpherical(tgt, r, th, ph) {
-    return [tgt[0]+r*Math.sin(th)*Math.cos(ph), tgt[1]+r*Math.sin(ph), tgt[2]+r*Math.cos(th)*Math.cos(ph)];
+    return [tgt[0] + r*Math.sin(th)*Math.cos(ph), tgt[1] + r*Math.sin(ph), tgt[2] + r*Math.cos(th)*Math.cos(ph)];
   }
-
-  // ─── 60fps rAF camera loop ────────────────────────────────────────────────────
-  function cameraLoop() {
-    requestAnimationFrame(cameraLoop);
-    if (!sfApi || !camReady || !handActive) return;
-    if (Math.abs(velX) < DEAD_ZONE && Math.abs(velY) < DEAD_ZONE) return;
-
-    const sph = toSpherical(camEye, camTarget);
-    // Finger right → theta decreases → model surface moves right (direct manipulation)
-    sph.theta -= velX * ORBIT_GAIN;
-    sph.phi   += velY * ORBIT_GAIN;
-    sph.phi = Math.max(-1.5, Math.min(1.5, sph.phi));
-    camEye = fromSpherical(camTarget, sph.r, sph.theta, sph.phi);
-    velX *= DAMPING;
-    velY *= DAMPING;
-    sfApi.setCameraLookAt(camEye, camTarget, 0);
-  }
-  requestAnimationFrame(cameraLoop);
-
-  // ─── Sync cache from Sketchfab (picks up mouse changes) ───────────────────────
-  function syncCamera() {
-    if (!sfApi || handActive) return;
-    sfApi.getCameraLookAt(function(err, cam) {
-      if (!err) {
-        camEye = cam.position.slice();
-        camTarget = cam.target.slice();
-        camReady = true;
-      }
-    });
-  }
-  // Poll every 200ms when hand is idle to pick up mouse orbit changes
-  setInterval(syncCamera, 200);
 
   // ─── Init Sketchfab ────────────────────────────────────────────────────────────
   (function() {
@@ -85,18 +54,8 @@
       success: function(api) {
         sfApi = api;
         api.start(function() {
-          // Mouse controls ENABLED — hand is added on top
-          api.setUserInteraction(true);
-          // Seed camera cache after viewer settles
-          setTimeout(function() {
-            api.getCameraLookAt(function(err, cam) {
-              if (!err) {
-                camEye = cam.position.slice();
-                camTarget = cam.target.slice();
-                camReady = true;
-              }
-            });
-          }, 2500);
+          api.setUserInteraction(true); // Mouse controls stay enabled
+          setTimeout(function() { camReady = true; }, 2500);
         });
       },
       error: function() { console.error('Sketchfab init failed'); },
@@ -120,12 +79,12 @@
   window.addEventListener('resize', resizeCanvas);
   resizeCanvas();
 
-  // ─── Draw neon skeleton (MAGENTA) ──────────────────────────────────────────────
+  // ─── Draw neon skeleton (DEEP NEON BLUE) ───────────────────────────────────────
   function drawNeonSkeleton(lms) {
-    const c = '#ff00ff';
+    const c = '#0066ff';
     ctx.save();
     ctx.shadowBlur = 20;
-    ctx.shadowColor = '#ff44ff';
+    ctx.shadowColor = '#0088ff';
     ctx.strokeStyle = c;
     ctx.lineWidth = 3;
     const conn = [
@@ -157,72 +116,62 @@
     return indexUp && midDown && ringDown && pinkyDown;
   }
 
-  // ─── Smoothed finger position tracking ─────────────────────────────────────────
-  let prevPos = null;
+  // ─── Smoothed finger position ──────────────────────────────────────────────────
   let smoothX = null, smoothY = null;
-  const POS_SMOOTH = 0.35; // Lower = smoother but laggier
+  const ALPHA = 0.4; // Smoothing factor
 
   function onResults(results) {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     if (!results.multiHandLandmarks || !results.multiHandLandmarks.length) {
-      // Hand lost — stop gesturing, reset state, let mouse take over
-      if (handActive) { handActive = false; syncCamera(); }
-      prevPos = null; smoothX = null; smoothY = null;
+      handActive = false;
+      smoothX = null; smoothY = null;
       return;
     }
 
     const l = results.multiHandLandmarks[0];
     drawNeonSkeleton(l);
 
-    if (!isPointing(l)) {
-      // Not pointing — stop gesturing, reset, let mouse take over
-      if (handActive) { handActive = false; syncCamera(); }
-      prevPos = null; smoothX = null; smoothY = null;
+    if (!isPointing(l) || !sfApi || !camReady) {
+      handActive = false;
+      smoothX = null; smoothY = null;
       return;
     }
 
-    // Pointing gesture detected — activate hand control
-    if (!handActive) {
-      // First frame of pointing: sync camera from Sketchfab before taking over
-      handActive = true;
-      if (sfApi) {
-        sfApi.getCameraLookAt(function(err, cam) {
-          if (!err) {
-            camEye = cam.position.slice();
-            camTarget = cam.target.slice();
-            camReady = true;
-          }
-        });
-      }
-      prevPos = null; smoothX = null; smoothY = null;
-      return; // Skip this frame to let sync complete
-    }
-
-    // Track index fingertip (landmark 8), mirrored X
+    // Smooth fingertip position (mirrored X so screen matches physical hand)
     const rawX = 1 - l[8].x;
     const rawY = l[8].y;
+    if (smoothX === null) { smoothX = rawX; smoothY = rawY; }
+    else { smoothX += ALPHA * (rawX - smoothX); smoothY += ALPHA * (rawY - smoothY); }
 
-    // Smooth position to eliminate MediaPipe jitter
-    if (smoothX === null) {
-      smoothX = rawX; smoothY = rawY;
-    } else {
-      smoothX += POS_SMOOTH * (rawX - smoothX);
-      smoothY += POS_SMOOTH * (rawY - smoothY);
+    if (!handActive) {
+      // First frame of pointing — capture starting camera + finger position
+      handActive = true;
+      startFingerX = smoothX;
+      startFingerY = smoothY;
+      // Snapshot current camera orientation (includes any mouse changes)
+      sfApi.getCameraLookAt(function(err, cam) {
+        if (!err) {
+          const sph = toSpherical(cam.position, cam.target);
+          baseTheta = sph.theta;
+          basePhi = sph.phi;
+          baseR = sph.r;
+          baseTarget = cam.target.slice();
+        }
+      });
+      return;
     }
 
-    // Compute delta from smoothed position and accumulate velocity
-    const cur = { x: smoothX, y: smoothY };
-    if (prevPos) {
-      const dx = cur.x - prevPos.x;
-      const dy = cur.y - prevPos.y;
-      // Only accumulate if delta is meaningful (extra jitter filter)
-      if (Math.abs(dx) > 0.001 || Math.abs(dy) > 0.001) {
-        velX += dx;
-        velY += dy;
-      }
-    }
-    prevPos = cur;
+    // Direct mapping: total finger displacement → camera rotation offset
+    const dx = smoothX - startFingerX;
+    const dy = smoothY - startFingerY;
+
+    // Finger moves right (dx > 0) → theta decreases → model surface moves right
+    const newTheta = baseTheta - dx * ROTATION_GAIN;
+    const newPhi = Math.max(-1.4, Math.min(1.4, basePhi + dy * ROTATION_GAIN));
+    const newEye = fromSpherical(baseTarget, baseR, newTheta, newPhi);
+
+    sfApi.setCameraLookAt(newEye, baseTarget, 0);
   }
 
   // ─── Init MediaPipe ────────────────────────────────────────────────────────────
