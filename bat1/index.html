@@ -25,43 +25,17 @@
   // ─── Sketchfab Viewer API ──────────────────────────────────────────────────────
   let sfApi = null;
   let camReady = false;
-  const iframeEl = document.getElementById('sketchfab-iframe');
-
-  // Cached camera for fallback orbit (Y-axis rotation)
   let cEye = null, cTarget = null;
   let handActive = false;
-  let mouseIsDown = false; // track if we dispatched mousedown
 
-  // Smoothed finger tracking
-  let smoothX = null, smoothY = null;
-  let prevSX = null, prevSY = null;
+  // Smoothed centroid tracking
+  let smoothX = null;
+  let prevSX = null;
   const ALPHA = 0.4;
   const MIN_DELTA = 0.0005;
+  const GAIN = 3.0;
 
-  // ─── Dispatch mouse event on iframe ────────────────────────────────────────────
-  function dispatchOnIframe(type, sx, sy, buttons) {
-    const rect = iframeEl.getBoundingClientRect();
-    const cx = rect.left + sx * rect.width;
-    const cy = rect.top + sy * rect.height;
-    iframeEl.dispatchEvent(new PointerEvent(type, {
-      clientX: cx, clientY: cy,
-      screenX: cx, screenY: cy,
-      pointerId: 99, pointerType: 'mouse',
-      button: 0, buttons: buttons,
-      bubbles: true, cancelable: true,
-      view: window
-    }));
-    iframeEl.dispatchEvent(new MouseEvent(type === 'pointerdown' ? 'mousedown' :
-      type === 'pointermove' ? 'mousemove' : 'mouseup', {
-      clientX: cx, clientY: cy,
-      screenX: cx, screenY: cy,
-      button: 0, buttons: buttons,
-      bubbles: true, cancelable: true,
-      view: window
-    }));
-  }
-
-  // ─── Fallback: Y-axis rotation via setCameraLookAt ─────────────────────────────
+  // ─── Y-axis rotation ──────────────────────────────────────────────────────────
   function rotateY(eye, target, angle) {
     const dx = eye[0] - target[0];
     const dy = eye[1] - target[1];
@@ -70,18 +44,10 @@
     return [target[0] + dx*c - dz*s, target[1] + dy, target[2] + dx*s + dz*c];
   }
 
-  function fallbackOrbit(dx) {
-    if (!cEye || !cTarget) return;
-    // dx positive = finger moved right on screen = trackpad drag right
-    // Trackpad drag right → orbit right → model appears to spin left
-    const angle = dx * 3.0;
-    cEye = rotateY(cEye, cTarget, angle);
-    sfApi.setCameraLookAt(cEye, cTarget, 0.05);
-  }
-
   // ─── Init Sketchfab ────────────────────────────────────────────────────────────
   (function() {
-    const client = new Sketchfab(iframeEl);
+    const iframe = document.getElementById('sketchfab-iframe');
+    const client = new Sketchfab(iframe);
     client.init('sBv577Vdl9lrcvyFT3vbNvkGKml', {
       success: function(api) {
         sfApi = api;
@@ -107,12 +73,12 @@
   window.addEventListener('resize', resizeCanvas);
   resizeCanvas();
 
-  // ─── Draw neon skeleton (NEON PURPLE) ──────────────────────────────────────────
+  // ─── Draw neon skeleton (GREEN) ────────────────────────────────────────────────
   function drawNeonSkeleton(lms) {
-    const c = '#bf00ff';
+    const c = '#00ff44';
     ctx.save();
     ctx.shadowBlur = 20;
-    ctx.shadowColor = '#df00ff';
+    ctx.shadowColor = '#00ff66';
     ctx.strokeStyle = c;
     ctx.lineWidth = 3;
     const conn = [
@@ -135,12 +101,14 @@
     ctx.restore();
   }
 
-  // ─── Gesture: pointer finger extended, all others curled ───────────────────────
-  function isPointing(l) {
-    return l[8].y < l[6].y - 0.02 &&
-           l[12].y > l[10].y - 0.01 &&
-           l[16].y > l[14].y - 0.01 &&
-           l[20].y > l[18].y - 0.01;
+  // ─── Gesture: thumb + index + middle extended, ring + pinky curled ─────────────
+  function isThreeFingerGrip(l) {
+    const thumbOut  = Math.abs(l[4].x - l[3].x) > 0.02;    // thumb extended laterally
+    const indexUp   = l[8].y  < l[6].y  - 0.02;             // index extended
+    const middleUp  = l[12].y < l[10].y - 0.02;             // middle extended
+    const ringDown  = l[16].y > l[14].y - 0.01;             // ring curled
+    const pinkyDown = l[20].y > l[18].y - 0.01;             // pinky curled
+    return thumbOut && indexUp && middleUp && ringDown && pinkyDown;
   }
 
   // ─── Main callback ─────────────────────────────────────────────────────────────
@@ -148,53 +116,46 @@
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     if (!results.multiHandLandmarks || !results.multiHandLandmarks.length) {
-      if (mouseIsDown) { dispatchOnIframe('pointerup', 0.5, 0.5, 0); mouseIsDown = false; }
       handActive = false;
-      smoothX = smoothY = prevSX = prevSY = null;
+      smoothX = prevSX = null;
       return;
     }
 
     const l = results.multiHandLandmarks[0];
     drawNeonSkeleton(l);
 
-    if (!isPointing(l) || !sfApi || !camReady) {
-      if (mouseIsDown) { dispatchOnIframe('pointerup', prevSX || 0.5, prevSY || 0.5, 0); mouseIsDown = false; }
+    if (!isThreeFingerGrip(l) || !sfApi || !camReady) {
       handActive = false;
-      smoothX = smoothY = prevSX = prevSY = null;
+      smoothX = prevSX = null;
       return;
     }
 
-    // Use RAW fingertip x,y (no manual mirror — CSS scaleX(-1) handles visual mirroring)
-    const rawX = l[8].x;
-    const rawY = l[8].y;
-    if (smoothX === null) { smoothX = rawX; smoothY = rawY; }
-    else { smoothX += ALPHA * (rawX - smoothX); smoothY += ALPHA * (rawY - smoothY); }
+    // Centroid X of thumb tip (4), index tip (8), middle tip (12)
+    const rawX = (l[4].x + l[8].x + l[12].x) / 3;
 
+    // Smooth position
+    if (smoothX === null) smoothX = rawX;
+    else smoothX += ALPHA * (rawX - smoothX);
+
+    // First frame: snapshot camera, store prev position
     if (!handActive) {
       handActive = true;
-      prevSX = smoothX; prevSY = smoothY;
-      // Dispatch mousedown on iframe (trackpad press)
-      dispatchOnIframe('pointerdown', smoothX, smoothY, 1);
-      mouseIsDown = true;
-      // Also snapshot camera for fallback
-      if (sfApi) {
-        sfApi.getCameraLookAt(function(err, cam) {
-          if (!err) { cEye = cam.position.slice(); cTarget = cam.target.slice(); }
-        });
-      }
+      prevSX = smoothX;
+      sfApi.getCameraLookAt(function(err, cam) {
+        if (!err) { cEye = cam.position.slice(); cTarget = cam.target.slice(); }
+      });
       return;
     }
 
-    // Dispatch mousemove on iframe (trackpad drag)
-    dispatchOnIframe('pointermove', smoothX, smoothY, 1);
-
-    // Also apply fallback setCameraLookAt in case synthetic events don't reach iframe content
+    // Frame-to-frame delta
     const dx = smoothX - prevSX;
     prevSX = smoothX;
-    prevSY = smoothY;
-    if (Math.abs(dx) > MIN_DELTA) {
-      fallbackOrbit(dx);
-    }
+
+    if (Math.abs(dx) < MIN_DELTA || !cEye) return;
+
+    // Rotate camera around Y-axis
+    cEye = rotateY(cEye, cTarget, dx * GAIN);
+    sfApi.setCameraLookAt(cEye, cTarget, 0.05);
   }
 
   // ─── Init MediaPipe ────────────────────────────────────────────────────────────
