@@ -3,237 +3,284 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Hand Draw</title>
+<title>ASL Translator</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
-    --bg: #0a0a0f;
-    --surface: #13131a;
-    --border: #1e1e2e;
+    --bg: #050508;
+    --surface: rgba(18, 18, 25, 0.65);
+    --border: rgba(255, 255, 255, 0.08);
     --cyan: #00f5ff;
-    --red: #ff2d55;
-    --yellow: #ffd60a;
-    --text: #c8c8d8;
-    --dim: #555570;
+    --purple: #9d4edd;
+    --pink: #ff2a6d;
+    --text: #e0e0e5;
+    --dim: #777785;
   }
 
   body {
     background: var(--bg);
     color: var(--text);
-    font-family: 'Space Mono', monospace;
+    font-family: 'Inter', sans-serif;
     height: 100vh;
     overflow: hidden;
     display: flex;
     flex-direction: column;
+    align-items: center;
+    background-image: 
+      radial-gradient(circle at 10% 40%, rgba(0, 245, 255, 0.04), transparent 40%),
+      radial-gradient(circle at 90% 60%, rgba(157, 78, 221, 0.05), transparent 40%);
   }
 
   #header {
+    width: 100%;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 12px 20px;
+    padding: 20px 32px;
     border-bottom: 1px solid var(--border);
     background: var(--surface);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
     z-index: 10;
-    flex-shrink: 0;
   }
 
-  #header h1 {
-    font-size: 13px;
+  h1 {
+    font-family: 'Space Mono', monospace;
+    font-size: 15px;
     font-weight: 700;
-    letter-spacing: 0.15em;
+    letter-spacing: 0.2em;
     text-transform: uppercase;
-    color: var(--cyan);
+    background: linear-gradient(90deg, var(--cyan), var(--purple));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 0 20px rgba(0, 245, 255, 0.2);
   }
 
-  #status-bar {
+  #main-container {
     display: flex;
+    flex-direction: column;
     align-items: center;
+    justify-content: center;
+    flex: 1;
+    width: 100%;
+    max-width: 800px;
+    padding: 24px;
+    gap: 32px;
+  }
+
+  .video-wrapper {
+    position: relative;
+    width: 100%;
+    max-width: 640px;
+    aspect-ratio: 4/3;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    box-shadow: 0 20px 50px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.03);
+    background: #000;
+  }
+
+  video, canvas {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    object-fit: cover;
+    transform: scaleX(-1);
+  }
+  canvas {
+    z-index: 2;
+  }
+
+  #output-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
     gap: 20px;
-    font-size: 11px;
-    color: var(--dim);
   }
 
-  .status-item {
+  .word-box {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px 48px;
+    min-width: 320px;
+    text-align: center;
+    font-size: 36px;
+    font-weight: 600;
+    color: #fff;
+    min-height: 90px;
     display: flex;
     align-items: center;
-    gap: 6px;
+    justify-content: center;
+    backdrop-filter: blur(12px);
+    box-shadow: inset 0 0 30px rgba(0,0,0,0.5);
+    letter-spacing: 0.08em;
+    position: relative;
+    overflow: hidden;
   }
 
-  .status-dot {
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    background: var(--dim);
-    transition: background 0.2s;
+  .word-box::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--cyan), var(--purple), transparent);
+    opacity: 0.5;
   }
-  .status-dot.active { background: var(--cyan); box-shadow: 0 0 6px var(--cyan); }
-  .status-dot.drawing { background: var(--red); box-shadow: 0 0 6px var(--red); }
-  .status-dot.grabbing { background: var(--yellow); box-shadow: 0 0 6px var(--yellow); }
 
-  #controls {
+  .controls-row {
     display: flex;
-    gap: 8px;
+    gap: 16px;
     align-items: center;
   }
 
   button {
-    background: var(--border);
-    border: 1px solid #2a2a3e;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border);
     color: var(--text);
     font-family: 'Space Mono', monospace;
-    font-size: 10px;
-    letter-spacing: 0.1em;
-    padding: 5px 12px;
+    font-size: 12px;
+    padding: 12px 24px;
+    border-radius: 10px;
     cursor: pointer;
     text-transform: uppercase;
-    transition: all 0.15s;
-  }
-  button:hover { background: #252535; border-color: var(--cyan); color: var(--cyan); }
-  button.danger:hover { border-color: var(--red); color: var(--red); }
-
-  #main {
-    display: flex;
-    flex: 1;
-    overflow: hidden;
-    position: relative;
-  }
-
-  #canvas-container {
-    position: relative;
-    flex: 1;
-  }
-
-  #drawCanvas {
-    position: absolute;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-  }
-
-  #handCanvas {
-    position: absolute;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    pointer-events: none;
-  }
-
-  #webcam {
-    position: absolute;
-    bottom: 12px;
-    right: 12px;
-    width: 180px;
-    height: 135px;
-    border: 1px solid var(--border);
-    object-fit: cover;
-    transform: scaleX(-1);
-    z-index: 5;
-    opacity: 0.85;
-  }
-
-  #legend {
-    position: absolute;
-    top: 12px;
-    left: 12px;
-    background: rgba(10,10,15,0.85);
-    border: 1px solid var(--border);
-    padding: 12px 14px;
-    z-index: 5;
-    font-size: 10px;
-    line-height: 2;
+    letter-spacing: 0.15em;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     backdrop-filter: blur(4px);
   }
 
-  .legend-row { display: flex; align-items: center; gap: 8px; }
-  .legend-swatch { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  button:hover {
+    background: rgba(0, 245, 255, 0.05);
+    border-color: rgba(0, 245, 255, 0.4);
+    color: var(--cyan);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 245, 255, 0.1);
+  }
+
+  button:active { transform: translateY(0); }
+
+  #speak-btn {
+    background: rgba(157, 78, 221, 0.1);
+    border-color: rgba(157, 78, 221, 0.4);
+    color: #fff;
+    font-weight: 700;
+  }
+  #speak-btn:hover {
+    background: rgba(157, 78, 221, 0.2);
+    border-color: var(--purple);
+    color: #fff;
+    box-shadow: 0 5px 20px rgba(157, 78, 221, 0.25);
+  }
+
+  .current-letter-container {
+    position: absolute;
+    bottom: 24px;
+    right: 24px;
+    background: rgba(10, 10, 15, 0.8);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 12px;
+    z-index: 10;
+    backdrop-filter: blur(8px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+  }
+
+  .current-letter {
+    color: var(--cyan);
+    font-size: 32px;
+    font-weight: 800;
+    font-family: 'Space Mono', monospace;
+    line-height: 1;
+    margin-bottom: 8px;
+    text-shadow: 0 0 15px rgba(0, 245, 255, 0.4);
+  }
+
+  .confidence-bar {
+    width: 60px;
+    height: 4px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .confidence-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--cyan), var(--purple));
+    width: 0%;
+    transition: width 0.1s linear;
+  }
 
   #loading-overlay {
-    position: absolute;
+    position: fixed;
     inset: 0;
     background: var(--bg);
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 16px;
-    z-index: 20;
+    gap: 20px;
+    z-index: 50;
+    transition: opacity 0.5s ease;
   }
 
-  #loading-overlay p { font-size: 12px; letter-spacing: 0.12em; color: var(--dim); }
-
   .spinner {
-    width: 36px;
-    height: 36px;
+    width: 48px; height: 48px;
     border: 2px solid var(--border);
     border-top-color: var(--cyan);
+    border-right-color: var(--purple);
     border-radius: 50%;
     animation: spin 0.8s linear infinite;
   }
 
   @keyframes spin { to { transform: rotate(360deg); } }
-
-  #loading-label {
-    font-size: 11px;
-    color: var(--cyan);
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-  }
-
-  .grid-bg {
-    position: absolute;
-    inset: 0;
-    background-image:
-      linear-gradient(rgba(30,30,46,0.5) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(30,30,46,0.5) 1px, transparent 1px);
-    background-size: 40px 40px;
-    pointer-events: none;
+  
+  .instruction {
+    font-size: 13px;
+    color: var(--dim);
+    letter-spacing: 0.1em;
+    font-family: 'Space Mono', monospace;
   }
 </style>
 </head>
 <body>
 
-<div id="header">
-  <h1>✦ Hand Draw</h1>
-  <div id="status-bar">
-    <div class="status-item">
-      <div class="status-dot" id="dot-cam"></div>
-      <span id="lbl-cam">camera</span>
-    </div>
-    <div class="status-item">
-      <div class="status-dot" id="dot-hand"></div>
-      <span id="lbl-hand">no hand</span>
-    </div>
-    <div class="status-item">
-      <div class="status-dot" id="dot-mode"></div>
-      <span id="lbl-mode">idle</span>
-    </div>
-  </div>
-  <div id="controls">
-    <button class="danger" onclick="clearCanvas()">Clear</button>
-    <button onclick="downloadCanvas()">Export</button>
-  </div>
-</div>
-
-<div id="main">
-  <div id="canvas-container">
-    <div class="grid-bg"></div>
-    <canvas id="drawCanvas"></canvas>
-    <canvas id="handCanvas"></canvas>
-    <video id="webcam" autoplay playsinline muted></video>
-    <div id="legend">
-      <div class="legend-row"><div class="legend-swatch" style="background:var(--cyan)"></div><span>hand skeleton</span></div>
-      <div class="legend-row"><div class="legend-swatch" style="background:var(--red)"></div><span>draw — point index finger</span></div>
-      <div class="legend-row"><div class="legend-swatch" style="background:var(--yellow)"></div><span>grab — pinch to move</span></div>
-    </div>
-  </div>
-</div>
-
 <div id="loading-overlay">
   <div class="spinner"></div>
-  <div id="loading-label">Loading MediaPipe</div>
-  <p id="loading-sub">initialising hand tracking model…</p>
+  <div style="color:#fff; font-size: 12px; font-family: 'Space Mono'; letter-spacing: 0.2em; text-transform: uppercase;">Initializing ASL Engine</div>
+</div>
+
+<div id="header">
+  <h1>✦ ASL Translator</h1>
+  <div class="instruction">Hold gestures to type • Beta Engine</div>
+</div>
+
+<div id="main-container">
+  <div class="video-wrapper">
+    <video id="webcam" autoplay playsinline muted></video>
+    <canvas id="output_canvas"></canvas>
+    
+    <div class="current-letter-container">
+      <div class="current-letter" id="current-letter">-</div>
+      <div class="confidence-bar"><div class="confidence-fill" id="conf-fill"></div></div>
+    </div>
+  </div>
+
+  <div id="output-container">
+    <div class="word-box" id="word-box"></div>
+    <div class="controls-row">
+      <button onclick="addSpace()">Space</button>
+      <button onclick="backspace()">Delete</button>
+      <button onclick="clearText()">Clear</button>
+      <button id="speak-btn" onclick="speakText()">Speak Output</button>
+    </div>
+  </div>
 </div>
 
 <!-- MediaPipe Hands -->
@@ -242,372 +289,227 @@
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
 
 <script>
-// ─── Canvas Setup ────────────────────────────────────────────────────────────
-const drawCanvas = document.getElementById('drawCanvas');
-const handCanvas = document.getElementById('handCanvas');
-const dCtx = drawCanvas.getContext('2d');
-const hCtx = handCanvas.getContext('2d');
+// UI Elements
 const video = document.getElementById('webcam');
+const canvas = document.getElementById('output_canvas');
+const ctx = canvas.getContext('2d');
+const letterEl = document.getElementById('current-letter');
+const confFill = document.getElementById('conf-fill');
+const wordBox = document.getElementById('word-box');
+const loadingOverlay = document.getElementById('loading-overlay');
 
-function resizeCanvases() {
-  const container = document.getElementById('canvas-container');
-  const w = container.clientWidth, h = container.clientHeight;
-  [drawCanvas, handCanvas].forEach(c => { c.width = w; c.height = h; });
-  redrawStrokes();
-}
-window.addEventListener('resize', resizeCanvases);
+let currentWord = "";
+let pendingLetter = null;
+let holdCounter = 0;
+const HOLD_THRESHOLD = 20; // required frames to lock-in letter
 
-// ─── State ───────────────────────────────────────────────────────────────────
-let strokes = [];          // Array of {points: [{x,y}], color}
-let currentStroke = null;
-let mode = 'idle';         // 'idle' | 'drawing' | 'grabbing'
-let grabState = null;      // {strokeIdx, offsetX, offsetY}
-let lastLandmarks = null;
+function getFingerStates(landmarks) {
+  const wrist = landmarks[0];
+  
+  const calcDist = (p1, p2) => Math.hypot(p1.x - p2.x, p1.y - p2.y);
+  
+  // Extended if tip distance to wrist > pip distance to wrist
+  const indexExtended = calcDist(landmarks[8], wrist) > calcDist(landmarks[6], wrist);
+  const middleExtended = calcDist(landmarks[12], wrist) > calcDist(landmarks[10], wrist);
+  const ringExtended = calcDist(landmarks[16], wrist) > calcDist(landmarks[14], wrist);
+  const pinkyExtended = calcDist(landmarks[20], wrist) > calcDist(landmarks[18], wrist);
 
-// ─── Gesture Detection ───────────────────────────────────────────────────────
-// Returns world coords mapped to canvas
-function lmToCanvas(lm) {
-  const w = drawCanvas.width, h = drawCanvas.height;
-  // mirror x because video is mirrored
-  return { x: (1 - lm.x) * w, y: lm.y * h };
-}
+  // Thumb rules (distance from tip to pinky base vs thumb base)
+  const thumbOut = calcDist(landmarks[4], landmarks[17]) > 0.15; 
+  const thumbUp = landmarks[4].y < landmarks[3].y;
 
-function dist2D(a, b) {
-  return Math.hypot(a.x - b.x, a.y - b.y);
-}
-
-// Pointing: index finger extended, others curled
-function isPointing(lms) {
-  // Index tip vs index MCP (base knuckle)
-  const indexTip = lms[8], indexMCP = lms[5];
-  const middleTip = lms[12], middleMCP = lms[9];
-  const ringTip = lms[16], ringMCP = lms[13];
-  const pinkyTip = lms[20], pinkyMCP = lms[17];
-  const thumbTip = lms[4], thumbMCP = lms[2];
-
-  const indexExtended = indexTip.y < indexMCP.y - 0.04;
-  const middleCurled = middleTip.y > middleMCP.y - 0.01;
-  const ringCurled = ringTip.y > ringMCP.y - 0.01;
-  const pinkyCurled = pinkyTip.y > pinkyMCP.y - 0.01;
-
-  return indexExtended && middleCurled && ringCurled && pinkyCurled;
+  return { 
+    thumb: thumbOut || thumbUp, 
+    index: indexExtended, 
+    middle: middleExtended, 
+    ring: ringExtended, 
+    pinky: pinkyExtended 
+  };
 }
 
-// Pinching: thumb tip close to index tip
-function isPinching(lms) {
-  const thumbTip = lms[4], indexTip = lms[8];
-  const d = dist2D(thumbTip, indexTip);
-  return d < 0.065;
-}
+function detectLetter(states) {
+  const { thumb, index, middle, ring, pinky } = states;
+  
+  // A simple heuristic rule-based engine mapping open/closed fingers 
+  // to American Sign Language alphabet. (Approximations)
 
-// ─── Drawing Logic ───────────────────────────────────────────────────────────
-function redrawStrokes() {
-  dCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
-  for (const stroke of strokes) {
-    if (stroke.points.length < 2) continue;
-    dCtx.beginPath();
-    dCtx.strokeStyle = stroke.highlight ? '#ffd60a' : '#ff2d55';
-    dCtx.lineWidth = stroke.highlight ? 4 : 2.5;
-    dCtx.lineCap = 'round';
-    dCtx.lineJoin = 'round';
-    dCtx.shadowColor = stroke.highlight ? '#ffd60a88' : '#ff2d5566';
-    dCtx.shadowBlur = stroke.highlight ? 10 : 6;
-    dCtx.moveTo(stroke.points[0].x, stroke.points[0].y);
-    for (let i = 1; i < stroke.points.length; i++) {
-      dCtx.lineTo(stroke.points[i].x, stroke.points[i].y);
+  const fcount = [index, middle, ring, pinky].filter(Boolean).length;
+
+  // 0 fingers
+  if (fcount === 0) {
+    if (thumb) return 'A';    // thumb out
+    return 'S';              // fist
+  }
+
+  // 1 finger
+  if (fcount === 1) {
+    if (index) {
+      if (thumb) return 'L';
+      return 'D'; 
     }
-    dCtx.stroke();
-    dCtx.shadowBlur = 0;
+    if (pinky) {
+      if (thumb) return 'Y';
+      return 'I';
+    }
   }
-}
 
-function strokeBoundingBox(stroke) {
-  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-  for (const p of stroke.points) {
-    if (p.x < minX) minX = p.x;
-    if (p.y < minY) minY = p.y;
-    if (p.x > maxX) maxX = p.x;
-    if (p.y > maxY) maxY = p.y;
+  // 2 fingers
+  if (fcount === 2) {
+    if (index && middle) return 'V';
+    if (thumb && index && pinky) return 'ILY'; // "I love you" sign
   }
-  return { minX, minY, maxX, maxY };
-}
 
-function pointInStroke(px, py, stroke, threshold = 20) {
-  for (const p of stroke.points) {
-    if (Math.hypot(px - p.x, py - p.y) < threshold) return true;
+  // 3 fingers
+  if (fcount === 3) {
+    if (index && middle && ring) return 'W';
+    if (thumb && index && middle) return '3';
   }
-  return false;
-}
 
-function findStrokeUnderPoint(px, py) {
-  for (let i = strokes.length - 1; i >= 0; i--) {
-    if (pointInStroke(px, py, strokes[i])) return i;
+  // 4 fingers
+  if (fcount === 4) {
+    if (!thumb) return 'B';
+    return '5'; // open hand
   }
-  return -1;
+
+  return null;
 }
 
-function translateStroke(stroke, dx, dy) {
-  for (const p of stroke.points) {
-    p.x += dx;
-    p.y += dy;
-  }
-}
-
-// ─── UI State Helpers ────────────────────────────────────────────────────────
-const dotCam = document.getElementById('dot-cam');
-const dotHand = document.getElementById('dot-hand');
-const dotMode = document.getElementById('dot-mode');
-const lblHand = document.getElementById('lbl-hand');
-const lblMode = document.getElementById('lbl-mode');
-
-function setMode(m) {
-  mode = m;
-  dotMode.className = 'status-dot';
-  if (m === 'drawing') { dotMode.classList.add('drawing'); lblMode.textContent = 'drawing'; }
-  else if (m === 'grabbing') { dotMode.classList.add('grabbing'); lblMode.textContent = 'grabbing'; }
-  else { lblMode.textContent = 'idle'; }
-}
-
-// ─── MediaPipe Hand Results ───────────────────────────────────────────────────
 function onResults(results) {
-  hCtx.clearRect(0, 0, handCanvas.width, handCanvas.height);
+  ctx.save();
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  
+  if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+    const landmarks = results.multiHandLandmarks[0];
+    
+    // Draw skeletal tracking with custom styling
+    drawConnectors(ctx, landmarks, HAND_CONNECTIONS, {color: 'rgba(255, 255, 255, 0.2)', lineWidth: 2});
+    drawLandmarks(ctx, landmarks, {
+      color: '#00f5ff', 
+      fillColor: '#0a0a0f',
+      lineWidth: 2, 
+      radius: (data) => { return [4, 8, 12, 16, 20].includes(data.index) ? 6 : 4; }
+    });
 
-  if (!results.multiHandLandmarks || results.multiHandLandmarks.length === 0) {
-    dotHand.className = 'status-dot';
-    lblHand.textContent = 'no hand';
+    const states = getFingerStates(landmarks);
+    const letter = detectLetter(states);
 
-    // Finalize any in-progress stroke
-    if (mode === 'drawing' && currentStroke) {
-      strokes.push(currentStroke);
-      currentStroke = null;
-      redrawStrokes();
-    }
-    if (mode === 'grabbing') {
-      strokes.forEach(s => s.highlight = false);
-      grabState = null;
-      redrawStrokes();
-    }
-    setMode('idle');
-    return;
-  }
-
-  dotHand.classList.add('active');
-  dotHand.className = 'status-dot active';
-  lblHand.textContent = 'tracking';
-
-  const lms = results.multiHandLandmarks[0];
-  lastLandmarks = lms;
-
-  // Draw hand skeleton
-  drawHand(lms);
-
-  // Gesture logic
-  const pinching = isPinching(lms);
-  const pointing = !pinching && isPointing(lms);
-
-  const indexTip = lmToCanvas(lms[8]);
-  const thumbTip = lmToCanvas(lms[4]);
-  const pinchMidX = (indexTip.x + thumbTip.x) / 2;
-  const pinchMidY = (indexTip.y + thumbTip.y) / 2;
-
-  if (pointing) {
-    // End grab if was grabbing
-    if (mode === 'grabbing') {
-      strokes.forEach(s => s.highlight = false);
-      grabState = null;
-      redrawStrokes();
-    }
-    setMode('drawing');
-
-    if (!currentStroke) {
-      currentStroke = { points: [{ x: indexTip.x, y: indexTip.y }] };
+    if (letter) {
+      if (letter === pendingLetter) {
+        holdCounter++;
+        confFill.style.width = Math.min(100, (holdCounter / HOLD_THRESHOLD) * 100) + '%';
+        if (holdCounter === HOLD_THRESHOLD) {
+          if (letter === '5') addSpace();
+          else if (letter !== 'ILY' && letter !== '3') addLetter(letter); // ignore some states mapping to numbers/words temporarily
+          holdCounter = -30; // cool down delay
+        }
+      } else {
+        pendingLetter = letter;
+        holdCounter = 1;
+        confFill.style.width = '0%';
+      }
+      letterEl.textContent = letter;
+      // Add glow effect based on confidence
+      letterEl.style.textShadow = `0 0 ${Math.min(20, holdCounter)}px rgba(0, 245, 255, 0.8)`;
     } else {
-      const last = currentStroke.points[currentStroke.points.length - 1];
-      if (dist2D(indexTip, last) > 2) {
-        currentStroke.points.push({ x: indexTip.x, y: indexTip.y });
-      }
+      pendingLetter = null;
+      holdCounter = 0;
+      letterEl.textContent = '-';
+      confFill.style.width = '0%';
+      letterEl.style.textShadow = 'none';
     }
-
-    // Draw live stroke
-    redrawStrokes();
-    if (currentStroke && currentStroke.points.length > 1) {
-      dCtx.beginPath();
-      dCtx.strokeStyle = '#ff2d55';
-      dCtx.lineWidth = 2.5;
-      dCtx.lineCap = 'round';
-      dCtx.lineJoin = 'round';
-      dCtx.shadowColor = '#ff2d5566';
-      dCtx.shadowBlur = 6;
-      dCtx.moveTo(currentStroke.points[0].x, currentStroke.points[0].y);
-      for (let i = 1; i < currentStroke.points.length; i++) {
-        dCtx.lineTo(currentStroke.points[i].x, currentStroke.points[i].y);
-      }
-      dCtx.stroke();
-      dCtx.shadowBlur = 0;
-    }
-
-  } else if (pinching) {
-    // Finish any drawing stroke
-    if (mode === 'drawing' && currentStroke) {
-      strokes.push(currentStroke);
-      currentStroke = null;
-    }
-
-    setMode('grabbing');
-
-    if (!grabState) {
-      // Try to grab a stroke under pinch
-      const idx = findStrokeUnderPoint(pinchMidX, pinchMidY);
-      if (idx >= 0) {
-        strokes.forEach(s => s.highlight = false);
-        strokes[idx].highlight = true;
-        grabState = { strokeIdx: idx, lastX: pinchMidX, lastY: pinchMidY };
-      }
-    } else {
-      // Drag the grabbed stroke
-      const dx = pinchMidX - grabState.lastX;
-      const dy = pinchMidY - grabState.lastY;
-      translateStroke(strokes[grabState.strokeIdx], dx, dy);
-      grabState.lastX = pinchMidX;
-      grabState.lastY = pinchMidY;
-    }
-    redrawStrokes();
-
   } else {
-    // Idle / transition
-    if (mode === 'drawing' && currentStroke) {
-      strokes.push(currentStroke);
-      currentStroke = null;
-      redrawStrokes();
-    }
-    if (mode === 'grabbing') {
-      strokes.forEach(s => s.highlight = false);
-      grabState = null;
-      redrawStrokes();
-    }
-    setMode('idle');
+    pendingLetter = null;
+    holdCounter = 0;
+    letterEl.textContent = '-';
+    confFill.style.width = '0%';
+    letterEl.style.textShadow = 'none';
+  }
+  ctx.restore();
+}
+
+function addLetter(l) {
+  currentWord += l;
+  updateDisplay();
+}
+
+function addSpace() {
+  if (currentWord.length > 0 && currentWord[currentWord.length-1] !== ' ') {
+    currentWord += ' ';
+    updateDisplay();
   }
 }
 
-// ─── Draw Hand Skeleton ───────────────────────────────────────────────────────
-const CONNECTIONS = [
-  [0,1],[1,2],[2,3],[3,4],      // thumb
-  [0,5],[5,6],[6,7],[7,8],      // index
-  [9,10],[10,11],[11,12],       // middle
-  [13,14],[14,15],[15,16],      // ring
-  [0,17],[17,18],[18,19],[19,20], // pinky
-  [5,9],[9,13],[13,17]          // palm
-];
-
-function drawHand(lms) {
-  const w = handCanvas.width, h = handCanvas.height;
-
-  // Connections
-  hCtx.strokeStyle = '#00f5ff88';
-  hCtx.lineWidth = 1.5;
-  hCtx.lineCap = 'round';
-  hCtx.shadowColor = '#00f5ff';
-  hCtx.shadowBlur = 8;
-  for (const [a, b] of CONNECTIONS) {
-    const pa = lmToCanvas(lms[a]);
-    const pb = lmToCanvas(lms[b]);
-    hCtx.beginPath();
-    hCtx.moveTo(pa.x, pa.y);
-    hCtx.lineTo(pb.x, pb.y);
-    hCtx.stroke();
-  }
-
-  // Joints
-  hCtx.shadowBlur = 12;
-  for (let i = 0; i < lms.length; i++) {
-    const p = lmToCanvas(lms[i]);
-    const isTip = [4,8,12,16,20].includes(i);
-    hCtx.beginPath();
-    hCtx.arc(p.x, p.y, isTip ? 5 : 3, 0, Math.PI * 2);
-    hCtx.fillStyle = isTip ? '#00f5ff' : '#00f5ffaa';
-    hCtx.fill();
-  }
-  hCtx.shadowBlur = 0;
+function backspace() {
+  currentWord = currentWord.slice(0, -1);
+  updateDisplay();
 }
 
-// ─── Clear & Export ───────────────────────────────────────────────────────────
-function clearCanvas() {
-  strokes = [];
-  currentStroke = null;
-  grabState = null;
-  redrawStrokes();
+function clearText() {
+  currentWord = '';
+  updateDisplay();
 }
 
-function downloadCanvas() {
-  // Compose draw canvas onto a temporary canvas with bg
-  const tmp = document.createElement('canvas');
-  tmp.width = drawCanvas.width; tmp.height = drawCanvas.height;
-  const ctx = tmp.getContext('2d');
-  ctx.fillStyle = '#0a0a0f';
-  ctx.fillRect(0, 0, tmp.width, tmp.height);
-  ctx.drawImage(drawCanvas, 0, 0);
-  const a = document.createElement('a');
-  a.href = tmp.toDataURL('image/png');
-  a.download = 'hand-draw.png';
-  a.click();
+function updateDisplay() {
+  wordBox.textContent = currentWord || "start signing...";
+  wordBox.style.opacity = currentWord ? 1 : 0.4;
 }
 
-// ─── Init MediaPipe ───────────────────────────────────────────────────────────
+function speakText() {
+  if (!currentWord.trim()) return;
+  const utterance = new SpeechSynthesisUtterance(currentWord);
+  utterance.rate = 0.9;
+  utterance.pitch = 1.0;
+  
+  // Visual feedback during speech
+  const btn = document.getElementById('speak-btn');
+  btn.style.boxShadow = '0 0 30px rgba(157, 78, 221, 0.8)';
+  btn.textContent = 'Speaking...';
+  
+  utterance.onend = () => {
+    btn.style.boxShadow = '';
+    btn.textContent = 'Speak Output';
+  };
+  
+  window.speechSynthesis.speak(utterance);
+}
+
+// Global hook for keyboard to also help debug
+window.addEventListener('keydown', (e) => {
+  if (e.code === 'Space') { e.preventDefault(); addSpace(); }
+  if (e.code === 'Backspace') backspace();
+  if (e.key.length === 1 && e.key.match(/[a-z]/i)) addLetter(e.key.toUpperCase());
+});
+
 async function init() {
-  const overlay = document.getElementById('loading-overlay');
-  const loadLabel = document.getElementById('loading-label');
-  const loadSub = document.getElementById('loading-sub');
+  canvas.width = 640;
+  canvas.height = 480;
 
-  resizeCanvases();
-
-  loadLabel.textContent = 'Requesting Camera';
-  loadSub.textContent = 'please allow camera access…';
-
-  let stream;
-  try {
-    stream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } });
-    video.srcObject = stream;
-    await video.play();
-    dotCam.classList.add('active');
-  } catch (e) {
-    loadLabel.textContent = 'Camera Error';
-    loadSub.textContent = e.message;
-    return;
-  }
-
-  loadLabel.textContent = 'Loading Model';
-  loadSub.textContent = 'downloading hand detection weights…';
-
-  const hands = new Hands({
-    locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
-  });
-
+  const hands = new Hands({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`});
   hands.setOptions({
     maxNumHands: 1,
     modelComplexity: 1,
-    minDetectionConfidence: 0.7,
-    minTrackingConfidence: 0.6,
+    minDetectionConfidence: 0.75,
+    minTrackingConfidence: 0.75
   });
-
   hands.onResults(onResults);
 
   const camera = new Camera(video, {
     onFrame: async () => {
-      await hands.send({ image: video });
+      await hands.send({image: video});
     },
     width: 640,
-    height: 480,
+    height: 480
   });
 
-  await camera.start();
-
-  loadLabel.textContent = 'Ready';
-  loadSub.textContent = 'hand tracking active';
-  setTimeout(() => {
-    overlay.style.transition = 'opacity 0.4s';
-    overlay.style.opacity = '0';
-    setTimeout(() => overlay.remove(), 400);
-  }, 600);
+  camera.start().then(() => {
+    loadingOverlay.style.opacity = '0';
+    setTimeout(() => {
+      loadingOverlay.style.display = 'none';
+    }, 500);
+    updateDisplay();
+  }).catch((err) => {
+    alert("Camera access denied or unavailable: " + err);
+  });
 }
 
 init();
