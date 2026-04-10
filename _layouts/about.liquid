@@ -20,22 +20,6 @@
     opacity: 0;
     pointer-events: none;
   }
-
-  #api-status {
-    position: fixed;
-    bottom: 1.2rem;
-    left: 1.2rem;
-    z-index: 99999;
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    display: none;
-    opacity: 0;
-    transition: opacity 0.4s ease;
-  }
-  #api-status.show { display: block; opacity: 1; }
-  #api-status.ok  { background: #22c55e; box-shadow: 0 0 6px #22c55e; }
-  #api-status.err { background: #ef4444; box-shadow: 0 0 6px #ef4444; }
   #loading-screen span {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     font-size: 14px;
@@ -95,8 +79,6 @@
     mix-blend-mode: difference;
   "></div>
 
-  <div id="api-status"></div>
-
 </div>
 
 <script src="https://static.sketchfab.com/api/sketchfab-viewer-1.12.1.js"></script>
@@ -106,17 +88,11 @@
     success: function(api) {
       api.addEventListener('viewerready', function() {
         document.getElementById('loading-screen').classList.add('hidden');
-        var dot = document.getElementById('api-status');
-        dot.classList.add('ok', 'show');
-        setTimeout(function() { dot.style.opacity = '0'; }, 2000);
       });
       api.start();
     },
     error: function() {
       document.getElementById('loading-screen').classList.add('hidden');
-      var dot = document.getElementById('api-status');
-      dot.classList.add('err', 'show');
-      setTimeout(function() { dot.style.opacity = '0'; }, 2000);
     }
   });
 
