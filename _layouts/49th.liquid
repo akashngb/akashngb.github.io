@@ -30,7 +30,7 @@
       line-height: 1.5;
     }
 
-    /* ── Animations (Fixed to ensure visibility) ── */
+    /* ── Animations ── */
     @keyframes fadeUp {
       from { opacity: 0; transform: translateY(20px); }
       to   { opacity: 1; transform: translateY(0); }
@@ -53,7 +53,15 @@
       border-bottom: 1px solid var(--ink);
     }
     .nav-brand { display: flex; align-items: center; gap: 1rem; }
-    .logo-svg { width: 3.5rem; height: 3.5rem; }
+    
+    /* Logo Styling */
+    .logo-img { 
+      width: 3.5rem; 
+      height: 3.5rem; 
+      object-fit: contain;
+      border-radius: 12px; /* Matches the previous design aesthetic */
+    }
+
     .brand-name {
       font-family: 'DM Serif Display', serif;
       font-size: 2.5rem;
@@ -169,7 +177,7 @@
     }
     .btn-primary:hover { transform: translateY(-2px); }
 
-    /* ── Hero Right (Status Card) ── */
+    /* ── Status Card ── */
     .hero-right {
       background: rgba(255,255,255,0.2);
       display: flex;
@@ -205,11 +213,6 @@
       font-family: 'DM Serif Display', serif;
       font-size: 1.75rem;
       color: var(--forest);
-    }
-    .card-icon {
-      padding: 0.75rem;
-      border: 1px solid var(--ink);
-      border-radius: 12px;
     }
     .card-body { padding: 0 2.5rem 2rem; }
     .status-row {
@@ -263,7 +266,7 @@
       pointer-events: none;
     }
 
-    /* ── Stats ── */
+    /* ── Stats Bar ── */
     .stats-bar {
       border-bottom: 1px solid var(--ink);
       display: grid;
@@ -293,10 +296,7 @@
 
   <nav>
     <div class="nav-brand">
-      <svg class="logo-svg" viewBox="0 0 96 96" fill="none">
-        <rect width="96" height="96" rx="24" fill="#1A3A2A"/>
-        <text x="50%" y="58%" dominant-baseline="middle" text-anchor="middle" font-family="'DM Serif Display', serif" font-size="44" fill="#A8C5B0">49</text>
-      </svg>
+      <img src="assets/img/49thlogo.png" alt="49th Logo" class="logo-img">
       <div>
         <span class="brand-name">49th</span><br>
         <span class="brand-sub">Immigration Companion</span>
@@ -334,9 +334,6 @@
             <div>
               <div class="card-label">Current Protocol</div>
               <div class="card-title">Arrival Engine</div>
-            </div>
-            <div class="card-icon">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#C2714F" stroke-width="2"><path d="M12 2l1.5 4.5L18 8l-4.5 1.5L12 14l-1.5-4.5L6 8l4.5-1.5z"/></svg>
             </div>
           </div>
           <div class="card-body">
