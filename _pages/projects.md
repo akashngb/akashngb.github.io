@@ -1,65 +1,57 @@
 ---
-layout: page
+layout: projects
 title: projects
 permalink: /projects/
-description: A growing collection of your cool projects.
-nav: false
-nav_order: 3
-display_categories: [work, fun]
-horizontal: false
+description: things i've been building
+nav: true
+nav_order: 2
 ---
 
-<!-- pages/projects.md -->
-<div class="projects">
-{% if site.enable_project_categories and page.display_categories %}
-  <!-- Display categorized projects -->
-  {% for category in page.display_categories %}
-  <a id="{{ category }}" href=".#{{ category }}">
-    <h2 class="category">{{ category }}</h2>
-  </a>
-  {% assign categorized_projects = site.projects | where: "category", category %}
-  {% assign sorted_projects = categorized_projects | sort: "importance" %}
-  <!-- Generate cards for each project -->
-  {% if page.horizontal %}
-  <div class="container">
-    <div class="row row-cols-1 row-cols-md-2">
-    {% for project in sorted_projects %}
-      {% include projects_horizontal.liquid %}
-    {% endfor %}
-    </div>
+<div class="project-card">
+  <div class="card-number">01</div>
+  <h3>Project Alpha</h3>
+  <div class="card-desc">A brief description of this project goes here. Replace with your actual project details, goals, and outcomes.</div>
+  <div class="card-tags">
+    <span>python</span>
+    <span>machine learning</span>
+    <span>research</span>
   </div>
-  {% else %}
-  <div class="row row-cols-1 row-cols-md-3">
-    {% for project in sorted_projects %}
-      {% include projects.liquid %}
-    {% endfor %}
+</div>
+
+<div class="project-card">
+  <div class="card-number">02</div>
+  <h3>Project Beta</h3>
+  <div class="card-desc">Another project placeholder. Describe what you built, the tech stack used, and the impact it had.</div>
+  <div class="card-tags">
+    <span>react</span>
+    <span>node.js</span>
+    <span>full-stack</span>
   </div>
-  {% endif %}
-  {% endfor %}
+</div>
 
-{% else %}
-
-<!-- Display projects without categories -->
-
-{% assign sorted_projects = site.projects | sort: "importance" %}
-
-  <!-- Generate cards for each project -->
-
-{% if page.horizontal %}
-
-  <div class="container">
-    <div class="row row-cols-1 row-cols-md-2">
-    {% for project in sorted_projects %}
-      {% include projects_horizontal.liquid %}
-    {% endfor %}
-    </div>
+<div class="project-card">
+  <div class="card-number">03</div>
+  <h3>Project Gamma</h3>
+  <div class="card-desc">Brief summary of a third project. Mention the problem solved and any notable achievements or metrics.</div>
+  <div class="card-tags">
+    <span>three.js</span>
+    <span>webgl</span>
+    <span>creative</span>
   </div>
-  {% else %}
-  <div class="row row-cols-1 row-cols-md-3">
-    {% for project in sorted_projects %}
-      {% include projects.liquid %}
-    {% endfor %}
+</div>
+
+<div class="project-card">
+  <div class="card-number">04</div>
+  <h3>Project Delta</h3>
+  <div class="card-desc">One more project to showcase. Add details about challenges, solutions, and technologies used.</div>
+  <div class="card-tags">
+    <span>swift</span>
+    <span>ios</span>
+    <span>mobile</span>
   </div>
-  {% endif %}
-{% endif %}
+</div>
+
+<div class="project-card coming-soon">
+  <div class="plus-icon">+</div>
+  <p>more coming soon</p>
 </div>

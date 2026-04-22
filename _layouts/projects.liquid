@@ -1,0 +1,221 @@
+---
+layout: default
+---
+
+<style>
+  /* ─── Reset page chrome ─── */
+  .container.mt-5 { max-width: 100% !important; padding: 0 !important; margin: 0 !important; }
+  body { background: #fff; }
+  header nav { background: transparent !important; box-shadow: none !important; }
+
+  /* ─── Hero ─── */
+  .projects-hero {
+    min-height: 50vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 6rem 2rem 3rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .projects-hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(circle at 20% 40%, rgba(0,0,0,0.02) 0%, transparent 50%),
+      radial-gradient(circle at 80% 60%, rgba(0,0,0,0.02) 0%, transparent 50%);
+    pointer-events: none;
+  }
+  .projects-hero h1 {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: clamp(2.4rem, 6vw, 4.5rem);
+    font-weight: 200;
+    letter-spacing: 0.12em;
+    color: #000;
+    margin: 0 0 1rem;
+    text-transform: lowercase;
+  }
+  .projects-hero .subtitle {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 14px;
+    font-weight: 400;
+    color: #999;
+    letter-spacing: 0.06em;
+  }
+
+  /* ─── Grid ─── */
+  .projects-grid {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 2rem 2rem 6rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 2.5rem;
+  }
+
+  /* ─── Card ─── */
+  .project-card {
+    position: relative;
+    background: #fff;
+    border: 1px solid #eee;
+    border-radius: 12px;
+    padding: 2rem;
+    transition: transform 0.35s cubic-bezier(.22,1,.36,1), box-shadow 0.35s cubic-bezier(.22,1,.36,1), border-color 0.3s ease;
+    cursor: default;
+    overflow: hidden;
+  }
+  .project-card::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: #000;
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.4s cubic-bezier(.22,1,.36,1);
+  }
+  .project-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.06);
+    border-color: #ddd;
+  }
+  .project-card:hover::after {
+    transform: scaleX(1);
+  }
+
+  .project-card .card-number {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    color: #ccc;
+    letter-spacing: 0.1em;
+    margin-bottom: 1.2rem;
+  }
+  .project-card h3 {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 1.25rem;
+    font-weight: 500;
+    color: #000;
+    margin: 0 0 0.6rem;
+    letter-spacing: 0.01em;
+  }
+  .project-card .card-desc {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 13px;
+    font-weight: 400;
+    color: #888;
+    line-height: 1.65;
+    margin-bottom: 1.4rem;
+  }
+  .project-card .card-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .project-card .card-tags span {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    color: #666;
+    background: #f5f5f5;
+    padding: 4px 10px;
+    border-radius: 20px;
+    letter-spacing: 0.04em;
+  }
+
+  /* ─── Coming soon placeholder ─── */
+  .project-card.coming-soon {
+    border-style: dashed;
+    border-color: #ddd;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+    text-align: center;
+  }
+  .project-card.coming-soon .plus-icon {
+    font-size: 2rem;
+    font-weight: 200;
+    color: #ccc;
+    margin-bottom: 0.8rem;
+    transition: transform 0.3s ease;
+  }
+  .project-card.coming-soon:hover .plus-icon {
+    transform: rotate(90deg);
+  }
+  .project-card.coming-soon p {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 13px;
+    color: #bbb;
+    letter-spacing: 0.06em;
+  }
+
+  /* ─── Entrance animation ─── */
+  .project-card {
+    opacity: 0;
+    transform: translateY(30px);
+    animation: cardIn 0.6s cubic-bezier(.22,1,.36,1) forwards;
+  }
+  .project-card:nth-child(1) { animation-delay: 0.1s; }
+  .project-card:nth-child(2) { animation-delay: 0.2s; }
+  .project-card:nth-child(3) { animation-delay: 0.3s; }
+  .project-card:nth-child(4) { animation-delay: 0.4s; }
+  .project-card:nth-child(5) { animation-delay: 0.5s; }
+  .project-card:nth-child(6) { animation-delay: 0.6s; }
+
+  @keyframes cardIn {
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ─── Dark mode ─── */
+  html[data-theme="dark"] body,
+  html[data-theme="dark"] .projects-hero { background: #111; }
+  html[data-theme="dark"] .projects-hero h1 { color: #fff; }
+  html[data-theme="dark"] .projects-hero .subtitle { color: #666; }
+  html[data-theme="dark"] .project-card {
+    background: #1a1a1a;
+    border-color: #2a2a2a;
+  }
+  html[data-theme="dark"] .project-card:hover {
+    border-color: #3a3a3a;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+  }
+  html[data-theme="dark"] .project-card::after { background: #fff; }
+  html[data-theme="dark"] .project-card .card-number { color: #444; }
+  html[data-theme="dark"] .project-card h3 { color: #eee; }
+  html[data-theme="dark"] .project-card .card-desc { color: #777; }
+  html[data-theme="dark"] .project-card .card-tags span {
+    background: #252525;
+    color: #888;
+  }
+  html[data-theme="dark"] .project-card.coming-soon {
+    border-color: #2a2a2a;
+  }
+  html[data-theme="dark"] .project-card.coming-soon .plus-icon { color: #444; }
+  html[data-theme="dark"] .project-card.coming-soon p { color: #444; }
+
+  /* ─── Responsive ─── */
+  @media (max-width: 640px) {
+    .projects-grid {
+      grid-template-columns: 1fr;
+      padding: 1.5rem 1.5rem 4rem;
+      gap: 1.5rem;
+    }
+    .projects-hero { padding: 5rem 1.5rem 2rem; }
+  }
+</style>
+
+<div class="projects-hero">
+  <h1>{{ page.title }}</h1>
+  {% if page.description %}
+    <div class="subtitle">{{ page.description }}</div>
+  {% endif %}
+</div>
+
+<div class="projects-grid">
+  {{ content }}
+</div>
