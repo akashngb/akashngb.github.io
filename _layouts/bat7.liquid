@@ -1,251 +1,110 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Gotham — Batmobile</title>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/RGBELoader.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/VignetteShader.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/GammaCorrectionShader.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/objects/Reflector.js"></script>
-
 <style>
-* { margin: 0; padding: 0; box-sizing: border-box }
-body { background: #000; overflow: hidden }
-#three-container { width: 100vw; height: 100vh }
-#hint {
-  position: fixed;
-  bottom: 28px;
-  left: 50%;
-  transform: translateX(-50%);
-  font-family: 'Courier New', monospace;
-  font-size: 10px;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: #aaa;
-  opacity: 0.3;
-  pointer-events: none;
-  user-select: none;
-}
-</style>
-</head>
-<body>
-<div id="three-container"></div>
-<div id="hint">[ space ] wireframe</div>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: #fff; }
+  .post, article, .post-header, header, main, .page, #main, #content { 
+    margin: 0 !important; padding: 0 !important; 
+  }
 
+</style>
+
+
+<script type="text/javascript" src="https://static.sketchfab.com/api/sketchfab-viewer-1.12.1.js"></script>
+
+<div style="position: fixed; inset: 0; width: 100vw; height: 100vh; margin: 0; padding: 0;">
+
+
+
+  <iframe 
+    id="sketchfab-iframe"
+    title="batmobile armored" 
+    frameborder="0" 
+    allowfullscreen 
+    mozallowfullscreen="true" 
+    webkitallowfullscreen="true" 
+    allow="autoplay; fullscreen; xr-spatial-tracking" 
+    xr-spatial-tracking 
+    execution-while-out-of-viewport 
+    execution-while-not-rendered 
+    web-share 
+    allowtransparency="true"
+    style="position: absolute; inset: 0; width: 100%; height: 100%; border: none; display: block; background: transparent;">
+  </iframe>
+
+  <div style="
+    position: fixed;
+    right: 1.5rem;
+    top: 1.5rem;
+    z-index: 9999;
+    mix-blend-mode: difference;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 13px;
+    font-weight: 400;
+    color: #fff;
+    letter-spacing: 0.08em;
+  ">akash</div>
+
+  <div id="social-icons" style="
+    position: fixed;
+    right: 1.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.4rem;
+    mix-blend-mode: difference;
+  "></div>
+
+</div>
 
 <script>
-function init() {
-  function checkReady() {
-    // No more loading screen
-  }
-
-
-  // ─── SCENE ───────────────────────────────────────────────────────────────
-  const scene = new THREE.Scene()
-  scene.background = new THREE.Color(0x000000)
-
-  // ─── CAMERA ──────────────────────────────────────────────────────────────
-  const camera = new THREE.PerspectiveCamera(32, innerWidth / innerHeight, 0.1, 300)
-  camera.position.set(-4, 2, -7)
-
-  // ─── RENDERER ────────────────────────────────────────────────────────────
-  const renderer = new THREE.WebGLRenderer({ antialias: true })
-  renderer.setSize(innerWidth, innerHeight)
-  renderer.setPixelRatio(Math.min(devicePixelRatio, 2))
-  renderer.outputEncoding       = THREE.sRGBEncoding
-  renderer.toneMapping          = THREE.ACESFilmicToneMapping
-  renderer.toneMappingExposure  = 0.75
-  renderer.shadowMap.enabled    = true
-  renderer.shadowMap.type       = THREE.PCFSoftShadowMap
-  renderer.physicallyCorrectLights = true
-  document.getElementById('three-container').appendChild(renderer.domElement)
-
-  // ─── POST ────────────────────────────────────────────────────────────────
-  const composer = new THREE.EffectComposer(renderer)
-  composer.addPass(new THREE.RenderPass(scene, camera))
-  const bloom = new THREE.UnrealBloomPass(
-    new THREE.Vector2(innerWidth, innerHeight), 0.35, 0.45, 0.88
-  )
-  composer.addPass(bloom)
-  const vignette = new THREE.ShaderPass(THREE.VignetteShader)
-  vignette.uniforms['offset'].value   = 0.88
-  vignette.uniforms['darkness'].value = 1.55
-  composer.addPass(vignette)
-  composer.addPass(new THREE.ShaderPass(THREE.GammaCorrectionShader))
-
-  // ─── HDRI — real env from Poly Haven (CC0) ───────────────────────────────
-  // Other good Gotham-ish slugs to try (just swap the name):
-  //   shanghai_bund_1k           neon skyline
-  //   urban_alley_01_1k          dark back-alley
-  //   evening_road_01_1k         moody dusk road
-  //   autumn_crossing_1k         foggy bridge at dusk
-  // Drop any .hdr next to this HTML file and point to it here
-  const HDRI_URL = './env.hdr'
-
-  const pmrem = new THREE.PMREMGenerator(renderer)
-  pmrem.compileEquirectangularShader()
-
-  new THREE.RGBELoader().load(
-    HDRI_URL,
-    hdr => {
-      envTexture        = pmrem.fromEquirectangular(hdr).texture
-      scene.environment = envTexture
-      scene.background  = envTexture
-      hdr.dispose(); pmrem.dispose()
-      envLoaded = true; checkReady()
-    },
-    undefined,
-    err => {
-      console.warn('HDRI load failed:', err)
-      scene.background = new THREE.Color(0x060a0f)
-      envLoaded = true; checkReady()
-    }
-  )
-
-  // ─── LIGHTING ────────────────────────────────────────────────────────────
-  const key = new THREE.DirectionalLight(0xc8d8ff, 1.0)
-  key.position.set(4, 8, 3)
-  key.castShadow = true
-  key.shadow.mapSize.set(2048, 2048)
-  key.shadow.camera.near  = 1;  key.shadow.camera.far = 40
-  key.shadow.camera.left  = key.shadow.camera.bottom = -8
-  key.shadow.camera.right = key.shadow.camera.top    =  8
-  scene.add(key)
-  scene.add(new THREE.HemisphereLight(0x1a2030, 0x100808, 0.55))
-
-  // ─── WET FLOOR ───────────────────────────────────────────────────────────
-  const reflector = new THREE.Reflector(new THREE.PlaneGeometry(60, 60), {
-    textureWidth: 1024, textureHeight: 1024, color: 0x111118,
-  })
-  reflector.rotation.x = -Math.PI / 2
-  scene.add(reflector)
-
-  const asphaltMat = new THREE.MeshPhysicalMaterial({
-    color: 0x05080d, roughness: 0.08, metalness: 0,
-    transparent: true, opacity: 0.72,
-  })
-  const asphalt = new THREE.Mesh(new THREE.PlaneGeometry(60, 60), asphaltMat)
-  asphalt.rotation.x = -Math.PI / 2
-  asphalt.position.y = 0.003
-  scene.add(asphalt)
-
-  // ─── CONTROLS ────────────────────────────────────────────────────────────
-  const controls = new THREE.OrbitControls(camera, renderer.domElement)
-  controls.enableDamping   = true
-  controls.dampingFactor   = 0.09
-  controls.autoRotate      = true
-  controls.autoRotateSpeed = 0.1
-  controls.zoomSpeed       = 2
-  controls.target.set(0, 0.6, 0)
-
-  // ─── WIREFRAME MATS ──────────────────────────────────────────────────────
-  const whiteFillMat = new THREE.MeshBasicMaterial({
-    color: 0xffffff, polygonOffset: true,
-    polygonOffsetFactor: 1, polygonOffsetUnits: 1,
-  })
-  const wireLineMat = new THREE.MeshBasicMaterial({ color: 0x00e5ff, wireframe: true })
-
-  function attachWireOverlay(mesh) {
-    const w = new THREE.Mesh(mesh.geometry, wireLineMat)
-    w.userData.isWireOverlay = true
-    mesh.add(w)
-  }
-  function removeWireOverlays(root) {
-    root.traverse(obj => {
-      if (!obj.isMesh) return
-      obj.children.filter(c => c.userData.isWireOverlay).forEach(o => obj.remove(o))
-    })
-  }
-
-  // ─── CAR ─────────────────────────────────────────────────────────────────
-  new THREE.GLTFLoader().load('/assets/models/batmobile_armored.glb', gltf => {
-    const model = gltf.scene
-    loadedModel = model
-    model.traverse(o => {
-      if (!o.isMesh) return
-      o.castShadow = o.receiveShadow = true
-      const m = o.material
-      if (!m) return
-      if (m.transparent || (m.opacity != null && m.opacity < 0.95)) {
-        m.transmission = 0.7; m.roughness = 0.04; m.envMapIntensity = 3; return
-      }
-      if (m.metalness > 0.6) {
-        m.envMapIntensity = 2.5; m.roughness = Math.max(m.roughness, 0.15); return
-      }
-      m.clearcoat = 1.0; m.clearcoatRoughness = 0.03; m.envMapIntensity = 2.2
-    })
-    const box = new THREE.Box3().setFromObject(model)
-    model.position.sub(box.getCenter(new THREE.Vector3()))
-    model.position.y -= new THREE.Box3().setFromObject(model).min.y
-    scene.add(model)
-    modelLoaded = true
-    checkReady()
-  })
-
-  // ─── SPACE → WIREFRAME ───────────────────────────────────────────────────
-  window.addEventListener('keydown', e => {
-    if (e.code !== 'Space') return
-    isWireframe = !isWireframe
-
-    if (isWireframe) {
-      bloom.strength   = 1.0
-      scene.background = new THREE.Color(0x000000)
-      scene.fog        = new THREE.FogExp2(0x000000, 0.018)
-      reflector.visible = false
-      asphalt.material.color.set(0x111111)
-      asphalt.material.opacity = 1
-      if (loadedModel) {
-        loadedModel.traverse(obj => {
-          if (!obj.isMesh || obj.userData.isWireOverlay) return
-          if (!obj.userData.origMat) obj.userData.origMat = obj.material
-          obj.material = whiteFillMat
-          attachWireOverlay(obj)
-        })
-      }
-    } else {
-      bloom.strength   = 0.35
-      scene.background = envTexture || new THREE.Color(0x000000)
-      scene.fog        = null
-      reflector.visible = true
-      asphalt.material.color.set(0x05080d)
-      asphalt.material.opacity = 0.72
-      if (loadedModel) {
-        loadedModel.traverse(obj => {
-          if (!obj.isMesh || obj.userData.isWireOverlay) return
-          if (obj.userData.origMat) obj.material = obj.userData.origMat
-        })
-        removeWireOverlays(loadedModel)
-      }
-    }
-  })
-
-  // ─── RENDER LOOP ─────────────────────────────────────────────────────────
-  function animate() {
-    requestAnimationFrame(animate)
-    controls.update()
-    composer.render()
-  }
-  animate()
-
-  window.addEventListener('resize', () => {
-    camera.aspect = innerWidth / innerHeight
-    camera.updateProjectionMatrix()
-    renderer.setSize(innerWidth, innerHeight)
-    composer.setSize(innerWidth, innerHeight)
-  })
-}
-init()
+  (function() {
+    var icons = document.getElementById('social-icons');
+    icons.innerHTML = `
+      <a href="https://github.com/akashngb" target="_blank" style="display: flex; align-items: center; justify-content: center; opacity: 0.85; transition: transform 0.2s ease, opacity 0.2s ease;" onmouseover="this.style.transform='scale(1.15) translateX(-3px)'; this.style.opacity='1'" onmouseout="this.style.transform='scale(1) translateX(0)'; this.style.opacity='0.85'">
+        <img src="/assets/icons/github-animated.svg" alt="GitHub" style="width: 38px; height: 38px;">
+      </a>
+      <a href="https://www.linkedin.com/in/akash-nagabhirava-164155327/" target="_blank" style="display: flex; align-items: center; justify-content: center; opacity: 0.85; transition: transform 0.2s ease, opacity 0.2s ease;" onmouseover="this.style.transform='scale(1.15) translateX(-3px)'; this.style.opacity='1'" onmouseout="this.style.transform='scale(1) translateX(0)'; this.style.opacity='0.85'">
+        <img src="/assets/icons/linkedin-animated.svg" alt="LinkedIn" style="width: 38px; height: 38px;">
+      </a>
+      <a href="https://devpost.com/akash30n" target="_blank" style="display: flex; align-items: center; justify-content: center; opacity: 0.85; transition: transform 0.2s ease, opacity 0.2s ease;" onmouseover="this.style.transform='scale(1.15) translateX(-3px)'; this.style.opacity='1'" onmouseout="this.style.transform='scale(1) translateX(0)'; this.style.opacity='0.85'">
+        <img src="/assets/icons/devpost-animated.svg" alt="Devpost" style="width: 38px; height: 38px;">
+      </a>
+      <a href="mailto:akash.nagabhirava@mail.utoronto.ca" style="display: flex; align-items: center; justify-content: center; opacity: 0.85; transition: transform 0.2s ease, opacity 0.2s ease;" onmouseover="this.style.transform='scale(1.15) translateX(-3px)'; this.style.opacity='1'" onmouseout="this.style.transform='scale(1) translateX(0)'; this.style.opacity='0.85'">
+        <img src="/assets/icons/email-animated.svg" alt="Email" style="width: 38px; height: 38px;">
+      </a>
+    `;
+  })();
 </script>
-</body>
-</html>
+
+<script>
+  (function() {
+    var sketchfabApi = null;
+    var wireframeOn = false;
+
+    const iframe = document.getElementById('sketchfab-iframe');
+    const client = new Sketchfab(iframe);
+    client.init('sBv577Vdl9lrcvyFT3vbNvkGKml', {
+      success: function(api) {
+        sketchfabApi = api;
+        api.start(function() {
+          api.setUserInteraction(true);
+        });
+      },
+      error: function() { console.error('Sketchfab init failed'); },
+      autostart:1, preload:1, transparent:1,
+      ui_animations:0, ui_infos:0, ui_stop:0, ui_inspector:0,
+      ui_watermark_link:0, ui_watermark:0, ui_hint:0, ui_ar:0,
+      ui_help:0, ui_settings:0, ui_vr:0, ui_fullscreen:0,
+      ui_annotations:0, ui_downloads:0, ui_share:0,
+    });
+
+    window.addEventListener('keydown', function(e) {
+      if (e.code === 'Space' && sketchfabApi) {
+        e.preventDefault();
+        wireframeOn = !wireframeOn;
+        sketchfabApi.setWireframe(wireframeOn, function() {});
+      }
+    });
+  })();
+</script>
