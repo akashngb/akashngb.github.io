@@ -1,7 +1,6 @@
 /* TD Builders Club — minimal deck runtime.
    Keyboard:  ← →  Space  PgUp/PgDn  Home/End   nav
-              S   speaker notes        D  light/dark
-              F   fullscreen           P  print (PDF export)
+              D  light/dark         F  fullscreen
    URL hash:  #5  jumps to slide 5.
 */
 (function () {
@@ -11,8 +10,6 @@
   if (!slides.length) return;
 
   const posEl = document.querySelector('.deck-pos');
-  const notesTiming = document.querySelector('.deck-notes .timing');
-  const notesBody = document.querySelector('.deck-notes .notes-body');
 
   let idx = 0;
 
@@ -21,13 +18,6 @@
   function render() {
     slides.forEach((s, i) => s.classList.toggle('is-active', i === idx));
     if (posEl) posEl.textContent = String(idx + 1).padStart(2, '0') + ' / ' + String(slides.length).padStart(2, '0');
-    const active = slides[idx];
-    const notes = active.querySelector('.notes');
-    if (notesBody) notesBody.innerHTML = notes ? notes.innerHTML : '<em>No speaker notes for this slide.</em>';
-    if (notesTiming) {
-      const t = active.dataset.timing;
-      notesTiming.textContent = t ? ('Timing — ' + t) : '';
-    }
     if (location.hash !== '#' + (idx + 1)) {
       history.replaceState(null, '', '#' + (idx + 1));
     }
@@ -44,8 +34,6 @@
       case 'ArrowLeft':  case 'PageUp':            prev(); e.preventDefault(); break;
       case 'Home': go(0); e.preventDefault(); break;
       case 'End':  go(slides.length - 1); e.preventDefault(); break;
-      case 's': case 'S':
-        document.body.classList.toggle('show-notes'); e.preventDefault(); break;
       case 'd': case 'D': {
         const r = document.documentElement;
         r.dataset.theme = r.dataset.theme === 'dark' ? 'light' : 'dark';
@@ -56,13 +44,12 @@
         if (document.fullscreenElement) document.exitFullscreen();
         else document.documentElement.requestFullscreen && document.documentElement.requestFullscreen();
         e.preventDefault(); break;
-      case 'p': case 'P': window.print(); e.preventDefault(); break;
     }
   });
 
-  // Tap/click left half → prev, right half → next. Skip when notes overlay open.
+  // Tap/click left half → prev, right half → next.
   document.addEventListener('click', function (e) {
-    if (e.target.closest('a,button,.deck-notes')) return;
+    if (e.target.closest('a,button')) return;
     if (e.clientX < window.innerWidth * 0.35) prev();
     else if (e.clientX > window.innerWidth * 0.65) next();
   });
