@@ -1,5 +1,5 @@
 ---
-layout: about
+layout: lovable
 title: about
 permalink: /lovable/
 #subtitle: "<span id='live-age'></span> suns"
